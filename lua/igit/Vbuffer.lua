@@ -7,14 +7,14 @@ M.buffers = {}
 setmetatable(M, {__call = function(cls, ...) return cls.get_or_new(...) end})
 
 function M.get_or_new(vcs_root, filetype, mappings, reload_fn)
-    vim.cmd(string.format('tab drop %s-%s', utils.basename(vcs_root), filetype))
+    vim.cmd(('tab drop %s-%s'):format(utils.basename(vcs_root), filetype))
     local id = vim.api.nvim_get_current_buf()
     if M.buffers[id] == nil then
         local self = setmetatable({}, M)
         M.buffers[id] = self
-        vim.cmd(string.format(
-                    'autocmd BufDelete <buffer> ++once lua require"igit.Vbuffer".buffers[%d]=nil',
-                    id))
+        vim.cmd(
+            ('autocmd BufDelete <buffer> ++once lua require"igit.Vbuffer".buffers[%d]=nil'):format(
+                id))
 
         vim.validate({
             vcs_root = {vcs_root, 'string'},
@@ -45,8 +45,8 @@ function M:mapfn(mappings)
     self.mapping_handles = self.mapping_handles or {}
     for key, fn in pairs(mappings) do
         self.mapping_handles[key] = fn
-        vim.api.nvim_buf_set_keymap(0, 'n', key, string.format(
-                                        '<cmd>lua require("igit.Vbuffer").buffers[%d].mapping_handles["%s"]()<cr>',
+        vim.api.nvim_buf_set_keymap(0, 'n', key,
+                                    ('<cmd>lua require("igit.Vbuffer").buffers[%d].mapping_handles["%s"]()<cr>'):format(
                                         self.id, key:gsub('^<', '<lt>')), {})
     end
 end

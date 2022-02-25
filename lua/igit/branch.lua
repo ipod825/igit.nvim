@@ -7,6 +7,8 @@ function M.setup(options)
     M.options = vim.tbl_deep_extend('force', M.options, options)
 end
 
+function M.parse_line() vim.fn.getline('.') end
+
 function M.switch()
     vim.fn.jobstart(git.checkout(vim.fn.getline('.')),
                     {on_exit = function() Vbuffer.current():reload() end})
