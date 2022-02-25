@@ -7,10 +7,16 @@ function M.setup(options)
     M.options = vim.tbl_deep_extend('force', M.options, options)
 end
 
-function M.parse_line() vim.fn.getline('.') end
+function M.parse_line()
+    local res = {is_current = false, branch = nil}
+    local line = vim.fn.getline('.')
+    res.is_current = line:find_str('%s*(%*?)') ~= ''
+    res.branch = line:find_str('%s([^%s].-)%s*$')
+    return res
+end
 
 function M.switch()
-    vim.fn.jobstart(git.checkout(vim.fn.getline('.')),
+    vim.fn.jobstart(git.checkout(M.parse_line().branch),
                     {on_exit = function() Vbuffer.current():reload() end})
 end
 

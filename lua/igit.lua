@@ -1,4 +1,5 @@
 local M = {}
+require('igit.std_extension')
 local branch = require('igit.branch')
 local log = require('igit.log')
 
