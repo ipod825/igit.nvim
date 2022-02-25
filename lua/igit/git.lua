@@ -2,15 +2,11 @@ local M = {}
 local utils = require('igit.utils')
 
 function M.Git(cmd)
-    local git_dir = vim.b.git_dir or utils.find_directory()
+    local git_dir = vim.b.vcs_root or M.find_root()
     return git_dir and string.format('git -C %s %s', git_dir, cmd) or nil
 end
 
-function M.find_root() return vim.b.git_dir or utils.find_directory('.git') end
-function M.find_and_pin_root()
-    if vim.b.git_dir == nil then vim.b.git_dir = utils.find_directory('.git') end
-    return vim.b.git_dir
-end
+function M.find_root() return vim.b.vcs_root or utils.find_directory('.git') end
 
 local meta = {
     __index = function(_, cmd)
