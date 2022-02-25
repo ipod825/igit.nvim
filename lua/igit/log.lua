@@ -34,7 +34,15 @@ end
 function M.open()
     local git_root = git.find_root()
     if git_root then
-        Vbuffer.get_or_new(git_root, 'log', M.options.mapping, M.reload_fn)
+        Vbuffer.get_or_new({
+            vcs_root = git_root,
+            filetype = 'log',
+            mappings = M.options.mapping,
+            reload_fn = function()
+                return git.log(table.concat(M.options.args, ' '),
+                               '--pretty=' .. M.options.pretty)
+            end
+        })
     end
 end
 

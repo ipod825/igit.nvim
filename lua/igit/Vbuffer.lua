@@ -6,8 +6,9 @@ M.buffers = {}
 
 setmetatable(M, {__call = function(cls, ...) return cls.get_or_new(...) end})
 
-function M.get_or_new(vcs_root, filetype, mappings, reload_fn)
-    vim.cmd(('tab drop %s-%s'):format(utils.basename(vcs_root), filetype))
+function M.get_or_new(opts)
+    vim.cmd(('tab drop %s-%s'):format(utils.basename(opts.vcs_root),
+                                      opts.filetype))
     local id = vim.api.nvim_get_current_buf()
     if M.buffers[id] == nil then
         local self = setmetatable({}, M)
@@ -17,19 +18,19 @@ function M.get_or_new(vcs_root, filetype, mappings, reload_fn)
                 id))
 
         vim.validate({
-            vcs_root = {vcs_root, 'string'},
-            filetype = {filetype, 'string'},
-            mappings = {mappings, 'table'},
-            reload_fn = {reload_fn, 'function'}
+            vcs_root = {opts.vcs_root, 'string'},
+            filetype = {opts.filetype, 'string'},
+            mappings = {opts.mappings, 'table'},
+            reload_fn = {opts.reload_fn, 'function'}
         })
         self.id = id
-        vim.bo.filetype = 'igit-' .. filetype
+        vim.bo.filetype = 'igit-' .. opts.filetype
         vim.bo.modifiable = false
         vim.bo.buftype = 'nofile'
-        vim.b.vcs_root = vcs_root
-        self.reload_fn = reload_fn
+        vim.b.vcs_root = opts.vcs_root
+        self.reload_fn = opts.reload_fn
 
-        self:mapfn(mappings)
+        self:mapfn(opts.mappings)
     end
 
     M.buffers[id]:reload()
@@ -73,23 +74,16 @@ function M:restore_view()
 end
 
 function M:reload()
-    local lines = {}
     self:save_view()
     self:clear()
+    local jhandles = utils.job_handles({
+        stdout_flush = function(lines) self:append(lines) end,
+        post_exit = function() self:restore_view() end
+    })
     vim.fn.jobstart(self.reload_fn(), {
-        on_stdout = function(_, data)
-            for _, s in ipairs(vim.tbl_flatten(data)) do
-                if #s > 0 then table.insert(lines, s) end
-            end
-            if #lines > 5000 then
-                self:append(lines)
-                lines = {}
-            end
-        end,
-        on_exit = function(_)
-            self:append(lines)
-            self:restore_view()
-        end
+        on_stdout = jhandles.on_stdout,
+        on_stderr = jhandles.on_stderr,
+        on_exit = jhandles.on_exit
     })
 end
 

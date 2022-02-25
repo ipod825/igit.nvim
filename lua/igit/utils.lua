@@ -30,4 +30,42 @@ function M.basename(str)
     return name
 end
 
+function M.job_handles(opts)
+    vim.validate({
+        stdout_flush = {opts.stdout_flush, 'function', true},
+        post_exit = {opts.post_exit, 'function', true}
+    })
+    local do_nothing = function() end
+    opts.stdout_flush = opts.stdout_flush or do_nothing
+    opts.post_exit = opts.post_exit or do_nothing
+
+    local stdout_lines = {}
+    local on_stdout = function(_, data)
+        for _, s in ipairs(vim.tbl_flatten(data)) do
+            if #s > 0 then table.insert(stdout_lines, s) end
+        end
+        if #stdout_lines > 5000 then
+            opts.stdout_flush(stdout_lines)
+            stdout_lines = {}
+        end
+    end
+
+    local stderr_lines = {};
+    local on_stderr = function(_, data)
+        for _, s in ipairs(vim.tbl_flatten(data)) do
+            if #s > 0 then table.insert(stderr_lines, s) end
+        end
+    end
+
+    local on_exit = function(_, exit_code)
+        if exit_code ~= 0 then
+            vim.notify(table.concat(stderr_lines, '\n'))
+            return
+        end
+        if #stdout_lines > 0 then opts.stdout_flush(stdout_lines) end
+        opts.post_exit()
+    end
+    return {on_stdout = on_stdout, on_stderr = on_stderr, on_exit = on_exit}
+end
+
 return M
