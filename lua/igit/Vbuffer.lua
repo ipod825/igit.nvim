@@ -25,11 +25,11 @@ function M.get_or_new(opts)
         vim.cmd(
             ('autocmd BufDelete <buffer> ++once lua require"igit.Vbuffer".buffers[%d]=nil'):format(
                 id))
-        if opts.auto_reload then
-            vim.cmd(
-                ('autocmd BufEnter <buffer> lua require"igit.Vbuffer".buffers[%d]:reload()'):format(
-                    id))
-        end
+        -- if opts.auto_reload then
+        --     vim.cmd(
+        --         ('autocmd BufEnter <buffer> lua require"igit.Vbuffer".buffers[%d]:reload()'):format(
+        --             id))
+        -- end
 
         self.id = id
         vim.bo.filetype = 'igit-' .. opts.filetype

@@ -21,12 +21,14 @@ function M.find_directory(anchor)
 end
 
 function M.dirname(str)
-    local name = string.gsub(str, "(.*)/(.*)", "%1")
+    vim.validate({std = {str, 'string'}})
+    local name = str:gsub("(.*)/(.*)", "%1")
     return name
 end
 
 function M.basename(str)
-    local name = string.gsub(str, "(.*/)(.*)", "%2")
+    vim.validate({std = {str, 'string'}})
+    local name = str:gsub("(.*/)(.*)", "%2")
     return name
 end
 
