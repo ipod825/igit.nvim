@@ -2,7 +2,6 @@ local M = {}
 local git = require('igit.git')
 local Vbuffer = require('igit.Vbuffer')
 local vutils = require('igit.vutils')
-local md5 = require('igit.md5')
 
 function M.setup(options)
     M.options = M.options or {
@@ -26,8 +25,10 @@ end
 
 function M.commit_submit(ori_hex, amend)
     local commit_msg = non_commented_message_in_commit()
+    local commit_msg_changed =
+        git.file_check_sum(git.commit_message_file_path()) ~= ori_hex
     if amend then
-        if md5.sumhexa(commit_msg) ~= ori_hex or 'n' ~= vim.fn.input(
+        if commit_msg_changed or 'n' ~= vim.fn.input(
             {
                 prompt = 'Commit message not changed. Are you sure to amend y/n? ',
                 default = 'y'
@@ -35,7 +36,7 @@ function M.commit_submit(ori_hex, amend)
             vutils.jobsyncstart(git.commit(
                                     ('--amend -m "%s"'):format(commit_msg)))
         end
-    elseif md5.sumhexa(commit_msg) ~= ori_hex then
+    elseif commit_msg_changed then
         vutils.jobsyncstart(git.commit(('-m "%s"'):format(commit_msg)))
     end
 end
@@ -44,13 +45,14 @@ function M.commit(amend)
     local prepare_commit_file_cmd = 'GIT_EDITOR=false git commit ' ..
                                         (amend and '--amend' or '')
     vutils.jobsyncstart(prepare_commit_file_cmd, {on_exit = vutils.nop})
-    vim.cmd('edit ' .. git.commit_message_file_path())
+    local commit_message_file_path = git.commit_message_file_path()
+    vim.cmd('edit ' .. commit_message_file_path)
     vim.bo.bufhidden = 'wipe'
     vim.cmd('setlocal bufhidden=wipe')
-    local hex = md5.sumhexa(non_commented_message_in_commit())
     vim.cmd(
         ('autocmd bufunload <buffer> :lua require"igit.status".commit_submit("%s", %s)'):format(
-            hex, amend and 'true' or 'false'))
+            git.file_check_sum(commit_message_file_path),
+            amend and 'true' or 'false'))
 end
 
 local change_action = function(action)
