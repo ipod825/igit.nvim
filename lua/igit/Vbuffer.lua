@@ -54,11 +54,15 @@ end
 
 function M:mapfn(mappings)
     self.mapping_handles = self.mapping_handles or {}
-    for key, fn in pairs(mappings) do
-        self.mapping_handles[key] = fn
-        vim.api.nvim_buf_set_keymap(0, 'n', key,
-                                    ('<cmd>lua require("igit.global").buffers[%d].mapping_handles["%s"]()<cr>'):format(
-                                        self.id, key:gsub('^<', '<lt>')), {})
+    for mode, mode_mappings in pairs(mappings) do
+        self.mapping_handles[mode] = self.mapping_handles[mode] or {}
+        for key, fn in pairs(mode_mappings) do
+            self.mapping_handles[mode][key] = fn
+            vim.api.nvim_buf_set_keymap(0, mode, key,
+                                        ('<cmd>lua require("igit.global").buffers[%d].mapping_handles[%s]["%s"]()<cr>'):format(
+                                            self.id, mode,
+                                            key:gsub('^<', '<lt>')), {})
+        end
     end
 end
 

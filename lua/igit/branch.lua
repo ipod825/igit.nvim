@@ -4,7 +4,8 @@ local Vbuffer = require('igit.Vbuffer')
 local vutils = require('igit.vutils')
 
 function M.setup(options)
-    M.options = M.options or {mapping = {['<cr>'] = M.switch}, args = {'-v'}}
+    M.options = M.options or
+                    {mapping = {n = {['<cr>'] = M.switch}}, args = {'-v'}}
     M.options = vim.tbl_deep_extend('force', M.options, options)
 end
 

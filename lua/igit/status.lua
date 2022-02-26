@@ -6,11 +6,13 @@ local vutils = require('igit.vutils')
 function M.setup(options)
     M.options = M.options or {
         mapping = {
-            ['H'] = M.stage_change,
-            ['L'] = M.unstage_change,
-            ['X'] = M.discard_change,
-            ['cc'] = M.commit,
-            ['ca'] = function() M.commit(true) end
+            n = {
+                ['H'] = M.stage_change,
+                ['L'] = M.unstage_change,
+                ['X'] = M.discard_change,
+                ['cc'] = M.commit,
+                ['ca'] = function() M.commit(true) end
+            }
         },
         args = {'-s'}
     }

@@ -54,4 +54,16 @@ function M.jobsyncstart(cmd, opts)
     return jid
 end
 
+function M.visual_range()
+    local row_beg, row_end, col_beg, col_end
+    _, row_beg, col_beg = unpack(vim.fn.getpos("'<"))
+    _, row_end, col_end = unpack(vim.fn.getpos("'>"))
+    return {
+        row_beg = row_beg,
+        col_beg = col_beg,
+        row_end = row_end,
+        col_end = col_end
+    }
+end
+
 return M
