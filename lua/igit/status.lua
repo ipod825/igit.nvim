@@ -16,9 +16,7 @@ function M.open()
             vcs_root = git_root,
             filetype = 'status',
             mappings = M.options.mapping,
-            reload_fn = function()
-                return git.status(table.concat(M.options.args, ' '))
-            end
+            reload_fn = function() return git.status(M.options.args) end
 
         })
     end

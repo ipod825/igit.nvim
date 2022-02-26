@@ -39,8 +39,7 @@ function M.open()
             filetype = 'log',
             mappings = M.options.mapping,
             reload_fn = function()
-                return git.log(table.concat(M.options.args, ' '),
-                               '--pretty=' .. M.options.pretty)
+                return git.log(M.options.args, '--pretty=' .. M.options.pretty)
             end
         })
     end

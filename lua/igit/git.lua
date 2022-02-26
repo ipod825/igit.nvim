@@ -13,7 +13,15 @@ local meta = {
         local git_cmd = M.Git(('%s'):format(cmd))
         if git_cmd then
             return function(...)
-                return ('%s %s'):format(git_cmd, table.concat({...}, ' '))
+                local args = {}
+                for _, v in ipairs({...}) do
+                    if vim.tbl_islist(v) then
+                        vim.list_extend(args, v)
+                    else
+                        args[#args + 1] = v
+                    end
+                end
+                return ('%s %s'):format(git_cmd, table.concat(args, ' '))
             end
         end
 

@@ -34,9 +34,7 @@ function M.open()
             vcs_root = git_root,
             filetype = 'branch',
             mappings = M.options.mapping,
-            reload_fn = function()
-                return git.branch(table.concat(M.options.args, ' '))
-            end
+            reload_fn = function() return git.branch(M.options.args) end
         })
     end
 end
