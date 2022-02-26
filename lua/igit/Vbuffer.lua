@@ -76,14 +76,9 @@ end
 function M:reload()
     self:save_view()
     self:clear()
-    local jhandles = utils.job_handles({
+    utils.jobstart(self.reload_fn(), {
         stdout_flush = function(lines) self:append(lines) end,
         post_exit = function() self:restore_view() end
-    })
-    vim.fn.jobstart(self.reload_fn(), {
-        on_stdout = jhandles.on_stdout,
-        on_stderr = jhandles.on_stderr,
-        on_exit = jhandles.on_exit
     })
 end
 

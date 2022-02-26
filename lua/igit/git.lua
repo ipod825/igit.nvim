@@ -8,6 +8,27 @@ end
 
 function M.find_root() return vim.b.vcs_root or utils.find_directory('.git') end
 
+function M.status_porcelain()
+    local lines = {}
+    utils.jobsyncstart(M.status('--porcelain'), {
+        stdout_flush = function(new_lines)
+            vim.list_extend(lines, new_lines)
+        end
+    })
+
+    local res = {}
+    for _, line in ipairs(lines) do
+        for state, filename in line:gmatch('(%s*[^%s]+)%s+([^%s]+)') do
+            res[filename] = {
+                index = state:sub(1, 1),
+                worktree = state:sub(2, 2)
+            }
+            break
+        end
+    end
+    return res
+end
+
 local meta = {
     __index = function(_, cmd)
         local git_cmd = M.Git(('%s'):format(cmd))

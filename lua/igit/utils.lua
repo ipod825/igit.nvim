@@ -30,8 +30,10 @@ function M.basename(str)
     return name
 end
 
-function M.job_handles(opts)
+function M.jobstart(cmd, opts)
+    opts = opts or {}
     vim.validate({
+        cmd = {cmd, 'string'},
         stdout_flush = {opts.stdout_flush, 'function', true},
         post_exit = {opts.post_exit, 'function', true}
     })
@@ -65,7 +67,18 @@ function M.job_handles(opts)
         if #stdout_lines > 0 then opts.stdout_flush(stdout_lines) end
         opts.post_exit()
     end
-    return {on_stdout = on_stdout, on_stderr = on_stderr, on_exit = on_exit}
+
+    return vim.fn.jobstart(cmd, {
+        on_stdout = on_stdout,
+        on_stderr = on_stderr,
+        on_exit = on_exit
+    })
+end
+
+function M.jobsyncstart(cmd, opts)
+    local jid = M.jobstart(cmd, opts)
+    vim.fn.jobwait({jid})
+    return jid
 end
 
 return M

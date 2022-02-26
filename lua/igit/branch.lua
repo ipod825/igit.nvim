@@ -17,14 +17,8 @@ function M.parse_line()
 end
 
 function M.switch()
-    local jhandles = utils.job_handles({
-        post_exit = function() Vbuffer.current():reload() end
-    })
-
-    vim.fn.jobstart(git.checkout(M.parse_line().branch), {
-        on_stderr = jhandles.on_stderr,
-        on_exit = jhandles.on_exit
-    })
+    utils.jobstart(git.checkout(M.parse_line().branch),
+                   {post_exit = function() Vbuffer.current():reload() end})
 end
 
 function M.open()
