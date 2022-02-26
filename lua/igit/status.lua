@@ -2,7 +2,7 @@ local M = {}
 local git = require('igit.git')
 local Vbuffer = require('igit.Vbuffer')
 local vutils = require('igit.vutils')
-local utils = require('igit.utils')
+local global = require('igit.global')
 
 function M.setup(options)
     M.options = M.options or {
@@ -21,28 +21,13 @@ function M.setup(options)
     M.options = vim.tbl_deep_extend('force', M.options, options)
 end
 
-local non_commented_message_in_commit = function()
+function M.commit_submit(amend)
+    if global.pending_commit[git.find_root()] == nil then return end
+    global.pending_commit[git.find_root()] = nil
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
                                  vim.fn.readfile(git.commit_message_file_path()))
-    return table.concat(lines, '\n')
-end
-
-function M.commit_submit(ori_hex, amend)
-    local commit_msg = non_commented_message_in_commit()
-    local commit_msg_changed =
-        git.file_check_sum(git.commit_message_file_path()) ~= ori_hex
-    if amend then
-        if commit_msg_changed or 'n' ~= vim.fn.input(
-            {
-                prompt = 'Commit message not changed. Are you sure to amend y/n? ',
-                default = 'y'
-            }) then
-            vutils.jobsyncstart(git.commit(
-                                    ('--amend -m "%s"'):format(commit_msg)))
-        end
-    elseif commit_msg_changed then
-        vutils.jobsyncstart(git.commit(('-m "%s"'):format(commit_msg)))
-    end
+    vutils.jobsyncstart(git.commit(('%s -m "%s"'):format(amend, table.concat(
+                                                             lines, '\n'))))
 end
 
 function M.commit(amend)
@@ -53,10 +38,13 @@ function M.commit(amend)
     vim.cmd('edit ' .. commit_message_file_path)
     vim.bo.bufhidden = 'wipe'
     vim.cmd('setlocal bufhidden=wipe')
+    global.pending_commit = global.pending_commit or {}
     vim.cmd(
-        ('autocmd bufunload <buffer> :lua require"igit.status".commit_submit("%s", %s)'):format(
-            git.file_check_sum(commit_message_file_path),
-            amend and 'true' or 'false'))
+        ('autocmd BufWritePre <buffer> ++once :lua require"igit.global".pending_commit["%s"]=true'):format(
+            git.find_root()))
+    vim.cmd(
+        ('autocmd Bufunload <buffer> :lua require"igit.status".commit_submit("%s")'):format(
+            amend and '--amend' or ''))
 end
 
 local change_action = function(action)
@@ -69,8 +57,9 @@ local change_action = function(action)
         end
         return false
     end
-    local range = vutils.visual_range()
-    for i in utils.range(range.row_beg, range.row_end) do do_one_line(i) end
+    -- local range = vutils.visual_range()
+    -- for i in utils.range(range.row_beg, range.row_end) do do_one_line(i) end
+    do_one_line('.')
     Vbuffer.current():reload()
 end
 
