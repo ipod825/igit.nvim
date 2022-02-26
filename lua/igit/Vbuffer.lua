@@ -11,18 +11,25 @@ function M.get_or_new(opts)
                                       opts.filetype))
     local id = vim.api.nvim_get_current_buf()
     if M.buffers[id] == nil then
+        vim.validate({
+            vcs_root = {opts.vcs_root, 'string'},
+            filetype = {opts.filetype, 'string'},
+            mappings = {opts.mappings, 'table'},
+            reload_fn = {opts.reload_fn, 'function'},
+            auto_reload = {opts.auto_reload, 'boolean', true}
+        })
+
         local self = setmetatable({}, M)
         M.buffers[id] = self
         vim.cmd(
             ('autocmd BufDelete <buffer> ++once lua require"igit.Vbuffer".buffers[%d]=nil'):format(
                 id))
+        if opts.auto_reload then
+            vim.cmd(
+                ('autocmd BufEnter <buffer> lua require"igit.Vbuffer".buffers[%d]:reload()'):format(
+                    id))
+        end
 
-        vim.validate({
-            vcs_root = {opts.vcs_root, 'string'},
-            filetype = {opts.filetype, 'string'},
-            mappings = {opts.mappings, 'table'},
-            reload_fn = {opts.reload_fn, 'function'}
-        })
         self.id = id
         vim.bo.filetype = 'igit-' .. opts.filetype
         vim.bo.modifiable = false
