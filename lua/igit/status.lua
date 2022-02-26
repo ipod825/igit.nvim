@@ -2,6 +2,7 @@ local M = {}
 local git = require('igit.git')
 local Vbuffer = require('igit.Vbuffer')
 local vutils = require('igit.vutils')
+local utils = require('igit.utils')
 
 function M.setup(options)
     M.options = M.options or {
@@ -12,7 +13,8 @@ function M.setup(options)
                 ['X'] = M.discard_change,
                 ['cc'] = M.commit,
                 ['ca'] = function() M.commit(true) end
-            }
+            },
+            v = {['H'] = M.stage_change, ['L'] = M.unstage_change}
         },
         args = {'-s'}
     }
@@ -59,15 +61,17 @@ end
 
 local change_action = function(action)
     local status = git.status_porcelain()
-    local line = M.parse_line()
-    if status[line.filepath] then
-        vutils.jobstart(action(line.filepath),
-                        {post_exit = function()
-            Vbuffer.current():reload()
-        end})
-        return true
+    local do_one_line = function(line_nr)
+        local line = M.parse_line(line_nr)
+        if status[line.filepath] then
+            vutils.jobsyncstart(action(line.filepath))
+            return true
+        end
+        return false
     end
-    return false
+    local range = vutils.visual_range()
+    for i in utils.range(range.row_beg, range.row_end) do do_one_line(i) end
+    Vbuffer.current():reload()
 end
 
 function M.discard_change()
@@ -86,9 +90,10 @@ function M.unstage_change()
     end
 end
 
-function M.parse_line()
+function M.parse_line(line_nr)
+    line_nr = line_nr or '.'
     local res = {}
-    local line = vim.fn.getline('.')
+    local line = vim.fn.getline(line_nr)
     res.filepath = line:find_str('[^%s]+%s+(.+)$')
     return res
 end
