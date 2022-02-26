@@ -53,7 +53,7 @@ function M.commit(amend)
             hex, amend and 'true' or 'false'))
 end
 
-function M.change_action(action)
+local change_action = function(action)
     local status = git.status_porcelain()
     local line = M.parse_line()
     if status[line.filepath] then
@@ -67,17 +67,17 @@ function M.change_action(action)
 end
 
 function M.discard_change()
-    M.change_action(function(path) return git.restore(path) end)
+    change_action(function(path) return git.restore(path) end)
 end
 
 function M.stage_change()
-    if M.change_action(function(path) return git.add(path) end) then
+    if change_action(function(path) return git.add(path) end) then
         vim.cmd('normal! j')
     end
 end
 
 function M.unstage_change()
-    if M.change_action(function(path) return git.restore('--staged', path) end) then
+    if change_action(function(path) return git.restore('--staged', path) end) then
         vim.cmd('normal! j')
     end
 end

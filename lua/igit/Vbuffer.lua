@@ -1,9 +1,9 @@
 local M = {}
 local utils = require('igit.utils')
 local vutils = require('igit.vutils')
+local global = require('igit.global')
 
 M.__index = M
-M.buffers = {}
 
 setmetatable(M, {__call = function(cls, ...) return cls.get_or_new(...) end})
 
@@ -11,7 +11,8 @@ function M.get_or_new(opts)
     vim.cmd(('tab drop %s-%s'):format(utils.basename(opts.vcs_root),
                                       opts.filetype))
     local id = vim.api.nvim_get_current_buf()
-    if M.buffers[id] == nil then
+    global.buffers = global.buffers or {}
+    if global.buffers[id] == nil then
         vim.validate({
             vcs_root = {opts.vcs_root, 'string'},
             filetype = {opts.filetype, 'string'},
@@ -21,19 +22,20 @@ function M.get_or_new(opts)
         })
 
         local self = setmetatable({}, M)
-        M.buffers[id] = self
+        global.buffers[id] = self
         vim.cmd(
-            ('autocmd BufDelete <buffer> ++once lua require"igit.Vbuffer".buffers[%d]=nil'):format(
+            ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
                 id))
-        -- if opts.auto_reload then
-        --     vim.cmd(
-        --         ('autocmd BufEnter <buffer> lua require"igit.Vbuffer".buffers[%d]:reload()'):format(
-        --             id))
-        -- end
+        if opts.auto_reload then
+            vim.cmd(
+                ('autocmd BufEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
+                    id))
+        end
 
         self.id = id
         vim.bo.filetype = 'igit-' .. opts.filetype
         vim.bo.modifiable = false
+        vim.bo.bufhidden = 'hide'
         vim.bo.buftype = 'nofile'
         vim.b.vcs_root = opts.vcs_root
         self.reload_fn = opts.reload_fn
@@ -41,13 +43,13 @@ function M.get_or_new(opts)
         self:mapfn(opts.mappings)
     end
 
-    M.buffers[id]:reload()
-    return M.buffers[id]
+    global.buffers[id]:reload()
+    return global.buffers[id]
 end
 
 function M.current()
     local id = vim.api.nvim_get_current_buf()
-    return M.buffers[id]
+    return global.buffers[id]
 end
 
 function M:mapfn(mappings)
@@ -55,7 +57,7 @@ function M:mapfn(mappings)
     for key, fn in pairs(mappings) do
         self.mapping_handles[key] = fn
         vim.api.nvim_buf_set_keymap(0, 'n', key,
-                                    ('<cmd>lua require("igit.Vbuffer").buffers[%d].mapping_handles["%s"]()<cr>'):format(
+                                    ('<cmd>lua require("igit.global").buffers[%d].mapping_handles["%s"]()<cr>'):format(
                                         self.id, key:gsub('^<', '<lt>')), {})
     end
 end
@@ -77,8 +79,10 @@ end
 function M:save_view() self.saved_view = vim.fn.winsaveview() end
 
 function M:restore_view()
-    vim.fn.winrestview(self.saved_view)
-    self.saved_view = nil
+    if self.saved_view then
+        vim.fn.winrestview(self.saved_view)
+        self.saved_view = nil
+    end
 end
 
 function M:reload()
