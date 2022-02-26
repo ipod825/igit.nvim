@@ -2,6 +2,7 @@ local M = {}
 local git = require('igit.git')
 local Vbuffer = require('igit.Vbuffer')
 local vutils = require('igit.vutils')
+local utils = require('igit.utils')
 local global = require('igit.global')
 
 function M.setup(options)
@@ -49,18 +50,15 @@ end
 
 local change_action = function(action)
     local status = git.status_porcelain()
-    local do_one_line = function(line_nr)
-        local line = M.parse_line(line_nr)
-        if status[line.filepath] then
-            vutils.jobsyncstart(action(line.filepath))
-            return true
-        end
-        return false
-    end
-    -- local range = vutils.visual_range()
-    -- for i in utils.range(range.row_beg, range.row_end) do do_one_line(i) end
-    do_one_line('.')
-    Vbuffer.current():reload()
+    local range = vutils.visual_range()
+    local paths = vim.tbl_map(function(e)
+        local path = M.parse_line(e).filepath
+        return status[path] and path or ''
+    end, utils.list(utils.range(range.row_beg, range.row_end)))
+
+    vutils.jobstart(action(paths),
+                    {post_exit = function() Vbuffer.current():reload() end})
+    return #paths == 1
 end
 
 function M.discard_change()

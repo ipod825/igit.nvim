@@ -20,6 +20,12 @@ function M.find_directory(anchor)
     return res
 end
 
+function M.list(...)
+    local list = {}
+    for v in ... do list[#list + 1] = v end
+    return list
+end
+
 function M.range(a, b, step)
     if not b then
         b = a
