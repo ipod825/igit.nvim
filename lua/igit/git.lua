@@ -38,7 +38,7 @@ function M.status_porcelain()
     return res
 end
 
-local meta = {
+setmetatable(M, {
     __index = function(_, cmd)
         local git_cmd = M.Git(('%s'):format(cmd))
         if git_cmd then
@@ -60,8 +60,6 @@ local meta = {
             return ''
         end
     end
-}
-
-setmetatable(M, meta)
+})
 
 return M

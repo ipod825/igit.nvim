@@ -34,7 +34,7 @@ end
 function M.open()
     local git_root = git.find_root()
     if git_root then
-        Vbuffer.get_or_new({
+        Vbuffer:get_or_new({
             vcs_root = git_root,
             filetype = 'log',
             mappings = M.options.mapping,

@@ -91,7 +91,7 @@ function M.open()
     local git_root = git.find_root()
 
     if git_root then
-        Vbuffer.get_or_new({
+        Vbuffer:get_or_new({
             vcs_root = git_root,
             filetype = 'status',
             mappings = M.options.mapping,

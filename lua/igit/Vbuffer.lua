@@ -3,11 +3,7 @@ local utils = require('igit.utils')
 local vutils = require('igit.vutils')
 local global = require('igit.global')
 
-M.__index = M
-
-setmetatable(M, {__call = function(cls, ...) return cls.get_or_new(...) end})
-
-function M.get_or_new(opts)
+function M:get_or_new(opts)
     vim.cmd(('tab drop %s-%s'):format(utils.basename(opts.vcs_root),
                                       opts.filetype))
     local id = vim.api.nvim_get_current_buf()
@@ -21,8 +17,10 @@ function M.get_or_new(opts)
             auto_reload = {opts.auto_reload, 'boolean', true}
         })
 
-        local self = setmetatable({}, M)
-        global.buffers[id] = self
+        local obj = {}
+        setmetatable(obj, self)
+        self.__index = self
+        global.buffers[id] = obj
         vim.cmd(
             ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
                 id))
@@ -32,15 +30,15 @@ function M.get_or_new(opts)
                     id))
         end
 
-        self.id = id
+        obj.id = id
         vim.bo.filetype = 'igit-' .. opts.filetype
         vim.bo.modifiable = false
         vim.bo.bufhidden = 'hide'
         vim.bo.buftype = 'nofile'
         vim.b.vcs_root = opts.vcs_root
-        self.reload_fn = opts.reload_fn
+        obj.reload_fn = opts.reload_fn
 
-        self:mapfn(opts.mappings)
+        obj:mapfn(opts.mappings)
     end
 
     global.buffers[id]:reload()

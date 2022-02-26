@@ -7,11 +7,6 @@
 _G.__igit = _G.__igit or {}
 local M = {}
 
-local meta = {
-    __index = function(_, key) return _G.__igit[key] end,
-    __newindex = function(_, key, value) rawset(_G.__igit, key, value) end
-}
-
-setmetatable(M, meta)
+setmetatable(M, {__index = _G.__igit, __newindex = _G.__igit})
 
 return M
