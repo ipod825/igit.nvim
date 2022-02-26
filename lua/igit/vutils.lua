@@ -25,7 +25,7 @@ function M.jobstart(cmd, opts)
         end
     end
 
-    local stderr_lines = {};
+    local stderr_lines = {('Error message from\n%s\n'):format(cmd)};
     local on_stderr = opts.on_stderr or function(_, data)
         for _, s in ipairs(vim.tbl_flatten(data)) do
             if #s > 0 then table.insert(stderr_lines, s) end
