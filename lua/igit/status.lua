@@ -1,7 +1,7 @@
 local M = {}
 local git = require('igit.git')
 local Vbuffer = require('igit.Vbuffer')
-local utils = require('igit.utils')
+local vutils = require('igit.vutils')
 local md5 = require('igit.md5')
 
 function M.setup(options)
@@ -27,17 +27,17 @@ end
 function M.commit_submit(ori_hex, amend)
     local commit_msg = non_commented_message_in_commit()
     if amend then
-        utils.jobsyncstart(git.commit(('--amend --allow-empty -m "%s"'):format(
-                                          commit_msg)))
+        vutils.jobsyncstart(git.commit(('--amend --allow-empty -m "%s"'):format(
+                                           commit_msg)))
     elseif md5.tohex(commit_msg) ~= ori_hex then
-        utils.jobsyncstart(git.commit(('-m "%s"'):format(commit_msg)))
+        vutils.jobsyncstart(git.commit(('-m "%s"'):format(commit_msg)))
     end
 end
 
 function M.commit(amend)
     local prepare_commit_file_cmd = 'GIT_EDITOR=false git commit ' ..
                                         (amend and '--amend' or '')
-    utils.jobsyncstart(prepare_commit_file_cmd, {on_exit = utils.nop})
+    vutils.jobsyncstart(prepare_commit_file_cmd, {on_exit = vutils.nop})
     vim.cmd('tabe ' .. git.commit_message_file_path())
     vim.bo.bufhidden = 'wipe'
     vim.cmd('setlocal bufhidden=wipe')
@@ -51,8 +51,10 @@ function M.change_action(action)
     local status = git.status_porcelain()
     local line = M.parse_line()
     if status[line.filepath] then
-        utils.jobstart(action(line.filepath),
-                       {post_exit = function() Vbuffer.current():reload() end})
+        vutils.jobstart(action(line.filepath),
+                        {post_exit = function()
+            Vbuffer.current():reload()
+        end})
         return true
     end
     return false
@@ -89,6 +91,7 @@ function M.open()
             vcs_root = git_root,
             filetype = 'status',
             mappings = M.options.mapping,
+            auto_reload = true,
             reload_fn = function() return git.status(M.options.args) end
 
         })

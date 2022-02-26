@@ -1,7 +1,7 @@
 local M = {}
 local git = require('igit.git')
 local Vbuffer = require('igit.Vbuffer')
-local utils = require('igit.utils')
+local vutils = require('igit.vutils')
 
 function M.setup(options)
     M.options = M.options or {mapping = {['<cr>'] = M.switch}, args = {'-v'}}
@@ -17,8 +17,8 @@ function M.parse_line()
 end
 
 function M.switch()
-    utils.jobstart(git.checkout(M.parse_line().branch),
-                   {post_exit = function() Vbuffer.current():reload() end})
+    vutils.jobstart(git.checkout(M.parse_line().branch),
+                    {post_exit = function() Vbuffer.current():reload() end})
 end
 
 function M.open()
@@ -28,6 +28,7 @@ function M.open()
             vcs_root = git_root,
             filetype = 'branch',
             mappings = M.options.mapping,
+            auto_reload = true,
             reload_fn = function() return git.branch(M.options.args) end
         })
     end

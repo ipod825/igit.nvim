@@ -1,14 +1,14 @@
 local M = {}
 local git = require('igit.git')
 local Vbuffer = require('igit.Vbuffer')
-local utils = require('igit.utils')
 
 function M.setup(options)
     M.options = M.options or {
         mapping = {},
         args = {'--branches', '--graph'},
         pretty = 'format:"%h %s %cr <%an> %d"',
-        parse_line = M.parse_line
+        parse_line = M.parse_line,
+        auto_reload = false
     }
     M.options = vim.tbl_deep_extend('force', M.options, options)
 end
@@ -38,6 +38,7 @@ function M.open()
             vcs_root = git_root,
             filetype = 'log',
             mappings = M.options.mapping,
+            auto_reload = M.options.auto_reload,
             reload_fn = function()
                 return git.log(M.options.args, '--pretty=' .. M.options.pretty)
             end

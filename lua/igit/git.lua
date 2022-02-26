@@ -1,5 +1,6 @@
 local M = {}
 local utils = require('igit.utils')
+local vutils = require('igit.vutils')
 
 function M.Git(cmd)
     local git_dir = vim.b.vcs_root or M.find_root()
@@ -14,7 +15,7 @@ end
 
 function M.status_porcelain()
     local lines = {}
-    utils.jobsyncstart(M.status('--porcelain'), {
+    vutils.jobsyncstart(M.status('--porcelain'), {
         stdout_flush = function(new_lines)
             vim.list_extend(lines, new_lines)
         end
