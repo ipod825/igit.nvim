@@ -58,6 +58,11 @@ function M.visual_range()
     local row_beg, row_end, col_beg, col_end
     _, row_beg, col_beg = unpack(vim.fn.getpos("'<"))
     _, row_end, col_end = unpack(vim.fn.getpos("'>"))
+    -- Fallback to normal mode.
+    if row_beg == row_end then
+        row_beg = vim.fn.line('.')
+        row_end = row_beg
+    end
     return {
         row_beg = row_beg,
         col_beg = col_beg,
