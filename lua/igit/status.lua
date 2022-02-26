@@ -27,8 +27,15 @@ end
 function M.commit_submit(ori_hex, amend)
     local commit_msg = non_commented_message_in_commit()
     if amend then
-        vutils.jobsyncstart(git.commit(('--amend --allow-empty -m "%s"'):format(
-                                           commit_msg)))
+        if md5.tohex(commit_msg) ~= ori_hex or 'n' ~= vim.fn.input(
+            {
+                prompt = 'Commit message not changed. Are you sure to amend?',
+                default = 'n'
+            }) then
+            vutils.jobsyncstart(git.commit(
+                                    ('--amend --allow-empty -m "%s"'):format(
+                                        commit_msg)))
+        end
     elseif md5.tohex(commit_msg) ~= ori_hex then
         vutils.jobsyncstart(git.commit(('-m "%s"'):format(commit_msg)))
     end
