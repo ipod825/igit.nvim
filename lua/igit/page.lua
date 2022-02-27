@@ -98,7 +98,10 @@ function M:reload()
     self:clear()
     vutils.jobstart(self.reload_fn(), {
         stdout_flush = function(lines) self:append(lines) end,
-        post_exit = function() self:restore_view() end
+        post_exit = function()
+            self:restore_view()
+            vim.cmd('normal! <esc>')
+        end
     })
 end
 

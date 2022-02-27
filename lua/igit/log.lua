@@ -5,8 +5,7 @@ local page = require('igit.page')
 function M.setup(options)
     M.options = M.options or {
         mapping = {},
-        args = {'--branches', '--graph'},
-        pretty = 'format:"%h %s %cr <%an> %d"',
+        args = {'--oneline', '--branches', '--graph', '--decorate=short'},
         parse_line = M.parse_line,
         auto_reload = false
     }
@@ -26,11 +25,6 @@ end
 
 function M.switch() end
 
-function M.reload_fn()
-    return git.log(table.concat(M.options.args, ' '),
-                   '--pretty=' .. M.options.pretty)
-end
-
 function M.open()
     local git_root = git.find_root()
     if git_root then
@@ -39,9 +33,7 @@ function M.open()
             filetype = 'log',
             mappings = M.options.mapping,
             auto_reload = M.options.auto_reload,
-            reload_fn = function()
-                return git.log(M.options.args, '--pretty=' .. M.options.pretty)
-            end
+            reload_fn = function() return git.log(M.options.args) end
         })
     end
 end

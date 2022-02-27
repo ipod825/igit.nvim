@@ -4,7 +4,9 @@ local vutils = require('igit.vutils')
 
 function M.Git(cmd)
     local git_dir = vim.b.vcs_root or M.find_root()
-    return git_dir and ('git -C %s %s'):format(git_dir, cmd) or nil
+    return
+        git_dir and ('git -c color.ui=always -C %s %s'):format(git_dir, cmd) or
+            nil
 end
 
 function M.find_root() return vim.b.vcs_root or utils.find_directory('.git') end
