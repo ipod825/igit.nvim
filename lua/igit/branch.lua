@@ -13,7 +13,7 @@ function M.parse_line()
     local res = {is_current = false, branch = nil}
     local line = vim.fn.getline('.')
     res.is_current = line:find_str('%s*(%*?)') ~= ''
-    res.branch = line:find_str('%s([^%s].-)%s*$')
+    res.branch = line:find_str('%s([^%s]+)%s')
     return res
 end
 
