@@ -53,9 +53,14 @@ end
 function M:mapfn(mappings)
     self.mapping_handles = self.mapping_handles or {}
     for mode, mode_mappings in pairs(mappings) do
+        vim.validate({
+            mode = {mode, 'string'},
+            mode_mappings = {mode_mappings, 'table'}
+        })
         self.mapping_handles[mode] = self.mapping_handles[mode] or {}
         local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
         for key, fn in pairs(mode_mappings) do
+            vim.validate({key = {key, 'string'}, fn = {fn, 'function'}})
             self.mapping_handles[mode][key] = fn
             vim.api.nvim_buf_set_keymap(0, mode, key,
                                         ('%slua require("igit.global").pages[%d].mapping_handles["%s"]["%s"]()<cr>'):format(
