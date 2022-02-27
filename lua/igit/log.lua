@@ -1,6 +1,6 @@
 local M = {}
 local git = require('igit.git')
-local Vbuffer = require('igit.Vbuffer')
+local page = require('igit.page')
 
 function M.setup(options)
     M.options = M.options or {
@@ -34,7 +34,7 @@ end
 function M.open()
     local git_root = git.find_root()
     if git_root then
-        Vbuffer:get_or_new({
+        page:get_or_new({
             vcs_root = git_root,
             filetype = 'log',
             mappings = M.options.mapping,

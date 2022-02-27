@@ -1,6 +1,6 @@
 local M = {}
 local git = require('igit.git')
-local Vbuffer = require('igit.Vbuffer')
+local page = require('igit.page')
 local vutils = require('igit.vutils')
 local utils = require('igit.utils')
 local global = require('igit.global')
@@ -57,7 +57,7 @@ local change_action = function(action)
     end, utils.list(utils.range(range.row_beg, range.row_end)))
 
     vutils.jobstart(action(paths),
-                    {post_exit = function() Vbuffer.current():reload() end})
+                    {post_exit = function() page.current():reload() end})
     return #paths == 1
 end
 
@@ -89,7 +89,7 @@ function M.open()
     local git_root = git.find_root()
 
     if git_root then
-        Vbuffer:get_or_new({
+        page:get_or_new({
             vcs_root = git_root,
             filetype = 'status',
             mappings = M.options.mapping,

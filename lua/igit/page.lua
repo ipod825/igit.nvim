@@ -7,8 +7,8 @@ function M:get_or_new(opts)
     vim.cmd(('tab drop %s-%s'):format(utils.basename(opts.vcs_root),
                                       opts.filetype))
     local id = vim.api.nvim_get_current_buf()
-    global.buffers = global.buffers or {}
-    if global.buffers[id] == nil then
+    global.pages = global.pages or {}
+    if global.pages[id] == nil then
         vim.validate({
             vcs_root = {opts.vcs_root, 'string'},
             filetype = {opts.filetype, 'string'},
@@ -20,13 +20,13 @@ function M:get_or_new(opts)
         local obj = {}
         setmetatable(obj, self)
         self.__index = self
-        global.buffers[id] = obj
+        global.pages[id] = obj
         vim.cmd(
-            ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
+            ('autocmd BufDelete <buffer> ++once lua require"igit.global".pages[%d]=nil'):format(
                 id))
         if opts.auto_reload then
             vim.cmd(
-                ('autocmd BufEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
+                ('autocmd BufEnter <buffer> lua require"igit.global".pages[%d]:reload()'):format(
                     id))
         end
 
@@ -41,13 +41,13 @@ function M:get_or_new(opts)
         obj:mapfn(opts.mappings)
     end
 
-    global.buffers[id]:reload()
-    return global.buffers[id]
+    global.pages[id]:reload()
+    return global.pages[id]
 end
 
 function M.current()
     local id = vim.api.nvim_get_current_buf()
-    return global.buffers[id]
+    return global.pages[id]
 end
 
 function M:mapfn(mappings)
@@ -58,7 +58,7 @@ function M:mapfn(mappings)
         for key, fn in pairs(mode_mappings) do
             self.mapping_handles[mode][key] = fn
             vim.api.nvim_buf_set_keymap(0, mode, key,
-                                        ('%slua require("igit.global").buffers[%d].mapping_handles["%s"]["%s"]()<cr>'):format(
+                                        ('%slua require("igit.global").pages[%d].mapping_handles["%s"]["%s"]()<cr>'):format(
                                             prefix, self.id, mode,
                                             key:gsub('^<', '<lt>')), {})
         end

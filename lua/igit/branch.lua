@@ -1,6 +1,6 @@
 local M = {}
 local git = require('igit.git')
-local Vbuffer = require('igit.Vbuffer')
+local page = require('igit.page')
 local vutils = require('igit.vutils')
 
 function M.setup(options)
@@ -19,13 +19,13 @@ end
 
 function M.switch()
     vutils.jobstart(git.checkout(M.parse_line().branch),
-                    {post_exit = function() Vbuffer.current():reload() end})
+                    {post_exit = function() page.current():reload() end})
 end
 
 function M.open()
     local git_root = git.find_root()
     if git_root then
-        Vbuffer:get_or_new({
+        page:get_or_new({
             vcs_root = git_root,
             filetype = 'branch',
             mappings = M.options.mapping,
