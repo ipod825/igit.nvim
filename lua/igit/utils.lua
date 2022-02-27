@@ -17,6 +17,7 @@ function M.find_directory(anchor)
         end
         dir = M.dirname(dir)
     end
+    if res:sub(#res, #res) == '/' then res = res:sub(1, #res - 1) end
     return res
 end
 
