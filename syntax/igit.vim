@@ -4,8 +4,8 @@ endif
 
 let b:current_syntax = "igit-log"
 
-syn match IgitTermConceal conceal contained '\e\[[0-9;]*m'
-hi def link IgitTermConceal Conceal
+syn match IgitTermConceal conceal '\e\[[0-9;]*m'
+hi default link IgitTermConceal Conceal
 setlocal conceallevel=3
 " setlocal concealcursor=nvci
 setlocal concealcursor=nci
