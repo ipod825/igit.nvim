@@ -71,17 +71,15 @@ function M:mapfn(mappings)
 end
 
 function M:clear()
-    local saved_modifiable = vim.bo.modifiable
-    vim.bo.modifiable = true
+    vim.api.nvim_buf_set_option(self.id, 'modifiable', true)
     vim.api.nvim_buf_set_lines(self.id, 0, -1, false, {})
-    vim.bo.modifiable = saved_modifiable
+    vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
 end
 
 function M:append(lines)
-    local saved_modifiable = vim.bo.modifiable
-    vim.bo.modifiable = true
+    vim.api.nvim_buf_set_option(self.id, 'modifiable', true)
     vim.api.nvim_buf_set_lines(self.id, -2, -1, false, lines)
-    vim.bo.modifiable = saved_modifiable
+    vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
 end
 
 function M:save_view() self.saved_view = vim.fn.winsaveview() end
@@ -98,10 +96,7 @@ function M:reload()
     self:clear()
     vutils.jobstart(self.reload_fn(), {
         stdout_flush = function(lines) self:append(lines) end,
-        post_exit = function()
-            self:restore_view()
-            vim.cmd('normal! <esc>')
-        end
+        post_exit = function() self:restore_view() end
     })
 end
 
