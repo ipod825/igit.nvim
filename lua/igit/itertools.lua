@@ -1,11 +1,16 @@
 local M = {}
 
 M.iter = {}
-function M.iter:new(next, invariant, control, map_fn)
+function M.iter:new(next_fn, invariant, control, map_fn)
+    if type(next_fn) ~= 'function' then
+        invariant = next_fn
+        next_fn = next
+        control = nil
+    end
     local obj = {}
     setmetatable(obj, self)
     self.__index = self
-    obj.next = next
+    obj.next = next_fn
     obj.invariant = invariant
     obj.control = control
     obj.map_fn = map_fn or function(e) return e end

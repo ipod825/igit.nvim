@@ -39,6 +39,7 @@ function M:get_or_new(opts)
         git.ping_root_to_buffer(opts.vcs_root)
         obj.reload_fn = opts.reload_fn
 
+        obj.mappings = opts.mappings
         obj:mapfn(opts.mappings)
     end
 
@@ -49,6 +50,34 @@ end
 function M.current()
     local id = vim.api.nvim_get_current_buf()
     return global.pages[id]
+end
+
+function M:save_edit()
+    self.edit_cxt.update(self.edit_cxt.ori_items, self.edit_cxt.get_items())
+    self.edit_cxt = nil
+    vim.bo.buftype = 'nofile'
+    vim.bo.modifiable = false
+    self:mapfn(self.mappings)
+    self:reload()
+end
+
+function M:edit(opts)
+    vim.validate({
+        get_items = {opts.get_items, 'function'},
+        update = {opts.update, 'function'}
+    })
+    self.edit_cxt =
+        vim.tbl_extend('force', {ori_items = opts.get_items()}, opts)
+    vim.bo.buftype = 'acwrite'
+    vim.cmd(
+        ('autocmd BufWriteCmd <buffer> ++once lua require"igit.global".pages[%d]:save_edit()'):format(
+            self.id))
+    self:unmapfn(self.mappings)
+    local ori_undo_levels = vim.o.undolevels
+    vim.bo.undolevels = -1
+    vim.bo.modifiable = true
+    vim.cmd('substitute/\\e\\[[0-9;]*m//g')
+    vim.bo.undolevels = ori_undo_levels
 end
 
 function M:mapfn(mappings)
@@ -63,10 +92,22 @@ function M:mapfn(mappings)
         for key, fn in pairs(mode_mappings) do
             vim.validate({key = {key, 'string'}, fn = {fn, 'function'}})
             self.mapping_handles[mode][key] = fn
-            vim.api.nvim_buf_set_keymap(0, mode, key,
+            vim.api.nvim_buf_set_keymap(self.id, mode, key,
                                         ('%slua require("igit.global").pages[%d].mapping_handles["%s"]["%s"]()<cr>'):format(
                                             prefix, self.id, mode,
                                             key:gsub('^<', '<lt>')), {})
+        end
+    end
+end
+
+function M:unmapfn(mappings)
+    for mode, mode_mappings in pairs(mappings) do
+        vim.validate({
+            mode = {mode, 'string'},
+            mode_mappings = {mode_mappings, 'table'}
+        })
+        for key, _ in pairs(mode_mappings) do
+            vim.api.nvim_buf_del_keymap(self.id, mode, key)
         end
     end
 end

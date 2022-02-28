@@ -2,18 +2,48 @@ local M = {}
 local git = require('igit.git')
 local page = require('igit.page')
 local vutils = require('igit.vutils')
+local itertools = require('igit.itertools')
 
 function M.setup(options)
     M.options = M.options or
-                    {mapping = {n = {['<cr>'] = M.switch}}, args = {'-v'}}
+                    {
+            mapping = {n = {['<cr>'] = M.switch, ['i'] = M.rename}},
+            args = {'-v'}
+        }
     M.options = vim.tbl_deep_extend('force', M.options, options)
 end
 
-function M.parse_line()
+function M.rename()
+    page.current():edit({
+        get_items = function()
+            return itertools.range(1, vim.fn.line('$')):map(M.parse_line):map(
+                       function(e) return e.branch end):unwrap()
+        end,
+        update = function(ori_items, new_items)
+            if #ori_items ~= #new_items then
+                vim.notify("Can't remove or add items!")
+                return
+            end
+            for i = 1, #ori_items do
+                local intermediate = ('%s-igitrename'):format(ori_items[i])
+                vutils.jobsyncstart(('git branch -m %s %s'):format(ori_items[i],
+                                                                   intermediate))
+            end
+            for i = 1, #ori_items do
+                local intermediate = ('%s-igitrename'):format(ori_items[i])
+                vutils.jobsyncstart(('git branch -m %s %s'):format(intermediate,
+                                                                   new_items[i]))
+            end
+        end
+    })
+end
+
+function M.parse_line(linenr)
+    linenr = linenr or '.'
+    local line = vim.fn.getline(linenr)
     local res = {is_current = false, branch = nil}
-    local line = vim.fn.getline('.')
     res.is_current = line:find_str('%s*(%*?)') ~= ''
-    res.branch = line:find_str('%s([^%s]+)%s')
+    res.branch = line:find_str('%s([^%s]+)%s'):gsub('%c+%[[%d;]*m', '')
     return res
 end
 
