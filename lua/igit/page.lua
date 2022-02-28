@@ -5,7 +5,6 @@ local global = require('igit.global')
 local git = require('igit.git')
 
 function M:get_or_new(opts)
-    print(opts.vcs_root, utils.basename(opts.vcs_root))
     vim.cmd(('tab drop %s-%s'):format(utils.basename(opts.vcs_root),
                                       opts.filetype))
     local id = vim.api.nvim_get_current_buf()
@@ -37,7 +36,7 @@ function M:get_or_new(opts)
         vim.bo.modifiable = false
         vim.bo.bufhidden = 'hide'
         vim.bo.buftype = 'nofile'
-        git.ping_root_to_buffer()
+        git.ping_root_to_buffer(opts.vcs_root)
         obj.reload_fn = opts.reload_fn
 
         obj:mapfn(opts.mappings)

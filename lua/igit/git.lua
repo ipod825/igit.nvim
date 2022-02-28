@@ -9,7 +9,7 @@ function M.Git(cmd)
             nil
 end
 
-function M.ping_root_to_buffer() vim.b.vcs_root = M.find_root() end
+function M.ping_root_to_buffer(root) vim.b.vcs_root = root end
 
 function M.find_root()
     return vim.b.vcs_root or utils.find_directory('.git') or
