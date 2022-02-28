@@ -2,8 +2,8 @@ local M = {}
 local git = require('igit.git')
 local page = require('igit.page')
 local vutils = require('igit.vutils')
-local utils = require('igit.utils')
 local global = require('igit.global')
+local itertools = require('igit.itertools')
 
 function M.setup(options)
     M.options = M.options or {
@@ -54,7 +54,7 @@ local change_action = function(action)
     local paths = vim.tbl_map(function(e)
         local path = M.parse_line(e).filepath
         return status[path] and path or ''
-    end, utils.list(utils.range(range.row_beg, range.row_end)))
+    end, itertools.range(range.row_beg, range.row_end):unwrap())
 
     vutils.jobstart(action(paths),
                     {post_exit = function() page.current():reload() end})
