@@ -5,6 +5,7 @@ local global = require('igit.global')
 local git = require('igit.git')
 
 function M:get_or_new(opts)
+    print(opts.vcs_root, utils.basename(opts.vcs_root))
     vim.cmd(('tab drop %s-%s'):format(utils.basename(opts.vcs_root),
                                       opts.filetype))
     local id = vim.api.nvim_get_current_buf()

@@ -43,13 +43,13 @@ end
 
 function M.dirname(str)
     vim.validate({std = {str, 'string'}})
-    local name = str:gsub("(.*)/(.*)/?", "%1")
+    local name = str:gsub("/[^/]*$", "")
     return name
 end
 
 function M.basename(str)
     vim.validate({std = {str, 'string'}})
-    local name = str:gsub("(.*/)(.*)", "%2")
+    local name = str:gsub(".*/([^/]+)/?", "%1")
     return name
 end
 
