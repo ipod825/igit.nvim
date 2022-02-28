@@ -9,7 +9,12 @@ function M.Git(cmd)
             nil
 end
 
-function M.find_root() return vim.b.vcs_root or utils.find_directory('.git') end
+function M.ping_root_to_buffer() vim.b.vcs_root = M.find_root() end
+
+function M.find_root()
+    return vim.b.vcs_root or utils.find_directory('.git') or
+               utils.find_directory('.git', vim.fn.getcwd())
+end
 
 function M.commit_message_file_path()
     return ('%s/.git/COMMIT_EDITMSG'):format(M.find_root())

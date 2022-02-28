@@ -7,17 +7,15 @@ function M.p(...)
     print(unpack(objects))
 end
 
-function M.find_directory(anchor)
-    local dir = vim.fn.expand('%:p')
+function M.find_directory(anchor, dir)
+    dir = dir or vim.fn.expand('%:p')
     local res = nil
     while #dir > 1 do
-        if vim.fn.glob(M.path_join(dir, anchor)) ~= "" then
-            res = dir
-            break
-        end
-        dir = M.dirname(dir)
+        if vim.fn.glob(M.path_join(dir, anchor)) ~= "" then return dir end
+        local ori_len
+        ori_len, dir = #dir, M.dirname(dir)
+        if #dir == ori_len then break end
     end
-    if res:sub(#res, #res) == '/' then res = res:sub(1, #res - 1) end
     return res
 end
 
@@ -45,7 +43,7 @@ end
 
 function M.dirname(str)
     vim.validate({std = {str, 'string'}})
-    local name = str:gsub("(.*)/(.*)", "%1")
+    local name = str:gsub("(.*)/(.*)/?", "%1")
     return name
 end
 
