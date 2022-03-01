@@ -41,9 +41,10 @@ function M:get_or_new(opts)
 
         obj.mappings = opts.mappings
         obj:mapfn(opts.mappings)
+        -- Only need to reload on new. In other case, reload is triggered by BufEnter autocmd.
+        global.pages[id]:reload()
     end
 
-    global.pages[id]:reload()
     return global.pages[id]
 end
 
