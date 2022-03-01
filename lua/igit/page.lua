@@ -5,8 +5,9 @@ local global = require('igit.global')
 local git = require('igit.git')
 
 function M:get_or_new(opts)
-    vim.cmd(('tab drop %s-%s'):format(utils.basename(opts.vcs_root),
-                                      opts.filetype))
+    local filename = ('%s-%s'):format(utils.basename(opts.vcs_root),
+                                      opts.filetype)
+    vim.cmd(('tab drop %s'):format(filename))
     local id = vim.api.nvim_get_current_buf()
     global.pages = global.pages or {}
     if global.pages[id] == nil then
@@ -38,6 +39,7 @@ function M:get_or_new(opts)
         vim.bo.buftype = 'nofile'
         git.ping_root_to_buffer(opts.vcs_root)
         obj.reload_fn = opts.reload_fn
+        obj.namespace = vim.api.nvim_create_namespace(filename)
 
         obj.mappings = opts.mappings
         obj:mapfn(opts.mappings)
@@ -52,6 +54,16 @@ function M.current()
     local id = vim.api.nvim_get_current_buf()
     return global.pages[id]
 end
+
+function M:mark(data)
+    vim.api.nvim_buf_clear_namespace(self.id, self.namespace, 1, -1)
+    self.mark_ctx = vim.tbl_extend('force', {}, data)
+    vim.api.nvim_buf_add_highlight(self.id, self.namespace,
+                                   'RedrawDebugRecompose', vim.fn.line('.') - 1,
+                                   1, -1)
+end
+
+function M:get_mark_ctx() return self.mark_ctx end
 
 function M:save_edit()
     self.edit_cxt.update(self.edit_cxt.ori_items, self.edit_cxt.get_items())

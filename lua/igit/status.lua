@@ -64,7 +64,6 @@ end
 
 function M.side_diff()
     local cline = M.parse_line()
-
     vim.cmd(('split %s'):format(cline.abs_path))
     vim.cmd(('resize %d'):format(999))
     vim.cmd('diffthis')
