@@ -13,7 +13,8 @@ function M.setup(options)
                 ['L'] = M.unstage_change,
                 ['X'] = M.discard_change,
                 ['cc'] = M.commit,
-                ['ca'] = function() M.commit(true) end
+                ['ca'] = function() M.commit(true) end,
+                ['dd'] = M.side_diff
             },
             v = {['H'] = M.stage_change, ['L'] = M.unstage_change}
         },
@@ -61,6 +62,28 @@ local change_action = function(action)
     return #paths == 1
 end
 
+function M.side_diff()
+    local cline = M.parse_line()
+
+    vim.cmd(('split %s'):format(cline.abs_path))
+    vim.cmd(('resize %d'):format(999))
+    vim.cmd('diffthis')
+    vim.wo.scrollbind = true
+    local ori_filetype = vim.bo.filetype
+    local ori_win = vim.api.nvim_get_current_win()
+
+    vim.cmd('vnew')
+    vutils.jobsyncstart(('git show :%s'):format(cline.filepath), {
+        stdout_flush = function(lines)
+            vim.api.nvim_buf_set_lines(0, -2, -1, false, lines)
+        end
+    })
+    vim.bo.filetype = ori_filetype
+    vim.cmd('diffthis')
+    vim.wo.scrollbind = true
+    vim.api.nvim_set_current_win(ori_win)
+end
+
 function M.discard_change()
     change_action(function(path) return git.restore(path) end)
 end
@@ -82,6 +105,7 @@ function M.parse_line(line_nr)
     local res = {}
     local line = vim.fn.getline(line_nr)
     res.filepath = line:find_str('[^%s]+%s+(.+)$')
+    res.abs_path = ('%s/%s'):format(git.find_root(), res.filepath)
     return res
 end
 
