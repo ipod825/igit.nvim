@@ -4,9 +4,9 @@ local vutils = require('igit.vutils')
 
 function M.Git(cmd)
     local git_dir = vim.b.vcs_root or M.find_root()
-    return
-        git_dir and ('git -c color.ui=always -C %s %s'):format(git_dir, cmd) or
-            nil
+    return git_dir and
+               ('git --no-pager -c color.ui=always -C %s %s'):format(git_dir,
+                                                                     cmd) or nil
 end
 
 function M.ping_root_to_buffer(root) vim.b.vcs_root = root end

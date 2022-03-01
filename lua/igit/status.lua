@@ -73,7 +73,7 @@ function M.side_diff()
     local ori_win = vim.api.nvim_get_current_win()
 
     vim.cmd('vnew')
-    vutils.jobsyncstart(('git show :%s'):format(cline.filepath), {
+    vutils.jobsyncstart(git.show(':%s'):format(cline.filepath), {
         stdout_flush = function(lines)
             vim.api.nvim_buf_set_lines(0, -2, -1, false, lines)
         end

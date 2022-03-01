@@ -16,9 +16,7 @@ function M.jobstart(cmd, opts)
 
     local stdout_lines = {}
     local on_stdout = opts.on_stdout or function(_, data)
-        for _, s in ipairs(vim.tbl_flatten(data)) do
-            if #s > 0 then table.insert(stdout_lines, s) end
-        end
+        vim.list_extend(stdout_lines, data)
         if #stdout_lines > 5000 then
             opts.stdout_flush(stdout_lines)
             stdout_lines = {}
@@ -37,7 +35,8 @@ function M.jobstart(cmd, opts)
             vim.notify(table.concat(stderr_lines, '\n'))
             return
         end
-        if #stdout_lines > 0 then opts.stdout_flush(stdout_lines) end
+        -- stdout always comes with two empty lines at the end.
+        opts.stdout_flush(vim.list_slice(stdout_lines, 1, #stdout_lines - 2))
         opts.post_exit()
     end
 
