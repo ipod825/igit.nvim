@@ -54,7 +54,7 @@ local change_action = function(action)
     local paths = vim.tbl_map(function(e)
         local path = M.parse_line(e).filepath
         return status[path] and path or ''
-    end, itertools.range(range.row_beg, range.row_end):unwrap())
+    end, itertools.range(range.row_beg, range.row_end):collect())
 
     vutils.jobstart(action(paths),
                     {post_exit = function() page.current():reload() end})

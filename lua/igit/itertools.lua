@@ -20,7 +20,7 @@ setmetatable(M.iter, {__call = function(cls, ...) return cls:new(...) end})
 
 function M.iter:iter() return self.next, self.invariant, self.control end
 
-function M.iter:unwrap()
+function M.iter:collect()
     local res = {}
     for k, v in self:iter() do
         if v == nil then

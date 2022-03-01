@@ -17,7 +17,7 @@ function M.rename()
     page.current():edit({
         get_items = function()
             return itertools.range(1, vim.fn.line('$')):map(M.parse_line):map(
-                       function(e) return e.branch end):unwrap()
+                       function(e) return e.branch end):collect()
         end,
         update = function(ori_items, new_items)
             if #ori_items ~= #new_items then
