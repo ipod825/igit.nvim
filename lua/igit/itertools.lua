@@ -18,11 +18,11 @@ function M.iter:new(next_fn, invariant, control, map_fn)
 end
 setmetatable(M.iter, {__call = function(cls, ...) return cls:new(...) end})
 
-function M.iter:iter() return self.next, self.invariant, self.control end
+function M.iter:pairs() return self.next, self.invariant, self.control end
 
 function M.iter:collect()
     local res = {}
-    for k, v in self:iter() do
+    for k, v in self:pairs() do
         if v == nil then
             res[#res + 1] = self.map_fn(k)
         else
