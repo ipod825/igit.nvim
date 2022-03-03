@@ -21,6 +21,7 @@ function M:open(opts)
     })
     local filename = ('%s-%s'):format(utils.basename(opts.vcs_root), self.type)
     vim.cmd(('tab drop %s'):format(filename))
+    opts.id = vim.api.nvim_get_current_buf()
 
     if global.buffers[opts.id] == nil then
         opts.id = opts.id or vim.api.nvim_get_current_buf()
@@ -28,6 +29,7 @@ function M:open(opts)
         opts.filename = filename
         global.buffers[opts.id] = Buffer(opts)
         git.ping_root_to_buffer(opts.vcs_root)
+
         vim.cmd(
             ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
                 opts.id))

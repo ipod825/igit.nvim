@@ -14,4 +14,11 @@ end
 
 function M.all_rows() return 1, vim.fn.line('$') end
 
+function M.augroup(name, autocmds)
+    vim.cmd('augroup ' .. name)
+    vim.cmd('autocmd!')
+    for _, cmd in ipairs(autocmds) do vim.cmd('autocmd ' .. cmd) end
+    vim.cmd('augroup END')
+end
+
 return M
