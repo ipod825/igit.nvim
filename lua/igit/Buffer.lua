@@ -1,5 +1,5 @@
 local M = require 'igit.Class'()
-local vutils = require('igit.vutils')
+local job = require('igit.job')
 
 function M:init(opts)
     vim.validate({
@@ -117,7 +117,7 @@ end
 function M:reload()
     self:save_view()
     self:clear()
-    vutils.jobstart(self.reload_fn(), {
+    job.runasync(self.reload_fn(), {
         stdout_flush = function(lines) self:append(lines) end,
         post_exit = function() self:restore_view() end
     })

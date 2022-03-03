@@ -1,7 +1,8 @@
 local M = require 'igit.Class'()
 local git = require('igit.git')
 local utils = require('igit.utils')
-local vutils = require('igit.vutils')
+local vim_utils = require('igit.vim_utils')
+local job = require('igit.job')
 local itertools = require('igit.itertools')
 
 function M:init(options)
@@ -37,13 +38,13 @@ function M:rename()
             end
             for i = 1, #ori_items do
                 local intermediate = ('%s-igitrename'):format(ori_items[i])
-                vutils.jobsyncstart(('git branch -m %s %s'):format(ori_items[i],
-                                                                   intermediate))
+                job.run(('git branch -m %s %s'):format(ori_items[i],
+                                                       intermediate))
             end
             for i = 1, #ori_items do
                 local intermediate = ('%s-igitrename'):format(ori_items[i])
-                vutils.jobsyncstart(('git branch -m %s %s'):format(intermediate,
-                                                                   new_items[i]))
+                job.run(('git branch -m %s %s'):format(intermediate,
+                                                       new_items[i]))
             end
         end
     })
@@ -55,28 +56,25 @@ end
 
 function M:rebase_onto()
     local base_branch = self.buffers:current():get_mark_ctx().branch
-
-    local range = vutils.visual_range()
-    local branches = self:get_branches_in_rows(range.row_beg, range.row_end)
+    local branches = self:get_branches_in_rows(vim_utils.visual_rows())
 
     local prev_new_branch_backup = ''
     for _, new_branch in ipairs(branches) do
-        vutils.jobsyncstart(git.checkout(new_branch))
+        job.run(git.checkout(new_branch))
         local new_backup = ('%s_backup'):format(new_branch)
-        vutils.jobsyncstart(git.branch(new_backup))
+        job.run(git.branch(new_backup))
         if #prev_new_branch_backup > 0 then
-            vutils.jobsyncstart(git.rebase(
-                                    ('--onto %s %s %s'):format(base_branch,
-                                                               prev_new_branch_backup,
-                                                               new_branch)))
-            vutils.jobsyncstart(git.branch('-D ' .. prev_new_branch_backup))
+            job.run(git.rebase(('--onto %s %s %s'):format(base_branch,
+                                                          prev_new_branch_backup,
+                                                          new_branch)))
+            job.run(git.branch('-D ' .. prev_new_branch_backup))
         else
-            vutils.jobsyncstart(git.rebase(('%s'):format(base_branch)))
+            job.run(git.rebase(('%s'):format(base_branch)))
         end
         prev_new_branch_backup = new_backup
         base_branch = new_branch
     end
-    vutils.jobsyncstart(git.branch('-D ' .. prev_new_branch_backup))
+    job.run(git.branch('-D ' .. prev_new_branch_backup))
     self.buffers:current():reload()
 end
 
@@ -90,14 +88,13 @@ function M:parse_line(linenr)
 end
 
 function M:switch()
-    vutils.jobstart(git.checkout(self:parse_line().branch), {
-        post_exit = function() self.buffers:current():reload() end
-    })
+    job.runasync(git.checkout(self:parse_line().branch),
+                 {post_exit = function() self.buffers:current():reload() end})
 end
 
 function M:get_marked_or_current_branch()
     local marked = self.buffers:current().ctx.mark or {}
-    return marked.branch or vutils.pipesync(git.branch('--show-current'))
+    return marked.branch or job.popen(git.branch('--show-current'))
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
@@ -109,14 +106,13 @@ function M:new_branch()
     local base_branch = self:get_marked_or_current_branch()
     self.buffers:current():edit({
         get_items = function()
-            return utils.set(self:get_branches_in_rows(1, vim.fn.line('$')))
+            return utils.set(self:get_branches_in_rows(vim_utils.all_rows()))
         end,
         update = function(ori_branches, new_branches)
             for new_branch, _ in pairs(new_branches) do
                 if ori_branches[new_branch] == nil then
-                    vutils.pipesync(git.checkout(
-                                        ('-b %s %s'):format(new_branch,
-                                                            base_branch)))
+                    job.run(git.checkout(
+                                ('-b %s %s'):format(new_branch, base_branch)))
                 end
             end
         end
@@ -126,10 +122,8 @@ function M:new_branch()
 end
 
 function M:force_delete_branch()
-    local range = vutils.visual_range()
-    for _, branch in ipairs(self:get_branches_in_rows(range.row_beg,
-                                                      range.row_end)) do
-        vutils.pipesync(git.branch('-D ' .. branch))
+    for _, branch in ipairs(self:get_branches_in_rows(vim_utils.visual_rows())) do
+        job.run(git.branch('-D ' .. branch))
     end
     self.buffers:current():reload()
 end

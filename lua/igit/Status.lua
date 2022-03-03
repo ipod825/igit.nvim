@@ -1,7 +1,8 @@
 local M = require 'igit.Class'()
 local git = require('igit.git')
-local vutils = require('igit.vutils')
+local job = require('igit.job')
 local global = require('igit.global')
+local vim_utils = require('igit.vim_utils')
 local itertools = require('igit.itertools')
 
 function M:init(options)
@@ -30,14 +31,13 @@ function M:commit_submit(amend)
     global.pending_commit[git.find_root()] = nil
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
                                  vim.fn.readfile(git.commit_message_file_path()))
-    vutils.jobsyncstart(git.commit(('%s -m "%s"'):format(amend, table.concat(
-                                                             lines, '\n'))))
+    job.run(git.commit(('%s -m "%s"'):format(amend, table.concat(lines, '\n'))))
 end
 
 function M:commit(amend)
     local prepare_commit_file_cmd = 'GIT_EDITOR=false git commit ' ..
                                         (amend and '--amend' or '')
-    vutils.jobsyncstart(prepare_commit_file_cmd, {on_exit = vutils.nop})
+    job.run(prepare_commit_file_cmd, {silent = true})
     local commit_message_file_path = git.commit_message_file_path()
     vim.cmd('edit ' .. commit_message_file_path)
     vim.bo.bufhidden = 'wipe'
@@ -53,16 +53,14 @@ end
 
 function M:change_action(action)
     local status = git.status_porcelain()
-    local range = vutils.visual_range()
-    local paths = itertools.range(range.row_beg, range.row_end):map(
+    local paths = itertools.range(vim_utils.visual_rows()):map(
                       function(e)
             local path = self:parse_line(e).filepath
             return status[path] and path or ''
         end):collect()
 
-    vutils.jobstart(action(paths), {
-        post_exit = function() self.buffers:current():reload() end
-    })
+    job.runasync(action(paths),
+                 {post_exit = function() self.buffers:current():reload() end})
     return #paths == 1
 end
 
@@ -76,7 +74,7 @@ function M:side_diff()
     local ori_win = vim.api.nvim_get_current_win()
 
     vim.cmd('vnew')
-    vutils.jobsyncstart(git.show(':%s'):format(cline.filepath), {
+    job.run(git.show(':%s'):format(cline.filepath), {
         stdout_flush = function(lines)
             vim.api.nvim_buf_set_lines(0, -2, -1, false, lines)
         end

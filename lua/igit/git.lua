@@ -1,6 +1,6 @@
 local M = {}
 local utils = require('igit.utils')
-local vutils = require('igit.vutils')
+local job = require('igit.job')
 
 function M.Git(cmd)
     local git_dir = vim.b.vcs_root or M.find_root()
@@ -25,15 +25,8 @@ function M.file_check_sum(path)
 end
 
 function M.status_porcelain()
-    local lines = {}
-    vutils.jobsyncstart(M.status('--porcelain'), {
-        stdout_flush = function(new_lines)
-            vim.list_extend(lines, new_lines)
-        end
-    })
-
     local res = {}
-    for _, line in ipairs(lines) do
+    for _, line in ipairs(job.popen(M.status('--porcelain'), true)) do
         local state, old_filename, _, new_filename = unpack(line:split())
         res[old_filename] = {
             index = state:sub(1, 1),
