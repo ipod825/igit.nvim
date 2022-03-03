@@ -24,11 +24,10 @@ function M.jobstart(cmd, opts)
     end
 
     local stderr_lines = {('Error message from\n%s\n'):format(cmd)};
-    local on_stderr = opts.on_stderr or function(_, data)
-        for _, s in ipairs(vim.tbl_flatten(data)) do
-            if #s > 0 then table.insert(stderr_lines, s) end
+    local on_stderr = opts.on_stderr or
+                          function(_, data)
+            vim.list_extend(stderr_lines, data)
         end
-    end
 
     local on_exit = opts.on_exit or function(_, exit_code)
         if exit_code ~= 0 then
@@ -37,7 +36,7 @@ function M.jobstart(cmd, opts)
         end
         -- stdout always comes with two empty lines at the end.
         opts.stdout_flush(vim.list_slice(stdout_lines, 1, #stdout_lines - 2))
-        opts.post_exit()
+        opts.post_exit(exit_code)
     end
 
     return vim.fn.jobstart(cmd, {
@@ -51,6 +50,21 @@ function M.jobsyncstart(cmd, opts)
     local jid = M.jobstart(cmd, opts)
     vim.fn.jobwait({jid})
     return jid
+end
+
+function M.pipesync(cmd)
+    local stdout_lines = {}
+    vim.fn.jobwait({
+        M.jobstart(cmd, {
+            stdout_flush = function(lines)
+                vim.list_extend(stdout_lines, lines)
+            end,
+            post_exit = function(code)
+                if code ~= 0 then stdout_lines = nil end
+            end
+        })
+    })
+    return table.concat(stdout_lines, '\n')
 end
 
 function M.visual_range()
