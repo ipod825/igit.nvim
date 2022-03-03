@@ -1,32 +1,34 @@
-local M = {}
+local M = require 'igit.Class'()
 local git = require('igit.git')
-local page = require('igit.page')
 local utils = require('igit.utils')
 local vutils = require('igit.vutils')
 local itertools = require('igit.itertools')
 
-function M.setup(options)
-    M.options = M.options or {
+function M:init(options)
+    self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
-                ['<cr>'] = M.switch,
-                ['i'] = M.rename,
-                ['m'] = M.mark,
-                ['r'] = M.rebase_onto,
-                ['o'] = M.new_branch,
-                ['X'] = M.force_delete_branch
+                ['<cr>'] = function() self:switch() end,
+                ['i'] = function() self:rename() end,
+                ['m'] = function() self:mark() end,
+                ['r'] = function() self:rebase_onto() end,
+                ['o'] = function() self:new_branch() end,
+                ['X'] = function() self:force_delete_branc() end
             },
-            v = {['r'] = M.rebase_onto, ['X'] = M.force_delete_branch}
+            v = {
+                ['r'] = function() self:rebase_onto() end,
+                ['X'] = function() self:force_delete_branch() end
+            }
         },
         args = {'-v'}
-    }
-    M.options = vim.tbl_deep_extend('force', M.options, options)
+    }, options)
+    self.buffers = require('igit.BufferManager')({type = 'branch'})
 end
 
-function M.rename()
-    page.current():edit({
+function M:rename()
+    self.buffers:current():edit({
         get_items = function()
-            return M.get_branches_in_rows(1, vim.fn.line('$'))
+            return self:get_branches_in_rows(1, vim.fn.line('$'))
         end,
         update = function(ori_items, new_items)
             if #ori_items ~= #new_items then
@@ -47,13 +49,15 @@ function M.rename()
     })
 end
 
-function M.mark() page.current():mark({branch = M.parse_line().branch}) end
+function M:mark()
+    self.buffers:current():mark({branch = self:parse_line().branch})
+end
 
-function M.rebase_onto()
-    local base_branch = page.current():get_mark_ctx().branch
+function M:rebase_onto()
+    local base_branch = self.buffers:current():get_mark_ctx().branch
 
     local range = vutils.visual_range()
-    local branches = M.get_branches_in_rows(range.row_beg, range.row_end)
+    local branches = self:get_branches_in_rows(range.row_beg, range.row_end)
 
     local prev_new_branch_backup = ''
     for _, new_branch in ipairs(branches) do
@@ -73,10 +77,10 @@ function M.rebase_onto()
         base_branch = new_branch
     end
     vutils.jobsyncstart(git.branch('-D ' .. prev_new_branch_backup))
-    page.current():reload()
+    self.buffers:current():reload()
 end
 
-function M.parse_line(linenr)
+function M:parse_line(linenr)
     linenr = linenr or '.'
     local line = vim.fn.getline(linenr)
     local res = {is_current = false, branch = nil}
@@ -85,27 +89,27 @@ function M.parse_line(linenr)
     return res
 end
 
-function M.switch()
-    vutils.jobstart(git.checkout(M.parse_line().branch),
-                    {post_exit = function() page.current():reload() end})
+function M:switch()
+    vutils.jobstart(git.checkout(self:parse_line().branch), {
+        post_exit = function() self.buffers:current():reload() end
+    })
 end
 
-function M.get_marked_or_current_branch()
-    local marked = page.current():get_mark_ctx()
-    return marked and marked.branch or
-               vutils.pipesync(git.branch('--show-current'))
+function M:get_marked_or_current_branch()
+    local marked = self.buffers:current().ctx.mark or {}
+    return marked.branch or vutils.pipesync(git.branch('--show-current'))
 end
 
-function M.get_branches_in_rows(row_beg, row_end)
-    return itertools.range(row_beg, row_end):map(M.parse_line):map(
+function M:get_branches_in_rows(row_beg, row_end)
+    return itertools.range(row_beg, row_end):map(self.parse_line):map(
                function(e) return e.branch end):collect()
 end
 
-function M.new_branch()
-    local base_branch = M.get_marked_or_current_branch()
-    page.current():edit({
+function M:new_branch()
+    local base_branch = self:get_marked_or_current_branch()
+    self.buffers:current():edit({
         get_items = function()
-            return utils.set(M.get_branches_in_rows(1, vim.fn.line('$')))
+            return utils.set(self:get_branches_in_rows(1, vim.fn.line('$')))
         end,
         update = function(ori_branches, new_branches)
             for new_branch, _ in pairs(new_branches) do
@@ -121,26 +125,22 @@ function M.new_branch()
     vim.cmd('startinsert')
 end
 
-function M.force_delete_branch()
+function M:force_delete_branch()
     local range = vutils.visual_range()
-    for _, branch in
-        ipairs(M.get_branches_in_rows(range.row_beg, range.row_end)) do
+    for _, branch in ipairs(self:get_branches_in_rows(range.row_beg,
+                                                      range.row_end)) do
         vutils.pipesync(git.branch('-D ' .. branch))
     end
-    page.current():reload()
+    self.buffers:current():reload()
 end
 
-function M.open()
-    local git_root = git.find_root()
-    if git_root then
-        page:get_or_new({
-            vcs_root = git_root,
-            filetype = 'branch',
-            mappings = M.options.mapping,
-            auto_reload = true,
-            reload_fn = function() return git.branch(M.options.args) end
-        })
-    end
+function M:open()
+    self.buffers:open({
+        vcs_root = git.find_root(),
+        mappings = self.options.mapping,
+        auto_reload = true,
+        reload_fn = function() return git.branch(self.options.args) end
+    })
 end
 
 return M

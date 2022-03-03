@@ -34,12 +34,16 @@ function M.status_porcelain()
 
     local res = {}
     for _, line in ipairs(lines) do
-        for state, filename in line:gmatch('(%s*[^%s]+)%s+([^%s]+)') do
-            res[filename] = {
+        local state, old_filename, _, new_filename = unpack(line:split())
+        res[old_filename] = {
+            index = state:sub(1, 1),
+            worktree = state:sub(2, 2)
+        }
+        if new_filename then
+            res[new_filename] = {
                 index = state:sub(1, 1),
                 worktree = state:sub(2, 2)
             }
-            break
         end
     end
     return res
