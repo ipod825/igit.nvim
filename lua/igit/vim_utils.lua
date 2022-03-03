@@ -12,6 +12,6 @@ function M.visual_rows()
     return row_beg, row_end
 end
 
-function M.all_rows() return 1, vim.line('$') end
+function M.all_rows() return 1, vim.fn.line('$') end
 
 return M

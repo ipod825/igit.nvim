@@ -9,16 +9,16 @@ function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
-                ['<cr>'] = function() self:switch() end,
-                ['i'] = function() self:rename() end,
-                ['m'] = function() self:mark() end,
-                ['r'] = function() self:rebase_onto() end,
-                ['o'] = function() self:new_branch() end,
-                ['X'] = function() self:force_delete_branc() end
+                ['<cr>'] = self:bind(self.switch),
+                ['i'] = self:bind(self.rename),
+                ['m'] = self:bind(self.mark),
+                ['r'] = self:bind(self.rebase),
+                ['o'] = self:bind(self.new_branch),
+                ['X'] = self:bind(self.force_delete_branch)
             },
             v = {
-                ['r'] = function() self:rebase_onto() end,
-                ['X'] = function() self:force_delete_branch() end
+                ['r'] = self:bind(self.rebase),
+                ['X'] = self:bind(self.force_delete_branch)
             }
         },
         args = {'-v'}
@@ -51,30 +51,42 @@ function M:rename()
 end
 
 function M:mark()
-    self.buffers:current():mark({branch = self:parse_line().branch})
+    self.buffers:current():mark({branch = self:parse_line().branch}, 2)
 end
 
-function M:rebase_onto()
-    local base_branch = self.buffers:current():get_mark_ctx().branch
+function M:rebase()
+    local anchor = self:get_anchor_branch()
+    local base_branch, grafted_ancestor = anchor.base,
+                                          anchor.grafted_ancestor or ''
     local branches = self:get_branches_in_rows(vim_utils.visual_rows())
 
-    local prev_new_branch_backup = ''
     for _, new_branch in ipairs(branches) do
-        job.run(git.checkout(new_branch))
-        local new_backup = ('%s_backup'):format(new_branch)
-        job.run(git.branch(new_backup))
-        if #prev_new_branch_backup > 0 then
-            job.run(git.rebase(('--onto %s %s %s'):format(base_branch,
-                                                          prev_new_branch_backup,
-                                                          new_branch)))
-            job.run(git.branch('-D ' .. prev_new_branch_backup))
+        local next_grafted_ancestor =
+            ('_%s_original_conflicted_with_%s'):format(new_branch, base_branch)
+        job.run(git.branch(('%s %s'):format(next_grafted_ancestor, new_branch)))
+        if grafted_ancestor ~= '' then
+            local succ = 0 ==
+                             job.run(git.rebase(
+                                         ('--onto %s %s %s'):format(base_branch,
+                                                                    grafted_ancestor,
+                                                                    new_branch)))
+            job.run(git.branch('-D ' .. grafted_ancestor))
+            if not succ then
+                self.buffers:current():reload()
+                return
+            end
         else
-            job.run(git.rebase(('%s'):format(base_branch)))
+            if 0 ~=
+                job.run(git.rebase(('%s %s'):format(base_branch, new_branch))) then
+                job.run(git.branch('-D ' .. next_grafted_ancestor))
+                self.buffers:current():reload()
+                return
+            end
         end
-        prev_new_branch_backup = new_backup
+        grafted_ancestor = next_grafted_ancestor
         base_branch = new_branch
     end
-    job.run(git.branch('-D ' .. prev_new_branch_backup))
+    job.run(git.branch('-D ' .. grafted_ancestor))
     self.buffers:current():reload()
 end
 
@@ -92,18 +104,22 @@ function M:switch()
                  {post_exit = function() self.buffers:current():reload() end})
 end
 
-function M:get_marked_or_current_branch()
-    local marked = self.buffers:current().ctx.mark or {}
-    return marked.branch or job.popen(git.branch('--show-current'))
+function M:get_anchor_branch()
+    local mark = self.buffers:current().ctx.mark
+    return {
+        base = mark and mark[1].branch or
+            job.popen(git.branch('--show-current')),
+        grafted_ancestor = mark and mark[2] and mark[2].branch
+    }
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
-    return itertools.range(row_beg, row_end):map(self.parse_line):map(
-               function(e) return e.branch end):collect()
+    return itertools.range(row_beg, row_end):map(
+               function(e) return self:parse_line(e).branch end):collect()
 end
 
 function M:new_branch()
-    local base_branch = self:get_marked_or_current_branch()
+    local base_branch = self:get_anchor_branch().base
     self.buffers:current():edit({
         get_items = function()
             return utils.set(self:get_branches_in_rows(vim_utils.all_rows()))

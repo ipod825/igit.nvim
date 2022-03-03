@@ -9,16 +9,16 @@ function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
-                ['H'] = function() self:stage_change() end,
-                ['L'] = function() self:unstage_change() end,
-                ['X'] = function() self:discard_change() end,
-                ['cc'] = function() self:commit() end,
-                ['ca'] = function() self:commit(true) end,
-                ['dd'] = function() self:side_diff() end
+                ['H'] = self:bind(self.stage_change),
+                ['L'] = self:bind(self.unstage_change),
+                ['X'] = self:bind(self.discard_change),
+                ['cc'] = self:bind(self.commit),
+                ['ca'] = self:bind(self.commit, true),
+                ['dd'] = self:bind(self.side_diff)
             },
             v = {
-                ['H'] = function() self:stage_change() end,
-                ['L'] = function() self:unstage_change() end
+                ['H'] = self:bind(self.stage_change),
+                ['L'] = self:bind(self.unstage_change)
             }
         },
         args = {'-s'}

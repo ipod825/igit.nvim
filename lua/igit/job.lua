@@ -35,10 +35,10 @@ function M.runasync(cmd, opts)
             if not opts.silent then
                 vim.notify(table.concat(stderr_lines, '\n'))
             end
-            return
+        else
+            -- stdout always comes with two empty lines at the end.
+            opts.stdout_flush(vim.list_slice(stdout_lines, 1, #stdout_lines - 2))
         end
-        -- stdout always comes with two empty lines at the end.
-        opts.stdout_flush(vim.list_slice(stdout_lines, 1, #stdout_lines - 2))
         opts.post_exit(exit_code)
     end
 
@@ -50,9 +50,17 @@ function M.runasync(cmd, opts)
 end
 
 function M.run(cmd, opts)
+    opts = opts or {}
+    local exit_code = 0
+    local ori_post_exit = opts.post_exit
+    opts.post_exit = function(code)
+        exit_code = code
+        if ori_post_exit then ori_post_exit(code) end
+    end
+
     local jid = M.runasync(cmd, opts)
     vim.fn.jobwait({jid})
-    return jid
+    return exit_code
 end
 
 function M.popen(cmd, return_list)

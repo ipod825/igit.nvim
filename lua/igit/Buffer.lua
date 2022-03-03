@@ -25,12 +25,24 @@ function M:init(opts)
     self:reload()
 end
 
-function M:mark(data)
+function M:mark(data, max_num_data)
+    self.ctx.mark = self.ctx.mark or {}
+    if #self.ctx.mark == max_num_data then self.ctx.mark = {} end
+    local index = (#self.ctx.mark % max_num_data) + 1
+    self.ctx.mark[index] = vim.tbl_extend('force',
+                                          {linenr = vim.fn.line('.') - 1}, data)
+
     vim.api.nvim_buf_clear_namespace(self.id, self.namespace, 1, -1)
-    self.ctx.mark = vim.tbl_extend('force', {}, data)
-    vim.api.nvim_buf_add_highlight(self.id, self.namespace,
-                                   'RedrawDebugRecompose', vim.fn.line('.') - 1,
-                                   1, -1)
+    for i, d in ipairs(self.ctx.mark) do
+        local hi_group
+        if i == 1 then
+            hi_group = 'RedrawDebugRecompose'
+        elseif i == 2 then
+            hi_group = 'DiffAdd'
+        end
+        vim.api.nvim_buf_add_highlight(self.id, self.namespace, hi_group,
+                                       d.linenr, 1, -1)
+    end
 end
 
 function M:save_edit()
@@ -51,7 +63,7 @@ function M:edit(opts)
         vim.tbl_extend('force', {ori_items = opts.get_items()}, opts)
     vim.bo.buftype = 'acwrite'
     vim.cmd(
-        ('autocmd BufWriteCmd <buffer> ++once lua require"igit.global".pages[%d]:save_edit()'):format(
+        ('autocmd BufWriteCmd <buffer> ++once lua require"igit.global".buffers[%d]:save_edit()'):format(
             self.id))
     self:unmapfn(self.mappings)
     local ori_undo_levels = vim.o.undolevels
