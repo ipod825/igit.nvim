@@ -1,4 +1,4 @@
-local M = require 'igit.ds.DataStructure'()
+local M = require 'igit.datatype.DataStructure'()
 
 function M:items() return pairs(self) end
 

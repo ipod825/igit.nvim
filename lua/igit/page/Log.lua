@@ -1,5 +1,5 @@
-local M = require 'igit.Class'()
-local git = require('igit.git')
+local M = require 'igit.datatype.Class'()
+local git = require('igit.git.git')
 local global = require('igit.global')
 
 function M:init(options)
@@ -8,7 +8,7 @@ function M:init(options)
         args = {'--oneline', '--branches', '--graph', '--decorate=short'},
         auto_reload = false
     }, options)
-    self.buffers = require('igit.BufferManager')({type = 'log'})
+    self.buffers = require('igit.page.BufferManager')({type = 'log'})
 end
 
 function M:switch()

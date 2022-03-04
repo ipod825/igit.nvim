@@ -1,4 +1,5 @@
 local M = {}
+local Iterator = require 'igit.datatype.Iterator'
 
 function M.path_join(...) return table.concat({...}, '/') end
 

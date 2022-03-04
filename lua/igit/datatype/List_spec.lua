@@ -1,4 +1,4 @@
-local List = require('igit.ds.List')
+local List = require('igit.datatype.List')
 
 <<<<<<< HEAD
 describe("List", function()

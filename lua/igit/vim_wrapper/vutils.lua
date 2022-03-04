@@ -1,5 +1,5 @@
 local M = {}
-local List = require('igit.ds.List')
+local List = require('igit.datatype.List')
 
 function M.visual_rows()
     local row_beg, row_end

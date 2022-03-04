@@ -1,10 +1,9 @@
-local M = require 'igit.Class'()
-local git = require('igit.git')
-local utils = require('igit.utils')
-local vim_utils = require('igit.vim_utils')
-local job = require('igit.job')
-local itertools = require('igit.itertools')
-local Set = require('igit.ds.Set')
+local M = require 'igit.datatype.Class'()
+local git = require('igit.git.git')
+local vutils = require('igit.vim_wrapper.vutils')
+local job = require('igit.vim_wrapper.job')
+local Iterator = require('igit.datatype.Iterator')
+local Set = require('igit.datatype.Set')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -24,7 +23,7 @@ function M:init(options)
         },
         args = {'-v'}
     }, options)
-    self.buffers = require('igit.BufferManager')({type = 'branch'})
+    self.buffers = require('igit.page.BufferManager')({type = 'branch'})
 end
 
 function M:rename()
@@ -59,7 +58,7 @@ function M:rebase()
     local anchor = self:get_anchor_branch()
     local base_branch, grafted_ancestor = anchor.base,
                                           anchor.grafted_ancestor or ''
-    local branches = self:get_branches_in_rows(vim_utils.visual_rows())
+    local branches = self:get_branches_in_rows(vutils.visual_rows())
 
     for new_branch in branches:iter() do
         local next_grafted_ancestor =
@@ -115,7 +114,7 @@ function M:get_anchor_branch()
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
-    return itertools.range(row_beg, row_end):map(
+    return Iterator.range(row_beg, row_end):map(
                function(e) return self:parse_line(e).branch end):collect()
 end
 
@@ -123,7 +122,7 @@ function M:new_branch()
     local base_branch = self:get_anchor_branch().base
     self.buffers:current():edit({
         get_items = function()
-            return Set(self:get_branches_in_rows(vim_utils.all_rows()))
+            return Set(self:get_branches_in_rows(vutils.all_rows()))
         end,
         update = function(ori_branches, new_branches)
             for new_branch in new_branches:iter() do
@@ -139,7 +138,7 @@ function M:new_branch()
 end
 
 function M:force_delete_branch()
-    for branch in self:get_branches_in_rows(vim_utils.visual_rows()):iter() do
+    for branch in self:get_branches_in_rows(vutils.visual_rows()):iter() do
         job.run(git.branch('-D ' .. branch))
     end
     self.buffers:current():reload()

@@ -1,4 +1,4 @@
-local M = require 'igit.ds.DataStructure'(
+local M = require 'igit.datatype.DataStructure'(
               {
         __add = function(self, that)
             local res = vim.deepcopy(self)

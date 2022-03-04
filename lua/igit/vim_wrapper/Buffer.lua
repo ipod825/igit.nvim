@@ -1,6 +1,6 @@
-local M = require 'igit.Class'()
-local job = require('igit.job')
-local List = require('igit.ds.List')
+local M = require 'igit.datatype.Class'()
+local job = require('igit.vim_wrapper.job')
+local List = require('igit.datatype.List')
 
 function M:init(opts)
     vim.validate({

@@ -1,8 +1,8 @@
-local M = require 'igit.Class'()
-local utils = require('igit.utils')
-local Buffer = require('igit.Buffer')
+local M = require 'igit.datatype.Class'()
+local utils = require('igit.utils.utils')
+local Buffer = require('igit.vim_wrapper.Buffer')
 local global = require('igit.global')
-local git = require('igit.git')
+local git = require('igit.git.git')
 
 function M:init(opts)
     vim.validate({type = {opts.type, 'string'}})

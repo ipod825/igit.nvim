@@ -1,7 +1,7 @@
 local M = {}
-local utils = require('igit.utils')
-local job = require('igit.job')
-local List = require('igit.ds.List')
+local utils = require('igit.utils.utils')
+local job = require('igit.vim_wrapper.job')
+local List = require('igit.datatype.List')
 
 function M.Git(cmd)
     local git_dir = vim.b.vcs_root or M.find_root()

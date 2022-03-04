@@ -1,8 +1,8 @@
-local M = {}
-local List = require('igit.ds.List')
+local M = require 'igit.datatype.Class'()
+local List = require('igit.datatype.List')
 
 M.iter = {}
-function M.iter:new(opts)
+function M:init(opts)
     vim.validate({next_fn = {opts.next_fn, {'function', 'table'}}})
     if type(opts.next_fn) ~= 'function' then
         opts.invariant = opts.next_fn
@@ -18,21 +18,16 @@ function M.iter:new(opts)
         is_list = {opts.is_list, 'boolean', true}
     })
 
-    local obj = {}
-    setmetatable(obj, self)
-    self.__index = self
-    obj.next = opts.next_fn
-    obj.invariant = opts.invariant
-    obj.control = opts.control
-    obj.map_fn = opts.map_fn
-    obj.is_list = opts.is_list
-    return obj
+    self.next = opts.next_fn
+    self.invariant = opts.invariant
+    self.control = opts.control
+    self.map_fn = opts.map_fn
+    self.is_list = opts.is_list
 end
-setmetatable(M.iter, {__call = function(cls, ...) return cls:new(...) end})
 
-function M.iter:pairs() return self.next, self.invariant, self.control end
+function M:pairs() return self.next, self.invariant, self.control end
 
-function M.iter:collect()
+function M:collect()
     local res = {}
     if self.is_list then
         for k in self:pairs() do res[#res + 1] = self.map_fn(k) end
@@ -43,8 +38,8 @@ function M.iter:collect()
     return res
 end
 
-function M.iter:map(map_fn)
-    return M.iter({
+function M:map(map_fn)
+    return M({
         next_fn = self.next,
         invariant = self.invariant,
         control = self.control,
@@ -66,7 +61,7 @@ function M.range(a, b, step)
         local nextvalue = lastvalue + step
         if nextvalue >= b then return nextvalue end
     end or function(_, lastvalue) return lastvalue end
-    return M.iter({next_fn = f, control = a - step, is_list = true})
+    return M({next_fn = f, control = a - step, is_list = true})
 end
 
 return M

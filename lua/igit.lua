@@ -1,11 +1,9 @@
-require('igit.std_extension')
-local List = require('igit.ds.List')
+require('igit.datatype.std_extension')
 local M = {}
 
 function M.setup(options)
-    for name in List({'Branch', 'Log', 'Status'}):iter() do
-        local Class = require('igit.' .. name)
-        M[name:lower()] = Class(options)
-    end
+	M.log = require'igit.page.Log'(options)
+	M.branch = require'igit.page.Branch'(options)
+	M.status = require'igit.page.Status'(options)
 end
 return M

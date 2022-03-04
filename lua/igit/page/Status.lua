@@ -1,9 +1,9 @@
-local M = require 'igit.Class'()
-local git = require('igit.git')
-local job = require('igit.job')
+local M = require 'igit.datatype.Class'()
+local git = require('igit.git.git')
+local job = require('igit.vim_wrapper.job')
 local global = require('igit.global')
-local vim_utils = require('igit.vim_utils')
-local itertools = require('igit.itertools')
+local vutils = require('igit.vim_wrapper.vutils')
+local Iterator = require('igit.datatype.Iterator')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -23,7 +23,7 @@ function M:init(options)
         },
         args = {'-s'}
     }, options)
-    self.buffers = require('igit.BufferManager')({type = 'status'})
+    self.buffers = require('igit.page.BufferManager')({type = 'status'})
 end
 
 function M:commit_submit(amend)
@@ -53,7 +53,7 @@ end
 
 function M:change_action(action)
     local status = git.status_porcelain()
-    local paths = itertools.range(vim_utils.visual_rows()):map(
+    local paths = Iterator.range(vutils.visual_rows()):map(
                       function(e)
             local path = self:parse_line(e).filepath
             return status[path] and path or ''

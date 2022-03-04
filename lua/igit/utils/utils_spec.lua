@@ -1,4 +1,4 @@
-local utils = require 'igit.utils'
+local utils = require 'igit.utils.utils'
 
 describe("dirname", function()
     it("Returns parent for file",
