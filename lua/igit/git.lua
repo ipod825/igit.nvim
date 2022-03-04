@@ -18,10 +18,6 @@ function M.commit_message_file_path()
     return ('%s/.git/COMMIT_EDITMSG'):format(M.find_root())
 end
 
-function M.file_check_sum(path)
-    return vim.fn.system('git hash-object ' .. path):trim()
-end
-
 function M.status_porcelain()
     local res = {}
     for line in job.popen(M.status('--porcelain'), true):iter() do
