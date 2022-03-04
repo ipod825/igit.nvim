@@ -27,7 +27,7 @@ end
 
 function M:mark(data, max_num_data)
     self.ctx.mark = self.ctx.mark or List()
-    if #self.ctx.mark == max_num_data then self.ctx.mark = {} end
+    if #self.ctx.mark == max_num_data then self.ctx.mark = List() end
     local index = (#self.ctx.mark % max_num_data) + 1
     self.ctx.mark[index] = vim.tbl_extend('force',
                                           {linenr = vim.fn.line('.') - 1}, data)

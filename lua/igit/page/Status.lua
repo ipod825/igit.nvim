@@ -14,7 +14,8 @@ function M:init(options)
                 ['X'] = self:bind(self.discard_change),
                 ['cc'] = self:bind(self.commit),
                 ['ca'] = self:bind(self.commit, true),
-                ['dd'] = self:bind(self.side_diff)
+                ['dd'] = self:bind(self.side_diff),
+                ['<cr>'] = self:bind(self.open_file)
             },
             v = {
                 ['H'] = self:bind(self.stage_change),
@@ -25,6 +26,8 @@ function M:init(options)
     }, options)
     self.buffers = require('igit.page.BufferManager')({type = 'status'})
 end
+
+function M:open_file() vim.cmd('edit ' .. self:parse_line().abs_path) end
 
 function M:commit_submit(amend)
     if global.pending_commit[git.find_root()] == nil then return end
@@ -65,23 +68,27 @@ function M:change_action(action)
 end
 
 function M:side_diff()
-    local cline = self:parse_line()
-    vim.cmd(('split %s'):format(cline.abs_path))
+    local cline_info = self:parse_line()
+    vim.cmd(('split %s'):format(cline_info.abs_path))
     vim.cmd(('resize %d'):format(999))
     vim.cmd('diffthis')
     vim.wo.scrollbind = true
     local ori_filetype = vim.bo.filetype
     local ori_win = vim.api.nvim_get_current_win()
 
-    vim.cmd('vnew')
-    job.run(git.show(':%s'):format(cline.filepath), {
+    vutils.open_buffer_and_ping_vcs_root('leftabove vnew', git.find_root(),
+                                         ('igit://HEAD:%s'):format(
+                                             cline_info.filepath))
+    vim.bo.buftype = 'nofile'
+    vim.bo.filetype = ori_filetype
+    vim.bo.modifiable = false
+    vim.cmd('diffthis')
+    vim.wo.scrollbind = true
+    job.run(git.show(':%s'):format(cline_info.filepath), {
         stdout_flush = function(lines)
             vim.api.nvim_buf_set_lines(0, -2, -1, false, lines)
         end
     })
-    vim.bo.filetype = ori_filetype
-    vim.cmd('diffthis')
-    vim.wo.scrollbind = true
     vim.api.nvim_set_current_win(ori_win)
 end
 

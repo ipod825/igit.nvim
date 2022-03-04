@@ -1,5 +1,6 @@
 local M = require 'igit.datatype.Class'()
 local utils = require('igit.utils.utils')
+local vutils = require('igit.vim_wrapper.vutils')
 local Buffer = require('igit.vim_wrapper.Buffer')
 local global = require('igit.global')
 local git = require('igit.git.git')
@@ -21,14 +22,14 @@ function M:open(opts)
     })
     local filename = ('%s-%s'):format(utils.basename(opts.vcs_root), self.type)
 
-    vim.cmd(('tab drop igit://%s'):format(filename))
+    vutils.open_buffer_and_ping_vcs_root('tab drop', opts.vcs_root,
+                                         ('igit://%s'):format(filename))
     opts.id = vim.api.nvim_get_current_buf()
 
     if global.buffers[opts.id] == nil then
         opts.id = opts.id or vim.api.nvim_get_current_buf()
         opts.filetype = 'igit-' .. self.type
         opts.filename = filename
-        git.ping_root_to_buffer(opts.vcs_root)
         global.buffers[opts.id] = Buffer(opts)
 
         vim.cmd(
