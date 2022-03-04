@@ -2,11 +2,6 @@ local M = {}
 
 function M.path_join(...) return table.concat({...}, '/') end
 
-function M.p(...)
-    local objects = vim.tbl_map(vim.inspect, {...})
-    print(unpack(objects))
-end
-
 function M.find_directory(anchor, dir)
     dir = dir or vim.fn.expand('%:p')
     local res = nil
@@ -17,12 +12,6 @@ function M.find_directory(anchor, dir)
         if #dir == ori_len then break end
     end
     return res
-end
-
-function M.list(...)
-    local list = {}
-    for v in ... do list[#list + 1] = v end
-    return list
 end
 
 function M.dirname(str)
