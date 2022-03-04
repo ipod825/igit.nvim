@@ -1,6 +1,7 @@
 local M = {}
 local utils = require('igit.utils')
 local job = require('igit.job')
+local List = require('igit.ds.List')
 
 function M.Git(cmd)
     local git_dir = vim.b.vcs_root or M.find_root()
@@ -23,7 +24,7 @@ end
 
 function M.status_porcelain()
     local res = {}
-    for _, line in ipairs(job.popen(M.status('--porcelain'), true)) do
+    for line in job.popen(M.status('--porcelain'), true):iter() do
         local state, old_filename, _, new_filename = unpack(line:split())
         res[old_filename] = {
             index = state:sub(1, 1),
@@ -44,12 +45,12 @@ setmetatable(M, {
         local git_cmd = M.Git(('%s'):format(cmd))
         if git_cmd then
             return function(...)
-                local args = {}
-                for _, v in ipairs({...}) do
-                    if vim.tbl_islist(v) then
-                        vim.list_extend(args, v)
+                local args = List()
+                for e in List({...}):iter() do
+                    if vim.tbl_islist(e) then
+                        args:extend(e)
                     else
-                        args[#args + 1] = v
+                        args:append(e)
                     end
                 end
                 return ('%s %s'):format(git_cmd, table.concat(args, ' '))

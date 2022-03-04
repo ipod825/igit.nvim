@@ -4,6 +4,7 @@ local utils = require('igit.utils')
 local vim_utils = require('igit.vim_utils')
 local job = require('igit.job')
 local itertools = require('igit.itertools')
+local Set = require('igit.ds.Set')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -60,7 +61,7 @@ function M:rebase()
                                           anchor.grafted_ancestor or ''
     local branches = self:get_branches_in_rows(vim_utils.visual_rows())
 
-    for _, new_branch in ipairs(branches) do
+    for new_branch in branches:iter() do
         local next_grafted_ancestor =
             ('_%s_original_conflicted_with_%s'):format(new_branch, base_branch)
         job.run(git.branch(('%s %s'):format(next_grafted_ancestor, new_branch)))
@@ -122,10 +123,10 @@ function M:new_branch()
     local base_branch = self:get_anchor_branch().base
     self.buffers:current():edit({
         get_items = function()
-            return utils.set(self:get_branches_in_rows(vim_utils.all_rows()))
+            return Set(self:get_branches_in_rows(vim_utils.all_rows()))
         end,
         update = function(ori_branches, new_branches)
-            for new_branch, _ in pairs(new_branches) do
+            for new_branch in new_branches:iter() do
                 if ori_branches[new_branch] == nil then
                     job.run(git.checkout(
                                 ('-b %s %s'):format(new_branch, base_branch)))
@@ -138,7 +139,7 @@ function M:new_branch()
 end
 
 function M:force_delete_branch()
-    for _, branch in ipairs(self:get_branches_in_rows(vim_utils.visual_rows())) do
+    for branch in self:get_branches_in_rows(vim_utils.visual_rows()):iter() do
         job.run(git.branch('-D ' .. branch))
     end
     self.buffers:current():reload()

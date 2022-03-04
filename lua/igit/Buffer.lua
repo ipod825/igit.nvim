@@ -1,5 +1,6 @@
 local M = require 'igit.Class'()
 local job = require('igit.job')
+local List = require('igit.ds.List')
 
 function M:init(opts)
     vim.validate({
@@ -25,14 +26,14 @@ function M:init(opts)
 end
 
 function M:mark(data, max_num_data)
-    self.ctx.mark = self.ctx.mark or {}
+    self.ctx.mark = self.ctx.mark or List()
     if #self.ctx.mark == max_num_data then self.ctx.mark = {} end
     local index = (#self.ctx.mark % max_num_data) + 1
     self.ctx.mark[index] = vim.tbl_extend('force',
                                           {linenr = vim.fn.line('.') - 1}, data)
 
     vim.api.nvim_buf_clear_namespace(self.id, self.namespace, 1, -1)
-    for i, d in ipairs(self.ctx.mark) do
+    for i, d in self.ctx.mark:enumerate() do
         local hi_group
         if i == 1 then
             hi_group = 'RedrawDebugRecompose'

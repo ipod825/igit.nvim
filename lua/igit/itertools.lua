@@ -1,4 +1,5 @@
 local M = {}
+local List = require('igit.ds.List')
 
 M.iter = {}
 function M.iter:new(opts)
@@ -35,6 +36,7 @@ function M.iter:collect()
     local res = {}
     if self.is_list then
         for k in self:pairs() do res[#res + 1] = self.map_fn(k) end
+        return List(res)
     else
         for k, v in self:pairs() do res[k] = self.map_fn(v) end
     end

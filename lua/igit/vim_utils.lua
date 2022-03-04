@@ -1,4 +1,5 @@
 local M = {}
+local List = require('igit.ds.List')
 
 function M.visual_rows()
     local row_beg, row_end
@@ -17,7 +18,7 @@ function M.all_rows() return 1, vim.fn.line('$') end
 function M.augroup(name, autocmds)
     vim.cmd('augroup ' .. name)
     vim.cmd('autocmd!')
-    for _, cmd in ipairs(autocmds) do vim.cmd('autocmd ' .. cmd) end
+    for cmd in List(autocmds):iter() do vim.cmd('autocmd ' .. cmd) end
     vim.cmd('augroup END')
 end
 

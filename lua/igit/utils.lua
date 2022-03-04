@@ -25,12 +25,6 @@ function M.list(...)
     return list
 end
 
-function M.set(lst)
-    local res = {}
-    for _, v in ipairs(lst) do if (not res[v]) then res[v] = true end end
-    return res
-end
-
 function M.dirname(str)
     vim.validate({std = {str, 'string'}})
     local name = str:gsub("/[^/]*$", "")

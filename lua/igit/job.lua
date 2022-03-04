@@ -1,4 +1,6 @@
 local M = {}
+local List = require('igit.ds.List')
+
 function M.nop() end
 
 function M.runasync(cmd, opts)
@@ -73,7 +75,7 @@ function M.popen(cmd, return_list)
             if code ~= 0 then stdout_lines = nil end
         end
     })
-    if return_list then return stdout_lines end
+    if return_list then return List(stdout_lines) end
     return table.concat(stdout_lines, '\n')
 end
 
