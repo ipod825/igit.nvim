@@ -20,15 +20,16 @@ function M:open(opts)
         auto_reload = {opts.auto_reload, 'boolean', true}
     })
     local filename = ('%s-%s'):format(utils.basename(opts.vcs_root), self.type)
-    vim.cmd(('tab drop %s'):format(filename))
+
+    vim.cmd(('tab drop igit://%s'):format(filename))
     opts.id = vim.api.nvim_get_current_buf()
 
     if global.buffers[opts.id] == nil then
         opts.id = opts.id or vim.api.nvim_get_current_buf()
         opts.filetype = 'igit-' .. self.type
         opts.filename = filename
-        global.buffers[opts.id] = Buffer(opts)
         git.ping_root_to_buffer(opts.vcs_root)
+        global.buffers[opts.id] = Buffer(opts)
 
         vim.cmd(
             ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
@@ -38,6 +39,8 @@ function M:open(opts)
                 ('autocmd BufEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
                     opts.id))
         end
+        -- only reload on creation. Other reload is triggered by autocmd.
+        global.buffers[opts.id]:reload()
     end
     return global.buffers[opts.id]
 end

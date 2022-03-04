@@ -22,7 +22,6 @@ function M:init(opts)
     vim.bo.modifiable = false
     vim.bo.bufhidden = 'hide'
     vim.bo.buftype = 'nofile'
-    self:reload()
 end
 
 function M:mark(data, max_num_data)

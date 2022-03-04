@@ -11,10 +11,7 @@ end
 
 function M.ping_root_to_buffer(root) vim.b.vcs_root = root end
 
-function M.find_root()
-    return vim.b.vcs_root or utils.find_directory('.git') or
-               utils.find_directory('.git', vim.fn.getcwd())
-end
+function M.find_root() return vim.b.vcs_root or utils.find_directory('.git') end
 
 function M.commit_message_file_path()
     return ('%s/.git/COMMIT_EDITMSG'):format(M.find_root())
