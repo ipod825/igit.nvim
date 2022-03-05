@@ -2,30 +2,19 @@ local M = require 'igit.datatype.Class'()
 local job = require('igit.vim_wrapper.job')
 local List = require('igit.datatype.List')
 local global = require('igit.global')
+local utils = require('igit.utils.utils')
 
 function M.open_or_new(opts)
     vim.validate({
         open_cmd = {opts.open_cmd, 'string'},
-        filename = {opts.filename, 'string'},
-        auto_reload = {opts.auto_reload, 'boolean'}
+        filename = {opts.filename, 'string'}
     })
     vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
     local id = vim.api.nvim_get_current_buf()
 
     global.buffers = global.buffers or {}
     if global.buffers[id] == nil then
-        global.buffers[id] = M({
-            mappings = opts.mappings,
-            reload_fn = opts.reload_fn,
-            auto_reload = opts.auto_reload,
-            b = opts.b,
-            bo = vim.tbl_extend('force', {
-                filetype = 'igit-' .. opts.type,
-                bufhidden = 'hide',
-                buftype = 'nofile',
-                modifiable = false
-            }, opts.bo or {})
-        })
+        global.buffers[id] = M(opts)
 
         vim.cmd(
             ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
@@ -45,15 +34,18 @@ end
 
 function M:init(opts)
     vim.validate({
-        mappings = {opts.mappings, 'table'},
-        reload_fn = {opts.reload_fn, 'function'},
-        auto_reload = {opts.auto_reload, 'boolean', true},
+        reload_cmd_gen_fn = {opts.reload_cmd_gen_fn, 'function'},
+        post_reload_fn = {opts.pos_reload, 'function', true},
+        auto_reload = {opts.auto_reload, 'boolean'},
+        mappings = {opts.mappings, 'table', true},
         b = {opts.b, 'table', true},
-        bo = {opts.bo, 'table', true}
+        bo = {opts.bo, 'table', true},
+        wo = {opts.wo, 'table', true}
     })
 
     self.id = vim.api.nvim_get_current_buf()
-    self.reload_fn = opts.reload_fn
+    self.reload_cmd_gen_fn = opts.reload_cmd_gen_fn or utils.nop
+    self.post_reload_fn = opts.post_reload_fn or utils.nop
     self.mappings = opts.mappings
     self:mapfn(opts.mappings)
     local ctx = {}
@@ -61,7 +53,8 @@ function M:init(opts)
 
     self.namespace = vim.api.nvim_create_namespace('')
 
-    for k, v in pairs(opts.b) do vim.b[k] = v end
+    for k, v in pairs(opts.b or {}) do vim.b[k] = v end
+    for k, v in pairs(opts.wo or {}) do vim.wo[k] = v end
 
     local bo = vim.tbl_extend('force', {
         modifiable = false,
@@ -122,6 +115,7 @@ function M:edit(opts)
 end
 
 function M:mapfn(mappings)
+    if not mappings then return end
     self.mapping_handles = self.mapping_handles or {}
     for mode, mode_mappings in pairs(mappings) do
         vim.validate({
@@ -181,11 +175,12 @@ function M:reload()
 
     self:save_view()
     self:clear()
-    job.runasync(self.reload_fn(), {
+    job.runasync(self.reload_cmd_gen_fn(), {
         stdout_flush = function(lines) self:append(lines) end,
         post_exit = function()
             self:restore_view()
             self.is_reloading = false
+            self.post_reload_fn(self.id)
         end
     })
 end

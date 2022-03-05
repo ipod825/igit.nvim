@@ -1,6 +1,7 @@
 local M = require('igit.page.Page')()
 local git = require('igit.git.git')
 local vutils = require('igit.vim_wrapper.vutils')
+local utils = require('igit.utils.utils')
 local job = require('igit.vim_wrapper.job')
 local Iterator = require('igit.datatype.Iterator')
 local Set = require('igit.datatype.Set')
@@ -92,7 +93,7 @@ function M:parse_line(linenr)
     local line = vim.fn.getline(linenr)
     local res = {is_current = false, branch = nil}
     res.is_current = line:find_str('%s*(%*?)') ~= ''
-    res.branch = line:find_str('%s?([^%s%*]+)%s?'):gsub('%c+%[[%d;]*m', '')
+    res.branch = utils.remove_ansi_escape(line:find_str('%s?([^%s%*]+)%s?'))
     return res
 end
 
@@ -148,7 +149,7 @@ function M:open(args)
         type = 'branch',
         mappings = self.options.mapping,
         auto_reload = true,
-        reload_fn = function() return git.branch(args) end
+        reload_cmd_gen_fn = function() return git.branch(args) end
     })
 end
 

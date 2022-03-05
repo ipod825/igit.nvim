@@ -25,7 +25,13 @@ function M:open_or_new_buffer(key, opts)
         open_cmd = 'tab drop',
         filename = ('igit://%s-%s%s'):format(utils.basename(opts.vcs_root),
                                              opts.type, self.buffer_index[key]),
-        b = {vcs_root = opts.vcs_root}
+        b = {vcs_root = opts.vcs_root},
+        bo = {
+            filetype = 'igit-' .. opts.type,
+            bufhidden = 'hide',
+            buftype = 'nofile',
+            modifiable = false
+        }
     }, opts)
 
     return Buffer.open_or_new(opts)

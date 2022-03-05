@@ -27,4 +27,8 @@ function M.basename(str)
     return name
 end
 
+function M.remove_ansi_escape(str) return str:gsub('%c+%[[%d;]*m', '') end
+
+function M.nop() end
+
 return M

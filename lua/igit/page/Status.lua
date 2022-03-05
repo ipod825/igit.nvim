@@ -81,10 +81,17 @@ function M:side_diff()
         filename = ('igit://HEAD:%s'):format(cline_info.filepath),
         auto_reload = false,
         b = {vcs_root = git.find_root()},
-        bo = {buftype = 'nofile', filetype = ori_filetype, modifiable = false},
-        reload_fn = git.show(':%s'):format(cline_info.filepath)
+        -- bo = {buftype = 'nofile', filetype = ori_filetype, modifiable = false},
+        bo = {buftype = 'nofile', modifiable = false},
+        wo = {diff = true},
+        reload_cmd_gen_fn = function()
+            return git.show(':%s'):format(cline_info.filepath)
+        end,
+        post_reload_fn = function(id)
+            vim.api.nvim_buf_set_option(id, 'filetype', ori_filetype)
+        end
     })
-    vim.cmd('diffthis')
+    -- vim.cmd('diffthis')
     vim.wo.scrollbind = true
     vim.api.nvim_set_current_win(ori_win)
 end
@@ -122,7 +129,7 @@ function M:open(args)
         type = 'status',
         mappings = self.options.mapping,
         auto_reload = true,
-        reload_fn = function() return git.status(args) end
+        reload_cmd_gen_fn = function() return git.status(args) end
     })
 end
 
