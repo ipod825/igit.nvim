@@ -30,14 +30,14 @@ end
 
 function M:open_file() vim.cmd('edit ' .. self:parse_line().abs_path) end
 
-function M:commit_submit(amend)
-    log.WARN('in')
-    if global.pending_commit[git.find_root()] == nil then return end
-    log.WARN('in2')
-    global.pending_commit[git.find_root()] = nil
+function M:commit_submit(amend, git_dir)
+    if global.pending_commit[git_dir] == nil then return end
+    global.pending_commit[git_dir] = nil
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
                                  vim.fn.readfile(git.commit_message_file_path()))
-    job.run(git.commit(('%s -m "%s"'):format(amend, table.concat(lines, '\n'))))
+    job.run(git.rawcmd(('commit %s -m "%s"'):format(amend,
+                                                    table.concat(lines, '\n')),
+                       {git_dir = git_dir}))
 end
 
 function M:commit(amend)
@@ -53,8 +53,8 @@ function M:commit(amend)
         ('autocmd BufWritePost <buffer> ++once :lua require"igit.global".pending_commit["%s"]=true'):format(
             git.find_root()))
     vim.cmd(
-        ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s")'):format(
-            amend and '--amend' or ''))
+        ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s", "%s")'):format(
+            amend and '--amend' or '', git.find_root()))
 end
 
 function M:change_action(action)

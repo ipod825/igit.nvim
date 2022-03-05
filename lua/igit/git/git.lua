@@ -3,6 +3,20 @@ local utils = require('igit.utils.utils')
 local job = require('igit.vim_wrapper.job')
 local List = require('igit.datatype.List')
 
+-- A version that allows setting git_dir. Useful when find_root fails (for e.g.
+-- when closing a buffer).
+function M.rawcmd(cmd, opts)
+    opts = opts or {}
+    vim.validate({
+        cmd = {cmd, 'string'},
+        git_dir = {opts.git_dir, 'string', true}
+    })
+    local git_dir = opts.git_dir or vim.b.vcs_root or M.find_root()
+    return git_dir and
+               ('git --no-pager -c color.ui=always -C %s %s'):format(git_dir,
+                                                                     cmd) or nil
+end
+
 function M.Git(cmd)
     local git_dir = vim.b.vcs_root or M.find_root()
     return git_dir and
@@ -36,7 +50,7 @@ end
 
 setmetatable(M, {
     __index = function(_, cmd)
-        local git_cmd = M.Git(('%s'):format(cmd))
+        local git_cmd = M.Git(cmd)
         if git_cmd then
             return function(...)
                 local args = List()
