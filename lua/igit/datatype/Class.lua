@@ -1,7 +1,9 @@
 local M = {}
 
 function M:new(...)
-    local obj = setmetatable({}, self)
+    local obj = setmetatable({
+        __call = function(cls, ...) return cls:new(...) end
+    }, self)
     self.__index = self
     obj:init(...)
     return obj

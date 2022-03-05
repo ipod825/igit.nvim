@@ -1,4 +1,4 @@
-local M = require 'igit.datatype.Class'()
+local M = require 'igit.page.Page'()
 local git = require('igit.git.git')
 local job = require('igit.vim_wrapper.job')
 local global = require('igit.global')
@@ -24,7 +24,6 @@ function M:init(options)
         },
         args = {'-s'}
     }, options)
-    self.buffers = require('igit.page.BufferManager')({type = 'status'})
 end
 
 function M:open_file() vim.cmd('edit ' .. self:parse_line().abs_path) end
@@ -63,7 +62,7 @@ function M:change_action(action)
         end):collect()
 
     job.runasync(action(paths),
-                 {post_exit = function() self.buffers:current():reload() end})
+                 {post_exit = function() self:buffer():reload() end})
     return #paths == 1
 end
 
@@ -119,8 +118,9 @@ function M:parse_line(line_nr)
 end
 
 function M:open()
-    self.buffers:open({
+    self:open_buffer({
         vcs_root = git.find_root(),
+        type = 'status',
         mappings = self.options.mapping,
         auto_reload = true,
         reload_fn = function() return git.status(self.options.args) end

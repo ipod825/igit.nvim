@@ -1,28 +1,44 @@
 local M = require 'igit.datatype.Class'()
 local job = require('igit.vim_wrapper.job')
 local List = require('igit.datatype.List')
+local global = require('igit.global')
 
 function M:init(opts)
     vim.validate({
-        id = {opts.id, 'number'},
-        filetype = {opts.filetype, 'string'},
         mappings = {opts.mappings, 'table'},
-        reload_fn = {opts.reload_fn, 'function'}
+        reload_fn = {opts.reload_fn, 'function'},
+        auto_reload = {opts.auto_reload, 'boolean', true},
+        bo = {opts.bo, 'table', true}
     })
 
-    self.id = opts.id
-    vim.bo.filetype = opts.filetype
+    self.id = vim.api.nvim_get_current_buf()
     self.reload_fn = opts.reload_fn
     self.mappings = opts.mappings
     self:mapfn(opts.mappings)
     local ctx = {}
     self.ctx = setmetatable({}, {__index = ctx, __newindex = ctx})
 
-    self.namespace = vim.api.nvim_create_namespace(opts.filename)
+    self.namespace = vim.api.nvim_create_namespace('')
 
-    vim.bo.modifiable = false
-    vim.bo.bufhidden = 'hide'
-    vim.bo.buftype = 'nofile'
+    local bo = vim.tbl_extend('force', {
+        modifiable = false,
+        bufhidden = 'wipe',
+        buftype = 'nofile'
+    }, opts.bo)
+    for k, v in pairs(bo) do vim.bo[k] = v end
+
+    global.buffers = global.buffers or {}
+    global.buffers[self.id] = self
+    vim.cmd(
+        ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
+            self.id))
+    if opts.auto_reload then
+        vim.cmd(
+            ('autocmd BufEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
+                self.id))
+    end
+
+    self:reload()
 end
 
 function M:mark(data, max_num_data)
@@ -120,18 +136,25 @@ end
 function M:save_view() self.saved_view = vim.fn.winsaveview() end
 
 function M:restore_view()
-    if self.saved_view then
+    if self.saved_view and self.id == vim.api.nvim_get_current_buf() then
         vim.fn.winrestview(self.saved_view)
         self.saved_view = nil
     end
 end
 
 function M:reload()
+    if self.is_reloading then return end
+
+    self.is_reloading = true
+
     self:save_view()
     self:clear()
     job.runasync(self.reload_fn(), {
         stdout_flush = function(lines) self:append(lines) end,
-        post_exit = function() self:restore_view() end
+        post_exit = function()
+            self:restore_view()
+            self.is_reloading = false
+        end
     })
 end
 

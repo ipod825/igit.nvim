@@ -1,4 +1,4 @@
-local M = require 'igit.datatype.Class'()
+local M = require('igit.page.Page')()
 local git = require('igit.git.git')
 local global = require('igit.global')
 
@@ -8,7 +8,6 @@ function M:init(options)
         args = {'--oneline', '--branches', '--graph', '--decorate=short'},
         auto_reload = false
     }, options)
-    self.buffers = require('igit.page.BufferManager')({type = 'log'})
 end
 
 function M:switch()
@@ -34,7 +33,7 @@ function M:select_branch(branches)
             coroutine.yield()
             return selected_item
         end)
-    coroutine.resume(self.buffers:current().ctx.select_branch)
+    coroutine.resume(self:buffer().ctx.select_branch)
 end
 
 function M:parse_line()
@@ -49,8 +48,9 @@ function M:parse_line()
 end
 
 function M:open()
-    self.buffers:open({
+    self:open_buffer({
         vcs_root = git.find_root(),
+        type = 'log',
         mappings = self.options.mapping,
         auto_reload = self.options.auto_reload,
         reload_fn = function() return git.log(self.options.args) end
