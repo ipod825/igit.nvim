@@ -47,10 +47,10 @@ function M:commit(amend)
     vim.cmd('setlocal bufhidden=wipe')
     global.pending_commit = global.pending_commit or {}
     vim.cmd(
-        ('autocmd BufWritePre <buffer> ++once :lua require"igit.global".pending_commit["%s"]=true'):format(
+        ('autocmd BufWritePost <buffer> ++once :lua require"igit.global".pending_commit["%s"]=true'):format(
             git.find_root()))
     vim.cmd(
-        ('autocmd Bufunload <buffer> :lua require"igit".status:commit_submit("%s")'):format(
+        ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s")'):format(
             amend and '--amend' or ''))
 end
 
