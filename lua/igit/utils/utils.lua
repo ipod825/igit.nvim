@@ -1,7 +1,9 @@
 local M = {}
 local Iterator = require 'igit.datatype.Iterator'
 
-function M.path_join(...) return table.concat({...}, '/') end
+local path_sep = vim.loop.os_uname().version:match("Windows") and "\\" or "/"
+
+function M.path_join(...) return table.concat({...}, path_sep) end
 
 function M.find_directory(anchor, dir)
     dir = dir or vim.fn.expand('%:p')

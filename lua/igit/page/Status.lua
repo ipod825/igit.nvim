@@ -5,6 +5,7 @@ local global = require('igit.global')
 local vutils = require('igit.vim_wrapper.vutils')
 local Iterator = require('igit.datatype.Iterator')
 local Buffer = require('igit.vim_wrapper.Buffer')
+local log = require('igit.debug.log')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -30,7 +31,9 @@ end
 function M:open_file() vim.cmd('edit ' .. self:parse_line().abs_path) end
 
 function M:commit_submit(amend)
+    log.WARN('in')
     if global.pending_commit[git.find_root()] == nil then return end
+    log.WARN('in2')
     global.pending_commit[git.find_root()] = nil
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
                                  vim.fn.readfile(git.commit_message_file_path()))
