@@ -26,7 +26,7 @@ function M:init(options)
 end
 
 function M:rename()
-    self.buffer:edit({
+    self.current_buf():edit({
         get_items = function()
             return self:get_branches_in_rows(1, vim.fn.line('$'))
         end,
@@ -49,7 +49,7 @@ function M:rename()
     })
 end
 
-function M:mark() self.buffer:mark({branch = self:parse_line().branch}, 2) end
+function M:mark() self.current_buf():mark({branch = self:parse_line().branch}, 2) end
 
 function M:rebase()
     local anchor = self:get_anchor_branch()
@@ -69,14 +69,14 @@ function M:rebase()
                                                                     new_branch)))
             job.run(git.branch('-D ' .. grafted_ancestor))
             if not succ then
-                self.buffer:reload()
+                self.current_buf():reload()
                 return
             end
         else
             if 0 ~=
                 job.run(git.rebase(('%s %s'):format(base_branch, new_branch))) then
                 job.run(git.branch('-D ' .. next_grafted_ancestor))
-                self.buffer:reload()
+                self.current_buf():reload()
                 return
             end
         end
@@ -84,7 +84,7 @@ function M:rebase()
         base_branch = new_branch
     end
     job.run(git.branch('-D ' .. grafted_ancestor))
-    self.buffer:reload()
+    self.current_buf():reload()
 end
 
 function M:parse_line(linenr)
@@ -98,7 +98,7 @@ end
 
 function M:switch()
     job.runasync(git.checkout(self:parse_line().branch),
-                 {post_exit = function() self.buffer:reload() end})
+                 {post_exit = function() self.current_buf():reload() end})
 end
 
 function M:get_anchor_branch()
@@ -117,7 +117,7 @@ end
 
 function M:new_branch()
     local base_branch = self:get_anchor_branch().base
-    self.buffer:edit({
+    self.current_buf():edit({
         get_items = function()
             return Set(self:get_branches_in_rows(vutils.all_rows()))
         end,
@@ -138,16 +138,17 @@ function M:force_delete_branch()
     for branch in self:get_branches_in_rows(vutils.visual_rows()):iter() do
         job.run(git.branch('-D ' .. branch))
     end
-    self.buffer:reload()
+    self.current_buf():reload()
 end
 
-function M:open()
-    self.buffer = self:open_or_new_buffer({
+function M:open(args)
+    args = args or self.options.args
+    self:open_or_new_buffer(args, {
         vcs_root = git.find_root(),
         type = 'branch',
         mappings = self.options.mapping,
         auto_reload = true,
-        reload_fn = function() return git.branch(self.options.args) end
+        reload_fn = function() return git.branch(args) end
     })
 end
 

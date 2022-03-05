@@ -25,6 +25,17 @@ describe("extend", function()
     end)
 end)
 
+describe("Concat(_add)", function()
+    it("Returns coancated list ", function()
+        local l = List({1, 2})
+        local l1 = l + {3, 4}
+        local l2 = l1 + {5, 6}
+        assert.are.same(l, {1, 2})
+        assert.are.same(l1, {1, 2, 3, 4})
+        assert.are.same(l2, {1, 2, 3, 4, 5, 6})
+    end)
+end)
+
 describe("iterate", function()
     it("Iterates elements", function()
         local l = List({1, 2, 3, 4})

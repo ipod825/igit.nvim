@@ -63,7 +63,7 @@ function M:change_action(action)
         end):collect()
 
     job.runasync(action(paths),
-                 {post_exit = function() self.buffer:reload() end})
+                 {post_exit = function() self.current_buf():reload() end})
     return #paths == 1
 end
 
@@ -115,17 +115,15 @@ function M:parse_line(line_nr)
     return res
 end
 
-function M:open()
-    self.buffer = self:open_or_new_buffer(
-                      {
-            vcs_root = git.find_root(),
-            type = 'status',
-            mappings = self.options.mapping,
-            auto_reload = true,
-            reload_fn = function()
-                return git.status(self.options.args)
-            end
-        })
+function M:open(args)
+    args = args or self.options.args
+    self:open_or_new_buffer(args, {
+        vcs_root = git.find_root(),
+        type = 'status',
+        mappings = self.options.mapping,
+        auto_reload = true,
+        reload_fn = function() return git.status(args) end
+    })
 end
 
 return M

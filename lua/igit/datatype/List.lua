@@ -1,11 +1,17 @@
-local M = require 'igit.datatype.DataStructure'(
-              {
-        __add = function(self, that)
-            local res = vim.deepcopy(self)
-            vim.list_extend(res, that)
-            return res
-        end
-    })
+local M = require('igit.datatype.Class')()
+
+function M:new(lst)
+    lst = lst or {}
+    local obj = setmetatable(lst, self)
+    self.__index = self
+    return obj
+end
+
+function M:__add(that)
+    local res = vim.deepcopy(self)
+    vim.list_extend(res, that)
+    return res
+end
 
 function M:append(ele) self[#self + 1] = ele end
 

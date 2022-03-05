@@ -39,6 +39,10 @@ function M.open_or_new(opts)
     return global.buffers[id]
 end
 
+function M.get_current_buffer()
+    return global.buffers[vim.api.nvim_get_current_buf()]
+end
+
 function M:init(opts)
     vim.validate({
         mappings = {opts.mappings, 'table'},
