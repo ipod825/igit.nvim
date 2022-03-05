@@ -3,11 +3,48 @@ local job = require('igit.vim_wrapper.job')
 local List = require('igit.datatype.List')
 local global = require('igit.global')
 
+function M.open_or_new(opts)
+    vim.validate({
+        open_cmd = {opts.open_cmd, 'string'},
+        filename = {opts.filename, 'string'},
+        auto_reload = {opts.auto_reload, 'boolean'}
+    })
+    vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
+    local id = vim.api.nvim_get_current_buf()
+
+    global.buffers = global.buffers or {}
+    if global.buffers[id] == nil then
+        global.buffers[id] = M({
+            mappings = opts.mappings,
+            reload_fn = opts.reload_fn,
+            auto_reload = opts.auto_reload,
+            b = opts.b,
+            bo = vim.tbl_extend('force', {
+                filetype = 'igit-' .. opts.type,
+                bufhidden = 'hide',
+                buftype = 'nofile',
+                modifiable = false
+            }, opts.bo or {})
+        })
+
+        vim.cmd(
+            ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
+                id))
+        if opts.auto_reload then
+            vim.cmd(
+                ('autocmd BufEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
+                    id))
+        end
+    end
+    return global.buffers[id]
+end
+
 function M:init(opts)
     vim.validate({
         mappings = {opts.mappings, 'table'},
         reload_fn = {opts.reload_fn, 'function'},
         auto_reload = {opts.auto_reload, 'boolean', true},
+        b = {opts.b, 'table', true},
         bo = {opts.bo, 'table', true}
     })
 
@@ -20,23 +57,14 @@ function M:init(opts)
 
     self.namespace = vim.api.nvim_create_namespace('')
 
+    for k, v in pairs(opts.b) do vim.b[k] = v end
+
     local bo = vim.tbl_extend('force', {
         modifiable = false,
         bufhidden = 'wipe',
         buftype = 'nofile'
     }, opts.bo)
     for k, v in pairs(bo) do vim.bo[k] = v end
-
-    global.buffers = global.buffers or {}
-    global.buffers[self.id] = self
-    vim.cmd(
-        ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
-            self.id))
-    if opts.auto_reload then
-        vim.cmd(
-            ('autocmd BufEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
-                self.id))
-    end
 
     self:reload()
 end

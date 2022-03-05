@@ -4,6 +4,7 @@ local job = require('igit.vim_wrapper.job')
 local global = require('igit.global')
 local vutils = require('igit.vim_wrapper.vutils')
 local Iterator = require('igit.datatype.Iterator')
+local Buffer = require('igit.vim_wrapper.Buffer')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -62,7 +63,7 @@ function M:change_action(action)
         end):collect()
 
     job.runasync(action(paths),
-                 {post_exit = function() self:buffer():reload() end})
+                 {post_exit = function() self.buffer:reload() end})
     return #paths == 1
 end
 
@@ -75,19 +76,16 @@ function M:side_diff()
     local ori_filetype = vim.bo.filetype
     local ori_win = vim.api.nvim_get_current_win()
 
-    vutils.open_buffer_and_ping_vcs_root('leftabove vnew', git.find_root(),
-                                         ('igit://HEAD:%s'):format(
-                                             cline_info.filepath))
-    vim.bo.buftype = 'nofile'
-    vim.bo.filetype = ori_filetype
-    vim.bo.modifiable = false
+    Buffer.open_or_new({
+        open_cmd = 'leftabove vnew',
+        filename = ('igit://HEAD:%s'):format(cline_info.filepath),
+        auto_reload = false,
+        b = {vcs_root = git.find_root()},
+        bo = {buftype = 'nofile', filetype = ori_filetype, modifiable = false},
+        reload_fn = git.show(':%s'):format(cline_info.filepath)
+    })
     vim.cmd('diffthis')
     vim.wo.scrollbind = true
-    job.run(git.show(':%s'):format(cline_info.filepath), {
-        stdout_flush = function(lines)
-            vim.api.nvim_buf_set_lines(0, -2, -1, false, lines)
-        end
-    })
     vim.api.nvim_set_current_win(ori_win)
 end
 
@@ -118,13 +116,16 @@ function M:parse_line(line_nr)
 end
 
 function M:open()
-    self:open_buffer({
-        vcs_root = git.find_root(),
-        type = 'status',
-        mappings = self.options.mapping,
-        auto_reload = true,
-        reload_fn = function() return git.status(self.options.args) end
-    })
+    self.buffer = self:open_or_new_buffer(
+                      {
+            vcs_root = git.find_root(),
+            type = 'status',
+            mappings = self.options.mapping,
+            auto_reload = true,
+            reload_fn = function()
+                return git.status(self.options.args)
+            end
+        })
 end
 
 return M

@@ -33,7 +33,7 @@ function M:select_branch(branches)
             coroutine.yield()
             return selected_item
         end)
-    coroutine.resume(self:buffer().ctx.select_branch)
+    coroutine.resume(self.buffer.ctx.select_branch)
 end
 
 function M:parse_line()
@@ -48,13 +48,14 @@ function M:parse_line()
 end
 
 function M:open()
-    self:open_buffer({
-        vcs_root = git.find_root(),
-        type = 'log',
-        mappings = self.options.mapping,
-        auto_reload = self.options.auto_reload,
-        reload_fn = function() return git.log(self.options.args) end
-    })
+    self.buffer = self:open_or_new_buffer(
+                      {
+            vcs_root = git.find_root(),
+            type = 'log',
+            mappings = self.options.mapping,
+            auto_reload = self.options.auto_reload,
+            reload_fn = function() return git.log(self.options.args) end
+        })
 end
 
 return M
