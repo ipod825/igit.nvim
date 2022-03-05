@@ -66,7 +66,7 @@ function M:change_action(action)
         end):collect()
 
     job.runasync(action(paths),
-                 {post_exit = function() self.current_buf():reload() end})
+                 {post_exit = function() self:current_buf():reload() end})
     return #paths == 1
 end
 
@@ -84,18 +84,12 @@ function M:side_diff()
         filename = ('igit://HEAD:%s'):format(cline_info.filepath),
         auto_reload = false,
         b = {vcs_root = git.find_root()},
-        -- bo = {buftype = 'nofile', filetype = ori_filetype, modifiable = false},
-        bo = {buftype = 'nofile', modifiable = false},
-        wo = {diff = true},
+        bo = {buftype = 'nofile', modifiable = false, filetype = ori_filetype},
         reload_cmd_gen_fn = function()
             return git.show(':%s'):format(cline_info.filepath)
         end,
-        post_reload_fn = function(id)
-            vim.api.nvim_buf_set_option(id, 'filetype', ori_filetype)
-        end
+        post_open_fn = function() vim.cmd('diffthis') end
     })
-    -- vim.cmd('diffthis')
-    vim.wo.scrollbind = true
     vim.api.nvim_set_current_win(ori_win)
 end
 

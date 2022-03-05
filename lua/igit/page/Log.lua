@@ -26,10 +26,10 @@ function M:select_branch(branches, callback)
     vim.api.nvim_open_win(buf, true, {
         style = "minimal",
         relative = 'editor',
-        row = 3,
-        col = 3,
-        width = 20,
-        height = 6,
+        row = math.floor(vim.o.lines / 3),
+        col = math.floor(vim.o.columns / 3),
+        width = math.floor(vim.o.columns / 3),
+        height = math.floor(vim.o.lines / 3),
         border = 'single'
     })
     global.callbacks = global.callbacks or {}

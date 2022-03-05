@@ -7,9 +7,11 @@ local utils = require('igit.utils.utils')
 function M.open_or_new(opts)
     vim.validate({
         open_cmd = {opts.open_cmd, 'string'},
-        filename = {opts.filename, 'string'}
+        filename = {opts.filename, 'string'},
+        post_open_fn = {opts.post_open_fn, 'function', true}
     })
     vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
+    if opts.post_open_fn then opts.post_open_fn() end
     local id = vim.api.nvim_get_current_buf()
 
     global.buffers = global.buffers or {}
