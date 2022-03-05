@@ -50,7 +50,8 @@ function M:rename()
     })
 end
 
-function M:mark() self:current_buf():mark({branch = self:parse_line().branch}, 2) end
+function M:mark() self:current_buf()
+    :mark({branch = self:parse_line().branch}, 2) end
 
 function M:rebase()
     local anchor = self:get_anchor_branch()

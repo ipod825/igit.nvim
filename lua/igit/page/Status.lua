@@ -75,7 +75,6 @@ function M:side_diff()
     vim.cmd(('split %s'):format(cline_info.abs_path))
     vim.cmd(('resize %d'):format(999))
     vim.cmd('diffthis')
-    vim.wo.scrollbind = true
     local ori_filetype = vim.bo.filetype
     local ori_win = vim.api.nvim_get_current_win()
 
