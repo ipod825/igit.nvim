@@ -87,6 +87,7 @@ function M:side_diff()
         reload_cmd_gen_fn = function()
             return git.show(':%s'):format(cline_info.filepath)
         end,
+        reload_respect_empty_line = true,
         post_open_fn = function() vim.cmd('diffthis') end
     })
     vim.api.nvim_set_current_win(ori_win)

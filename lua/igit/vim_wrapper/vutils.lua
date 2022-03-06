@@ -24,7 +24,6 @@ end
 
 function M.open_buffer_and_ping_vcs_root(opencmd, vcs_root, filename)
     filename = filename or ''
-    -- _G.p(opencmd, vcs_root, filename, '=')
     vim.cmd(('%s %s'):format(opencmd, filename))
     vim.b.vcs_root = vcs_root
 end

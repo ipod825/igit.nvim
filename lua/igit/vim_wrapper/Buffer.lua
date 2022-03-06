@@ -1,6 +1,5 @@
 local M = require 'igit.datatype.Class'()
 local job = require('igit.vim_wrapper.job')
-local List = require('igit.datatype.List')
 local global = require('igit.global')
 local utils = require('igit.utils.utils')
 
@@ -37,6 +36,9 @@ end
 function M:init(opts)
     vim.validate({
         reload_cmd_gen_fn = {opts.reload_cmd_gen_fn, 'function'},
+        reload_respect_empty_line = {
+            opts.reload_respect_empty_line, 'boolean', true
+        },
         post_reload_fn = {opts.pos_reload, 'function', true},
         auto_reload = {opts.auto_reload, 'boolean'},
         mappings = {opts.mappings, 'table', true},
@@ -47,6 +49,7 @@ function M:init(opts)
 
     self.id = vim.api.nvim_get_current_buf()
     self.reload_cmd_gen_fn = opts.reload_cmd_gen_fn or utils.nop
+    self.reload_respect_empty_line = opts.reload_respect_empty_line
     self.post_reload_fn = opts.post_reload_fn or utils.nop
     self.mappings = opts.mappings
     self:mapfn(opts.mappings)
@@ -178,7 +181,12 @@ function M:reload()
     self:save_view()
     self:clear()
     job.runasync(self.reload_cmd_gen_fn(), {
-        stdout_flush = function(lines) self:append(lines) end,
+        stdout_flush = function(lines)
+            if not self.reload_respect_empty_line then
+                lines = vim.tbl_filter(function(e) return #e > 0 end, lines)
+            end
+            self:append(lines)
+        end,
         post_exit = function()
             self:restore_view()
             self.is_reloading = false
