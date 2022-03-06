@@ -14,7 +14,7 @@ function M:_inc(s) self.__size__ = self.__size__ + s end
 
 function M:_dec(s) self.__size__ = self.__size__ - s end
 
-function M:iter()
+function M:values()
     return coroutine.wrap(function()
         for k, _ in pairs(self) do
             if k ~= '__size__' then coroutine.yield(k) end

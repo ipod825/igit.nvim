@@ -1,6 +1,5 @@
 local M = require('igit.page.Page')()
 local git = require('igit.git.git')
-local global = require('igit.global')
 local utils = require('igit.utils.utils')
 local job = require('igit.vim_wrapper.job')
 local List = require('igit.datatype.List')

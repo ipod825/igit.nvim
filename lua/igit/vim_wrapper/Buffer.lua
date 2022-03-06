@@ -69,14 +69,14 @@ function M:init(opts)
 end
 
 function M:mark(data, max_num_data)
-    self.ctx.mark = self.ctx.mark or List()
-    if #self.ctx.mark == max_num_data then self.ctx.mark = List() end
+    self.ctx.mark = self.ctx.mark or {}
+    if #self.ctx.mark == max_num_data then self.ctx.mark = {} end
     local index = (#self.ctx.mark % max_num_data) + 1
     self.ctx.mark[index] = vim.tbl_extend('error', data,
                                           {linenr = vim.fn.line('.') - 1})
 
     vim.api.nvim_buf_clear_namespace(self.id, self.namespace, 1, -1)
-    for i, d in self.ctx.mark:enumerate() do
+    for i, d in ipairs(self.ctx.mark) do
         local hi_group
         if i == 1 then
             hi_group = 'RedrawDebugRecompose'

@@ -32,7 +32,7 @@ end
 
 function M.status_porcelain()
     local res = {}
-    for line in job.popen(M.status('--porcelain'), true):iter() do
+    for line in job.popen(M.status('--porcelain'), true):values() do
         local state, old_filename, _, new_filename = unpack(line:split())
         res[old_filename] = {
             index = state:sub(1, 1),
@@ -54,7 +54,7 @@ setmetatable(M, {
         if git_cmd then
             return function(...)
                 local args = List()
-                for e in List({...}):iter() do
+                for e in List({...}):values() do
                     if vim.tbl_islist(e) then
                         args:extend(e)
                     else

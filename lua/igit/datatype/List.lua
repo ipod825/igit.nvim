@@ -20,7 +20,7 @@ function M:extend(that)
     return self
 end
 
-function M:iter()
+function M:values()
     return coroutine.wrap(function()
         for _, e in ipairs(self) do coroutine.yield(e) end
     end)
@@ -30,12 +30,6 @@ function M:map(...)
     return
         require('igit.datatype.Iterator')({next_fn = next, invariant = self}):map(
             ...)
-end
-
-function M:enumerate()
-    return coroutine.wrap(function()
-        for i, e in ipairs(self) do coroutine.yield(i, e) end
-    end)
 end
 
 return M

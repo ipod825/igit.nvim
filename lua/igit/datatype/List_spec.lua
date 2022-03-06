@@ -40,16 +40,9 @@ describe("iterate", function()
     it("Iterates elements", function()
         local l = List({1, 2, 3, 4})
         local i = 1
-        for e in l:iter() do
+        for e in l:values() do
             assert.are.equal(e, i)
             i = i + 1
         end
-    end)
-end)
-
-describe("enumerate", function()
-    it("Enumerates indices and elements", function()
-        local l = List({1, 2, 3, 4})
-        for i, e in l:enumerate() do assert.are.equal(e, i) end
     end)
 end)

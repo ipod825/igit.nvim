@@ -18,7 +18,7 @@ function M.all_rows() return 1, vim.fn.line('$') end
 function M.augroup(name, autocmds)
     vim.cmd('augroup ' .. name)
     vim.cmd('autocmd!')
-    for cmd in List(autocmds):iter() do vim.cmd('autocmd ' .. cmd) end
+    for cmd in List(autocmds):values() do vim.cmd('autocmd ' .. cmd) end
     vim.cmd('augroup END')
 end
 

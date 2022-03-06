@@ -66,7 +66,7 @@ describe("iter", function()
     it("Iteratrates through its values", function()
         local s = Set({1, 2, 3})
         local i = 1
-        for e in s:iter() do
+        for e in s:values() do
             assert.are.equal(i, e)
             i = i + 1
         end
