@@ -62,7 +62,8 @@ function M:rebase()
 
     for new_branch in branches:values() do
         local next_grafted_ancestor =
-            ('_%s_original_conflicted_with_%s'):format(new_branch, base_branch)
+            ('_%s_original_conflicted_with_%s_created_by_igit'):format(
+                new_branch, base_branch)
         job.run(git.branch(('%s %s'):format(next_grafted_ancestor, new_branch)))
         if grafted_ancestor ~= '' then
             local succ = 0 ==
@@ -70,7 +71,9 @@ function M:rebase()
                                          ('--onto %s %s %s'):format(base_branch,
                                                                     grafted_ancestor,
                                                                     new_branch)))
-            job.run(git.branch('-D ' .. grafted_ancestor))
+            if grafted_ancestor:endswith('created_by_igit') then
+                job.run(git.branch('-D ' .. grafted_ancestor))
+            end
             if not succ then
                 self:current_buf():reload()
                 return
