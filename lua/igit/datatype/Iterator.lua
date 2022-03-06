@@ -1,4 +1,5 @@
 local M = require 'igit.datatype.Class'()
+local List = require 'igit.datatype.List'
 
 M.iter = {}
 function M:init(opts)
@@ -18,7 +19,7 @@ function M:pairs() return self.next_fn, self.invariant, self.control end
 function M:collect()
     local res = {}
     for k, v in self:pairs() do res[k] = v end
-    return res
+    return List(res)
 end
 
 function M:map(map_fn)

@@ -114,8 +114,8 @@ function M:get_anchor_branch()
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
-    return List(Iterator.range(row_beg, row_end):map(
-                    function(e) return self:parse_line(e).branch end):collect())
+    return Iterator.range(row_beg, row_end):map(
+               function(e) return self:parse_line(e).branch end):collect()
 end
 
 function M:new_branch()
