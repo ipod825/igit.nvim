@@ -51,6 +51,30 @@ function M.runasync(cmd, opts)
     })
 end
 
+function M.runasync_all(job_specs, on_all_exit)
+    local jids = {}
+    local num_running = #job_specs
+    local exit_codes = {}
+    for i, spec in ipairs(job_specs) do
+        vim.validate({
+            cmd = {spec.cmd, 'string'},
+            opts = {spec.opts, 'table', true}
+        })
+        spec.opts = spec.opts or {}
+        local ori_post_exit = spec.opts.post_exit
+        spec.opts.post_exit = function(code)
+            exit_codes[i] = code
+            if ori_post_exit then ori_post_exit(code) end
+            -- Not very sure if this leads to race condition. But seems like
+            -- the event loop is run single threaded.
+            num_running = num_running - 1
+            if num_running == 0 then on_all_exit(exit_codes) end
+        end
+        jids[i] = M.runasync(spec.cmd, spec.opts)
+    end
+    return jids
+end
+
 function M.run(cmd, opts)
     opts = opts or {}
     local exit_code = 0
@@ -63,6 +87,14 @@ function M.run(cmd, opts)
     local jid = M.runasync(cmd, opts)
     vim.fn.jobwait({jid})
     return exit_code
+end
+
+function M.run_all(job_specs)
+    local exit_codes
+    local jids = M.runasync_all(job_specs,
+                                function(codes) exit_codes = codes end)
+    vim.fn.jobwait(jids)
+    return exit_codes
 end
 
 function M.popen(cmd, return_list)

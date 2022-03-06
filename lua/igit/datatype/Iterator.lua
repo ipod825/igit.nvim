@@ -14,11 +14,11 @@ function M:init(opts)
     self.control = opts.control
 end
 
-function M:pairs() return self.next_fn, self.invariant, self.control end
+function M:iter() return self.next_fn, self.invariant, self.control end
 
 function M:collect()
     local res = {}
-    for k, v in self:pairs() do res[k] = v end
+    for k, v in self:iter() do res[k] = v end
     return List(res)
 end
 

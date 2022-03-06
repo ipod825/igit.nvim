@@ -22,10 +22,9 @@ function M:init(options)
 end
 
 function M:switch()
-    self:select_branch(self:parse_line().branches, function(branch)
-        job.run(git.checkout(branch))
-        self:current_buf():reload()
-    end, 'Checkout')
+    self:select_branch(self:parse_line().branches, 'Checkout', function(branch)
+        self:runasync_and_reload(git.checkout(branch))
+    end)
 end
 
 function M:mark()
@@ -49,7 +48,7 @@ end
 
 function M:rebase() end
 
-function M:select_branch(branches, callback, title)
+function M:select_branch(branches, title, callback)
     if #branches < 2 then return callback(branches[1]) end
     local popup_options = {
         relative = 'cursor',

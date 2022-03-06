@@ -78,16 +78,15 @@ function M:rebase()
         else
             if 0 ~=
                 job.run(git.rebase(('%s %s'):format(base_branch, new_branch))) then
-                job.run(git.branch('-D ' .. next_grafted_ancestor))
-                self:current_buf():reload()
+                self:runasync_and_reload(
+                    git.branch('-D ' .. next_grafted_ancestor))
                 return
             end
         end
         grafted_ancestor = next_grafted_ancestor
         base_branch = new_branch
     end
-    job.run(git.branch('-D ' .. grafted_ancestor))
-    self:current_buf():reload()
+    self:runasync_and_reload(git.branch('-D ' .. grafted_ancestor))
 end
 
 function M:parse_line(linenr)
@@ -100,8 +99,7 @@ function M:parse_line(linenr)
 end
 
 function M:switch()
-    job.runasync(git.checkout(self:parse_line().branch),
-                 {post_exit = function() self:current_buf():reload() end})
+    self:runasync_and_reload(git.checkout(self:parse_line().branch))
 end
 
 function M:get_anchor_branch()
@@ -138,10 +136,11 @@ function M:new_branch()
 end
 
 function M:force_delete_branch()
-    for branch in self:get_branches_in_rows(vutils.visual_rows()):values() do
-        job.run(git.branch('-D ' .. branch))
-    end
-    self:current_buf():reload()
+    self:runasync_all_and_reload(self:get_branches_in_rows(vutils.visual_rows())
+                                     :map(
+                                         function(b)
+                return {cmd = git.branch('-D ' .. b)}
+            end):collect())
 end
 
 function M:open(args)

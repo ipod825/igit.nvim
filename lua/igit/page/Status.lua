@@ -64,9 +64,7 @@ function M:change_action(action)
             local path = self:parse_line(e).filepath
             return status[path] and path or ''
         end):collect()
-
-    job.runasync(action(paths),
-                 {post_exit = function() self:current_buf():reload() end})
+    self:runasync_and_reload(action(paths))
     return #paths == 1
 end
 
