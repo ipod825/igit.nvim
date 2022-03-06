@@ -92,10 +92,10 @@ end
 
 function M:parse_line(linenr)
     linenr = linenr or '.'
-    local line = vim.fn.getline(linenr)
+    local line = utils.remove_ansi_escape(vim.fn.getline(linenr))
     local res = {is_current = false, branch = nil}
     res.is_current = line:find_str('%s*(%*?)') ~= ''
-    res.branch = utils.remove_ansi_escape(line:find_str('%s?([^%s%*]+)%s?'))
+    res.branch = line:find_str('%s?([^%s%*]+)%s?')
     return res
 end
 

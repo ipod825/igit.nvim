@@ -46,12 +46,12 @@ function M:select_branch(branches, callback)
 end
 
 function M:parse_line()
-    local line = vim.fn.getline('.')
+    local line = utils.remove_ansi_escape(vim.fn.getline('.'))
     local res = {}
     res.sha = line:find_str('([a-f0-9]+)%s')
     res.branches = vim.tbl_filter(function(e)
         return e ~= '->' and e ~= 'main'
-    end, utils.remove_ansi_escape(line:find_str('%((.*)%)')):split('%s,'))
+    end, line:find_str('%((.*)%)')):split('%s,')
     res.author = line:find_str('%s(<.->)%s')
     return res
 end
