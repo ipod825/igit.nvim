@@ -2,7 +2,7 @@ if exists("b:current_syntax")
     finish
 endif
 
-let b:current_syntax = "igit-log"
+let b:current_syntax = "igit"
 
 syn match IgitTermConceal conceal '\e\[[0-9;]*m'
 hi default link IgitTermConceal Conceal

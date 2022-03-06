@@ -67,6 +67,7 @@ function M:init(opts)
         buftype = 'nofile'
     }, opts.bo)
     for k, v in pairs(bo) do vim.bo[k] = v end
+    self.filetype = bo.filetype
 
     self:reload()
 end
@@ -177,6 +178,8 @@ function M:reload()
     if self.is_reloading then return end
 
     self.is_reloading = true
+    -- Force trigger syntax on
+    vim.api.nvim_buf_set_option(self.id, 'filetype', self.filetype)
 
     self:save_view()
     self:clear()

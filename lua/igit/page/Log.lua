@@ -9,7 +9,7 @@ function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {n = {['<cr>'] = self:bind(self.switch)}},
         args = {'--oneline', '--branches', '--graph', '--decorate=short'},
-        auto_reload = false
+        auto_reload = true
     }, options)
 end
 
