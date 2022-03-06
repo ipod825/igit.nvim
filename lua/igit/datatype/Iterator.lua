@@ -3,12 +3,6 @@ local List = require('igit.datatype.List')
 
 M.iter = {}
 function M:init(opts)
-    vim.validate({next_fn = {opts.next_fn, {'function', 'table'}}})
-    if type(opts.next_fn) ~= 'function' then
-        opts.invariant = opts.next_fn
-        opts.next_fn = next
-        opts.control = nil
-    end
     opts.map_fn = opts.map_fn or function(e) return e end
     vim.validate({
         next_fn = {opts.next_fn, 'function'},

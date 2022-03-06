@@ -26,6 +26,12 @@ function M:iter()
     end)
 end
 
+function M:map(...)
+    return
+        require('igit.datatype.Iterator')({next_fn = next, invariant = self}):map(
+            ...)
+end
+
 function M:enumerate()
     return coroutine.wrap(function()
         for i, e in ipairs(self) do coroutine.yield(i, e) end

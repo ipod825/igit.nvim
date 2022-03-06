@@ -3,6 +3,8 @@ local git = require('igit.git.git')
 local global = require('igit.global')
 local utils = require('igit.utils.utils')
 local job = require('igit.vim_wrapper.job')
+local List = require('igit.datatype.List')
+local nui = require('igit.nui.nui')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -18,30 +20,28 @@ function M:switch()
 end
 
 function M:select_branch(branches, callback)
-    if #branches == 1 then
-        callback(branches[1])
-        return
-    end
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_open_win(buf, true, {
-        style = "minimal",
-        relative = 'editor',
-        row = math.floor(vim.o.lines / 3),
-        col = math.floor(vim.o.columns / 3),
-        width = math.floor(vim.o.columns / 3),
-        height = math.floor(vim.o.lines / 3),
-        border = 'single'
+    local popup_options = {
+        relative = "cursor",
+        position = {row = 1, col = 0},
+        border = {
+            style = "rounded",
+            text = {top = "[Pick Commit]", top_align = "center"}
+        },
+        win_options = {winhighlight = "Normal:Normal"}
+    }
+
+    local menu = nui.Menu(popup_options, {
+        lines = List(branches):map(nui.Menu.item):collect(),
+        max_width = 20,
+        keymap = {
+            focus_next = {"j", "<Down>", "<Tab>"},
+            focus_prev = {"k", "<Up>", "<S-Tab>"},
+            submit = {"<CR>", "<Space>"}
+        },
+        on_submit = function(item) callback(item.text) end
     })
-    global.callbacks = global.callbacks or {}
-    global.callbacks[buf] = function(e)
-        vim.cmd('quit')
-        callback(e)
-        global.callbacks[buf] = nil
-    end
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, branches)
-    vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>',
-                                ('<cmd>lua require"igit.global".callbacks[%d](vim.fn.getline("."))<cr>'):format(
-                                    buf), {noremap = true})
+    menu:mount()
+    menu:on({nui.event.BufLeave}, function() menu:unmount() end, {once = true})
 end
 
 function M:parse_line()
