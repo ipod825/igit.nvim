@@ -32,4 +32,10 @@ function M:map(...)
             ...)
 end
 
+function M:filter(...)
+    return
+        require('igit.datatype.Iterator')({next_fn = next, invariant = self}):filter(
+            ...)
+end
+
 return M
