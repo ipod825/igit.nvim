@@ -14,8 +14,10 @@ function M:init(options)
 end
 
 function M:switch()
-    self:select_branch(self:parse_line().branches,
-                       function(branch) job.run(git.checkout(branch)) end)
+    self:select_branch(self:parse_line().branches, function(branch)
+        job.run(git.checkout(branch))
+        self:current_buf():reload()
+    end)
 end
 
 function M:select_branch(branches, callback)
