@@ -4,10 +4,18 @@ local utils = require('igit.utils.utils')
 local job = require('igit.vim_wrapper.job')
 local List = require('igit.datatype.List')
 local nui = require('igit.nui.nui')
+local Iterator = require('igit.datatype.Iterator')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
-        mapping = {n = {['<cr>'] = self:bind(self.switch)}},
+        mapping = {
+            n = {
+                ['<cr>'] = self:bind(self.switch),
+                ['m'] = self:bind(self.mark),
+                ['r'] = self:bind(self.rebase)
+            },
+            v = {['r'] = self:bind(self.rebase)}
+        },
         args = {'--oneline', '--branches', '--graph', '--decorate=short'},
         auto_reload = true
     }, options)
@@ -19,6 +27,27 @@ function M:switch()
         self:current_buf():reload()
     end, 'Checkout')
 end
+
+function M:mark()
+    self:current_buf():mark({branch = self:parse_line().branches[1]}, 1)
+end
+
+function M:get_anchor_branch()
+    local mark = self:current_buf().ctx.mark
+    return {
+        base = mark and mark[1].branch or
+            job.popen(git.branch('--show-current'))
+    }
+end
+
+function M:get_branches_in_rows(row_beg, row_end)
+    return Iterator.range(row_beg, row_end):map(
+               function(e) return self:parse_line(e).branches end):filter(
+               function(e) return #e == 2 end):map(function(e) return e[0] end)
+               :collect()
+end
+
+function M:rebase() end
 
 function M:select_branch(branches, callback, title)
     if #branches < 2 then return callback(branches[1]) end
@@ -45,8 +74,9 @@ function M:select_branch(branches, callback, title)
     menu:on({nui.event.BufLeave}, function() menu:unmount() end, {once = true})
 end
 
-function M:parse_line()
-    local line = utils.remove_ansi_escape(vim.fn.getline('.'))
+function M:parse_line(linenr)
+    linenr = linenr or '.'
+    local line = utils.remove_ansi_escape(vim.fn.getline(linenr))
     local res = {}
     res.sha = line:find_str('([a-f0-9]+)%s')
     local branch_candidates = line:find_str('%((.*)%)')
