@@ -17,28 +17,28 @@ function M:switch()
     self:select_branch(self:parse_line().branches, function(branch)
         job.run(git.checkout(branch))
         self:current_buf():reload()
-    end)
+    end, 'Checkout')
 end
 
-function M:select_branch(branches, callback)
+function M:select_branch(branches, callback, title)
+    if #branches < 2 then return callback(branches[1]) end
     local popup_options = {
-        relative = "cursor",
+        relative = 'cursor',
         position = {row = 1, col = 0},
         border = {
-            style = "rounded",
-            text = {top = "[Pick Commit]", top_align = "center"}
+            style = 'rounded',
+            text = {
+                top = ('[%s Commit]'):format(title or ''),
+                top_align = 'center'
+            }
         },
-        win_options = {winhighlight = "Normal:Normal"}
+        win_options = {winhighlight = 'Normal:Normal'}
     }
 
     local menu = nui.Menu(popup_options, {
         lines = List(branches):map(nui.Menu.item):collect(),
-        max_width = 20,
-        keymap = {
-            focus_next = {"j", "<Down>", "<Tab>"},
-            focus_prev = {"k", "<Up>", "<S-Tab>"},
-            submit = {"<CR>", "<Space>"}
-        },
+        min_width = 20,
+        keymap = {submit = {'<CR>', '<Space>'}},
         on_submit = function(item) callback(item.text) end
     })
     menu:mount()
@@ -49,9 +49,12 @@ function M:parse_line()
     local line = utils.remove_ansi_escape(vim.fn.getline('.'))
     local res = {}
     res.sha = line:find_str('([a-f0-9]+)%s')
-    res.branches = vim.tbl_filter(function(e)
-        return e ~= '->' and e ~= 'main'
-    end, line:find_str('%((.*)%)')):split('%s,')
+    local branch_candidates = line:find_str('%((.*)%)')
+    res.branches = branch_candidates and
+                       vim.tbl_filter(function(e)
+            return e ~= '->' and e ~= 'HEAD'
+        end, branch_candidates:split('%s,')) or {}
+    table.insert(res.branches, res.sha)
     res.author = line:find_str('%s(<.->)%s')
     return res
 end
