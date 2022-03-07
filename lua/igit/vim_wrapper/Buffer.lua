@@ -1,7 +1,8 @@
-local M = require 'igit.datatype.Class'()
-local job = require('igit.vim_wrapper.job')
+local M = require 'igit.lib.datatype.Class'()
 local global = require('igit.global')
-local utils = require('igit.utils.utils')
+local functional = require('igit.lib.functional')
+local a = require('igit.lib.async.async')
+local job = require('igit.lib.job')
 
 function M.open_or_new(opts)
     vim.validate({
@@ -48,9 +49,9 @@ function M:init(opts)
     })
 
     self.id = vim.api.nvim_get_current_buf()
-    self.reload_cmd_gen_fn = opts.reload_cmd_gen_fn or utils.nop
+    self.reload_cmd_gen_fn = opts.reload_cmd_gen_fn or functional.nop
     self.reload_respect_empty_line = opts.reload_respect_empty_line
-    self.post_reload_fn = opts.post_reload_fn or utils.nop
+    self.post_reload_fn = opts.post_reload_fn or functional.nop
     self.mappings = opts.mappings
     self:mapfn(opts.mappings)
     local ctx = {}
@@ -132,7 +133,15 @@ function M:mapfn(mappings)
         local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
         for key, fn in pairs(mode_mappings) do
             vim.validate({key = {key, 'string'}, fn = {fn, 'function'}})
-            self.mapping_handles[mode][key] = fn
+            self.mapping_handles[mode][key] =
+                function()
+                    if self.is_reloading then
+                        vim.notify(
+                            'Page is still loafing. Please try again later!')
+                        return
+                    end
+                    fn()
+                end
             vim.api.nvim_buf_set_keymap(self.id, mode, key,
                                         ('%slua require("igit.global").buffers[%d].mapping_handles["%s"]["%s"]()<cr>'):format(
                                             prefix, self.id, mode,
@@ -183,19 +192,25 @@ function M:reload()
 
     self:save_view()
     self:clear()
-    job.runasync(self.reload_cmd_gen_fn(), {
-        stdout_flush = function(lines)
-            if not self.reload_respect_empty_line then
-                lines = vim.tbl_filter(function(e) return #e > 0 end, lines)
+    local w = vim.api.nvim_get_current_win()
+    local ori_st = vim.wo.statusline
+    vim.wo.statusline = 'Loading... Operations will not take effect.'
+    a.sync(function()
+        a.wait(job.run_async(self.reload_cmd_gen_fn(), {
+            on_stdout = function(lines)
+                if not self.reload_respect_empty_line then
+                    lines = vim.tbl_filter(
+                                function(e) return #e > 0 end, lines)
+                end
+                self:append(lines)
+                self:restore_view()
             end
-            self:append(lines)
-        end,
-        post_exit = function()
-            self:restore_view()
-            self.is_reloading = false
-            self.post_reload_fn(self.id)
-        end
-    })
+        }))
+
+        self.is_reloading = false
+        self.post_reload_fn(self.id)
+        vim.api.nvim_win_set_option(w, 'statusline', ori_st)
+    end)()
 end
 
 return M

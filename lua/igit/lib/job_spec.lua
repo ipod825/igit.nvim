@@ -1,4 +1,4 @@
-local job = require 'igit.vim_wrapper.job'
+local job = require 'igit.lib.job'
 
 describe("popen", function()
     it("Returns  stdout string by default",

@@ -1,4 +1,4 @@
-local M = require('igit.datatype.Class')()
+local M = require('igit.lib.datatype.Class')()
 
 function M:new(lst)
     lst = lst or {}
@@ -28,13 +28,13 @@ end
 
 function M:map(...)
     return
-        require('igit.datatype.Iterator')({next_fn = next, invariant = self}):map(
+        require('igit.lib.datatype.Iterator')({next_fn = next, invariant = self}):map(
             ...)
 end
 
 function M:filter(...)
     return
-        require('igit.datatype.Iterator')({next_fn = next, invariant = self}):filter(
+        require('igit.lib.datatype.Iterator')({next_fn = next, invariant = self}):filter(
             ...)
 end
 

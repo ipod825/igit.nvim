@@ -1,10 +1,10 @@
 local M = require('igit.page.Page')()
 local git = require('igit.git.git')
-local utils = require('igit.utils.utils')
-local job = require('igit.vim_wrapper.job')
-local List = require('igit.datatype.List')
+local job = require('igit.lib.job')
+local List = require('igit.lib.datatype.List')
 local nui = require('igit.nui.nui')
-local Iterator = require('igit.datatype.Iterator')
+local Iterator = require('igit.lib.datatype.Iterator')
+local term_utils = require('igit.lib.terminal_utils')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -75,7 +75,7 @@ end
 
 function M:parse_line(linenr)
     linenr = linenr or '.'
-    local line = utils.remove_ansi_escape(vim.fn.getline(linenr))
+    local line = term_utils.remove_ansi_escape(vim.fn.getline(linenr))
     local res = {}
     res.sha = line:find_str('([a-f0-9]+)%s')
     local branch_candidates = line:find_str('%((.*)%)')

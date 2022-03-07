@@ -1,5 +1,5 @@
-local List = require('igit.datatype.List')
-local Iterator = require('igit.datatype.Iterator')
+local List = require('igit.lib.datatype.List')
+local Iterator = require('igit.lib.datatype.Iterator')
 
 describe("Constructor", function()
     it("Takes zero arguments", function()

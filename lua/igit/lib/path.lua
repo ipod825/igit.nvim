@@ -1,5 +1,4 @@
 local M = {}
-local Iterator = require 'igit.datatype.Iterator'
 
 local path_sep = vim.loop.os_uname().version:match("Windows") and "\\" or "/"
 
@@ -28,10 +27,5 @@ function M.basename(str)
     local name = str:gsub(".*/([^/]+)/?", "%1")
     return name
 end
-
-function M.remove_ansi_escape(str) return str:gsub('%c+%[[%d;]*m', '') end
-
-function M.nop() end
-function M.identity(e) return e end
 
 return M

@@ -1,4 +1,4 @@
-require('igit.datatype.std_extension')
+require('igit.lib.datatype.std_extension')
 
 describe("find_str", function()
     it("Returns nil if no match", function()

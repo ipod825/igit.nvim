@@ -1,11 +1,11 @@
 local M = require 'igit.page.Page'()
 local git = require('igit.git.git')
-local job = require('igit.vim_wrapper.job')
+local job = require('igit.lib.job')
 local global = require('igit.global')
 local vutils = require('igit.vim_wrapper.vutils')
-local Iterator = require('igit.datatype.Iterator')
+local Iterator = require('igit.lib.datatype.Iterator')
 local Buffer = require('igit.vim_wrapper.Buffer')
-local log = require('igit.debug.log')
+local log = require('igit.log')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -15,7 +15,9 @@ function M:init(options)
                 ['L'] = self:bind(self.unstage_change),
                 ['X'] = self:bind(self.discard_change),
                 ['cc'] = self:bind(self.commit),
-                ['ca'] = self:bind(self.commit, true),
+                ['ca'] = self:bind(self.commit, {amend = true}),
+                ['cA'] = self:bind(self.commit,
+                                   {amend = true, backup_branch = true}),
                 ['dd'] = self:bind(self.side_diff),
                 ['<cr>'] = self:bind(self.open_file)
             },
@@ -30,19 +32,32 @@ end
 
 function M:open_file() vim.cmd('edit ' .. self:parse_line().abs_path) end
 
-function M:commit_submit(amend, git_dir)
+function M:commit_submit(git_dir, amend, backup_current_branch)
     if global.pending_commit[git_dir] == nil then return end
     global.pending_commit[git_dir] = nil
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
                                  vim.fn.readfile(git.commit_message_file_path()))
-    job.run(git.rawcmd(('commit %s -m "%s"'):format(amend,
+    if backup_current_branch then
+        local base_branch = job.popen(git.rawcmd('branch --show-current',
+                                                 {git_dir = git_dir}))
+        local backup_branch =
+            ('original_%s_created_by_igit'):format(base_branch)
+        job.run(git.rawcmd(('branch %s %s'):format(backup_branch, base_branch)),
+                {git_dir = git_dir})
+    end
+    job.run(git.rawcmd(('commit %s -m "%s"'):format(amend and '--amend' or '',
                                                     table.concat(lines, '\n')),
                        {git_dir = git_dir}))
 end
 
-function M:commit(amend)
-    local prepare_commit_file_cmd = 'GIT_EDITOR=false git commit ' ..
-                                        (amend and '--amend' or '')
+function M:commit(opts)
+    opts = opts or {}
+    vim.validate({
+        amend = {opts.amend, 'boolean', true},
+        backup_branch = {opts.backup_branch, 'boolean', true}
+    })
+    local amend = opts.amend and '--amend' or ''
+    local prepare_commit_file_cmd = 'GIT_EDITOR=false git commit ' .. amend
     job.run(prepare_commit_file_cmd, {silent = true})
     local commit_message_file_path = git.commit_message_file_path()
     vim.cmd('edit ' .. commit_message_file_path)
@@ -53,8 +68,8 @@ function M:commit(amend)
         ('autocmd BufWritePost <buffer> ++once :lua require"igit.global".pending_commit["%s"]=true'):format(
             git.find_root()))
     vim.cmd(
-        ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s", "%s")'):format(
-            amend and '--amend' or '', git.find_root()))
+        ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s", %s, %s)'):format(
+            git.find_root(), tostring(opts.amend), tostring(opts.backup_branch)))
 end
 
 function M:change_action(action)

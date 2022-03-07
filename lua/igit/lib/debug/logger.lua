@@ -1,12 +1,12 @@
-local M = require 'igit.datatype.Class'()
-local utils = require 'igit.utils.utils'
+local M = require 'igit.lib.datatype.Class'()
+local path = require 'igit.lib.path'
 
 function M:init(options)
     self.current_log_level = options.log_level or vim.log.levels.WARN
     self.log_date_format = "%F %H:%M:%S"
     self.format_func = function(arg) return vim.inspect(arg, {newline = ''}) end
 
-    self.logfilename = utils.path_join(vim.fn.stdpath('cache'), 'igit.log')
+    self.logfilename = path.path_join(vim.fn.stdpath('cache'), 'igit.log')
 
     vim.fn.mkdir(vim.fn.stdpath('cache'), "p")
     self.logfile = assert(io.open(self.logfilename, "a+"))

@@ -1,4 +1,4 @@
-local Class = require('igit.datatype.Class')
+local Class = require('igit.lib.datatype.Class')
 
 local Derived = Class()
 function Derived:init(num) self.num = num end
