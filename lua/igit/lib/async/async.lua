@@ -35,7 +35,13 @@ local unp = table.unpack ~= nil and table.unpack or unpack
 -- end()
 -- ```
 -- The anonymous function actually returns nil (no return statement). That is
--- why we didn't see 789.
+-- why we didn't see 789. However, since it satisfies the definition of an async
+-- function, it's awaitable. That is, `a.sync` transforms a function that takes
+-- no argument into an asyn function (as for how to transform a function with
+-- arguments into an async functoin, please see `define_async_fn` below. One
+-- thing to note is that `a.wait` can only be used inside an async function
+-- (technically a coroutine). The reason is that `a.wait` yields the current
+-- coroutine, but the main event loop is not a coroutine.
 --
 -- A more concrete example that actually performs some asynchronous job would be:
 -- ```
@@ -82,13 +88,19 @@ local unp = table.unpack ~= nil and table.unpack or unpack
 -- ```
 -- In line 5, `timer_start` evaluates to a async function that behaves the same
 -- as `timer_start` in the previous example. In line 10, 789 is printed
--- immediately without waiting 1000 milliseconds.
+-- immediately without waiting 1000 milliseconds. One thing to note that if
+-- `timer_start_non_awaitable` takes no argument and you don't care about the
+-- return value of the asynchronous job (the `cb(value)` part), you can use
+-- `a.sync` to transform a normal functoin into an asnyc function as mentioned.
+-- The reason that `a.sync` and `a.define_async_fn` can't be unified into a
+-- single interface is purely TBA.
 
 function M.define_async_fn(fn)
     local res_async_fn = function(...)
         local async_fn_params = {...}
         return function(cb)
             table.insert(async_fn_params, cb)
+            -- if (cb) then table.insert(async_fn_params, 1, cb) end
             return fn(unpack(async_fn_params))
         end
     end
