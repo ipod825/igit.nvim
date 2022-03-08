@@ -1,6 +1,88 @@
+local M = {}
 local co = coroutine
 local unp = table.unpack ~= nil and table.unpack or unpack
-local M = {}
+
+-- Introduction:
+-- For the following discussion, we assume `local a=require'async'`.
+--
+-- An async function is a function that takes a single (optional) callback
+-- argument and performs some asynchronous jobs. On the asynchronous job
+-- completion (not necessarily at the same time when the async function
+-- returns), the callback must be invoked with some arguments, which are caught
+-- by an `a.wait`, regarded as the asynchronous outputs. For example,
+-- ```
+-- 1 local async_fn = function(cb)
+-- 2     cb(123)
+-- 3     return 456
+-- 4 end
+-- 5 local main_res = a.sync(function()
+-- 6     print(a.wait(async_fn)) -- prints 123
+-- 7     return 789
+-- 8 end)()
+-- 9 print(main_res) -- prints nil
+-- ```
+-- First note that `async_fn` in line 6 is not actually called. In fact, it's
+-- called by the `a.wait` with a magic callback, which basically continue the
+-- work after `a.wait`. Regarding the print statements, note that it's 123
+-- instead of 456 caught by the `a.wait` in line 6. But how about line 9? Why
+-- does it not print 789? To understand that, we need to understand what
+-- `a.sync` does. Essentially, `a.sync(fn)()` evaluates to:
+-- ```
+-- function(cb)
+--   if cb then
+--     cb(fn())
+--   end
+-- end()
+-- ```
+-- The anonymous function actually returns nil (no return statement). That is
+-- why we didn't see 789.
+--
+-- A more concrete example that actually performs some asynchronous job would be:
+-- ```
+-- 1 local async_fn = function(cb)
+-- 2     vim.loop.new_timer():start(1000, 0, function() cb(123) end)
+-- 3 end
+-- 4 a.sync(function()
+-- 5     print(a.wait(async_fn)) -- prints 123 secondly (after 1000 milliseconds)
+-- 6 end)()
+-- 7 print(456) -- print 456 firstly
+-- ```
+-- Note that 123 is printed after the asynchronous job (timer start) finishes
+-- while the 456 print statement is not blocked by the asynchronous job.
+--
+-- But how do we create an async function that takes arguments? The trick is to
+-- use a wrapper function:
+-- ```
+-- 1 local timer_start = function(time, value)
+-- 2     return function(cb)
+-- 3         vim.loop.new_timer():start(time, 0, function() cb(value) end)
+-- 4     end
+-- 5 end
+-- 6 a.sync(function()
+-- 7     print(a.wait(timer_start(1000, 123))) -- prints 123 secondly (after 1000 milliseconds)
+-- 8 end)()
+-- 9 print(456) -- print 456 firstly
+-- ```
+-- Essentially, `timer_start(1000, 123)` in line 7 evaluates to `async_fn` in
+-- the previous example.
+--
+-- What if we want to have timer_start used by both `a.wait` and normal
+-- function calls? In such case, use the `define_async_fn` function.
+-- ```
+-- 1  local timer_start_non_awaitable = function(time, value, cb)
+-- 2      vim.loop.new_timer():start(time, 0, function() cb(value) end)
+-- 3      return value
+-- 4  end
+-- 5  local timer_start = a.define_async_fn(timer_start_non_awaitable)
+-- 6  a.sync(function()
+-- 7      print(a.wait(timer_start(1000, 123))) -- prints 123 finally (after 1000 milliseconds)
+-- 8  end)()
+-- 9  print(456) -- print 456 firstly
+-- 10 print(timer_start_non_awaitable(1000, 789, function() end))  -- print 789 secondly
+-- ```
+-- In line 5, `timer_start` evaluates to a async function that behaves the same
+-- as `timer_start` in the previous example. In line 10, 789 is printed
+-- immediately without waiting 1000 milliseconds.
 
 function M.define_async_fn(fn)
     local res_async_fn = function(...)
