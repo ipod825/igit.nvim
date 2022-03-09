@@ -14,6 +14,7 @@ function M:init(options)
                 ['H'] = self:bind(self.stage_change),
                 ['L'] = self:bind(self.unstage_change),
                 ['X'] = self:bind(self.discard_change),
+                ['C'] = self:bind(self.clean_files),
                 ['cc'] = self:bind(self.commit),
                 ['ca'] = self:bind(self.commit, {amend = true}),
                 ['cA'] = self:bind(self.commit,
@@ -109,6 +110,10 @@ function M:side_diff()
         post_open_fn = function() vim.cmd('diffthis') end
     })
     vim.api.nvim_set_current_win(ori_win)
+end
+
+function M:clean_files()
+    self:change_action(function(path) return git.clean('-ffd', path) end)
 end
 
 function M:discard_change()
