@@ -29,8 +29,9 @@ local unp = table.unpack ~= nil and table.unpack or unpack
 -- `a.sync` does. Essentially, `a.sync(fn)()` evaluates to:
 -- ```
 -- function(cb)
+--   local val = fn()
 --   if cb then
---     cb(fn())
+--     cb(val)
 --   end
 -- end()
 -- ```

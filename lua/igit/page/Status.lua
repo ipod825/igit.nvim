@@ -33,10 +33,12 @@ end
 function M:open_file() vim.cmd('edit ' .. self:parse_line().abs_path) end
 
 function M:commit_submit(git_dir, amend, backup_current_branch)
+    log.WARN(git_dir, global.pending_commit[git_dir] == nil)
     if global.pending_commit[git_dir] == nil then return end
     global.pending_commit[git_dir] = nil
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
                                  vim.fn.readfile(git.commit_message_file_path()))
+    log.WARN(git.rawcmd('branch --show-current', {git_dir = git_dir}))
     if backup_current_branch then
         local base_branch = job.popen(git.rawcmd('branch --show-current',
                                                  {git_dir = git_dir}))
@@ -67,6 +69,9 @@ function M:commit(opts)
     vim.cmd(
         ('autocmd BufWritePost <buffer> ++once :lua require"igit.global".pending_commit["%s"]=true'):format(
             git.find_root()))
+    log.WARN(
+        ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s", %s, %s)'):format(
+            git.find_root(), tostring(opts.amend), tostring(opts.backup_branch)))
     vim.cmd(
         ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s", %s, %s)'):format(
             git.find_root(), tostring(opts.amend), tostring(opts.backup_branch)))
