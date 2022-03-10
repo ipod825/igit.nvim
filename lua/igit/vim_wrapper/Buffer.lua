@@ -65,10 +65,12 @@ function M:init(opts)
     local bo = vim.tbl_extend('force', {
         modifiable = false,
         bufhidden = 'wipe',
-        buftype = 'nofile'
+        buftype = 'nofile',
+        undolevels = -1
     }, opts.bo)
     for k, v in pairs(bo) do vim.bo[k] = v end
     self.filetype = bo.filetype
+    self.undolevels = bo.undolevels
 
     self:reload()
 end
@@ -98,6 +100,7 @@ function M:save_edit()
     self.ctx.edit = nil
     vim.bo.buftype = 'nofile'
     vim.bo.modifiable = false
+    vim.bo.undolevels = self.undolevels
     self:mapfn(self.mappings)
     self:reload()
 end
@@ -114,11 +117,11 @@ function M:edit(opts)
         ('autocmd BufWriteCmd <buffer> ++once lua require"igit.global".buffers[%d]:save_edit()'):format(
             self.id))
     self:unmapfn(self.mappings)
-    local ori_undo_levels = vim.o.undolevels
     vim.bo.undolevels = -1
     vim.bo.modifiable = true
     vim.cmd('substitute/\\e\\[[0-9;]*m//g')
-    vim.bo.undolevels = ori_undo_levels
+    vim.bo.undolevels = (self.undolevels > 0) and self.undolevels or
+                            vim.api.nvim_get_option('undolevels')
 end
 
 function M:mapfn(mappings)
@@ -135,11 +138,7 @@ function M:mapfn(mappings)
             vim.validate({key = {key, 'string'}, fn = {fn, 'function'}})
             self.mapping_handles[mode][key] =
                 function()
-                    if self.is_reloading then
-                        vim.notify(
-                            'Page is still loafing. Please try again later!')
-                        return
-                    end
+                    if self.is_reloading then return end
                     fn()
                 end
             vim.api.nvim_buf_set_keymap(self.id, mode, key,

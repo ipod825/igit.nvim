@@ -23,7 +23,7 @@ function M:init(options)
             }
         },
         args = {'-v'}
-    }, options)
+    }, options.branch or {})
 end
 
 function M:rename()

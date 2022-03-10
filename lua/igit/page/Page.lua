@@ -36,7 +36,9 @@ function M:open_or_new_buffer(key, opts)
         }
     }, opts)
 
-    return Buffer.open_or_new(opts)
+    local buffer = Buffer.open_or_new(opts)
+    vim.cmd('lcd ' .. opts.vcs_root)
+    return buffer
 end
 
 function M:current_buf() return Buffer.get_current_buffer() end

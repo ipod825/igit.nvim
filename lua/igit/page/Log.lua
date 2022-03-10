@@ -18,7 +18,7 @@ function M:init(options)
         },
         args = {'--oneline', '--branches', '--graph', '--decorate=short'},
         auto_reload = true
-    }, options)
+    }, options.log or {})
 end
 
 function M:switch()

@@ -28,7 +28,7 @@ function M:init(options)
             }
         },
         args = {'-s'}
-    }, options)
+    }, options.status or {})
 end
 
 function M:open_file() vim.cmd('edit ' .. self:parse_line().abs_path) end
@@ -44,7 +44,7 @@ function M:commit_submit(git_dir, amend, backup_current_branch)
         local base_branch = job.popen(git.rawcmd('branch --show-current',
                                                  {git_dir = git_dir}))
         local backup_branch =
-            ('original_%s_created_by_igit'):format(base_branch)
+            ('%s_original_created_by_igit'):format(base_branch)
         job.run(git.rawcmd(('branch %s %s'):format(backup_branch, base_branch)),
                 {git_dir = git_dir})
     end
