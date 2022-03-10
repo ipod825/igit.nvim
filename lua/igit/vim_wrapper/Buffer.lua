@@ -66,7 +66,8 @@ function M:init(opts)
         modifiable = false,
         bufhidden = 'wipe',
         buftype = 'nofile',
-        undolevels = -1
+        undolevels = -1,
+        swapfile = false
     }, opts.bo)
     for k, v in pairs(bo) do vim.bo[k] = v end
     self.filetype = bo.filetype
@@ -192,11 +193,15 @@ function M:reload()
     self:save_view()
     self:clear()
     local w = vim.api.nvim_get_current_win()
-    local ori_st = vim.wo.statusline
+    local ori_st = vim.o.statusline
     vim.wo.statusline = 'Loading... Operations will not take effect.'
     a.sync(function()
         a.wait(job.run_async(self.reload_cmd_gen_fn(), {
             on_stdout = function(lines)
+                if not vim.api.nvim_buf_is_valid(self.id) then
+                    return true
+                end
+
                 if not self.reload_respect_empty_line then
                     lines = vim.tbl_filter(
                                 function(e) return #e > 0 end, lines)
@@ -208,7 +213,9 @@ function M:reload()
 
         self.is_reloading = false
         self.post_reload_fn(self.id)
-        vim.api.nvim_win_set_option(w, 'statusline', ori_st)
+        if vim.api.nvim_win_is_valid(w) then
+            vim.api.nvim_win_set_option(w, 'statusline', ori_st)
+        end
     end)()
 end
 

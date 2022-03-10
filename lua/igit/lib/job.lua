@@ -17,13 +17,19 @@ function M.jobstart(cmd, opts, callback)
 
     local stdout_lines = {}
     local stderr_lines = {('Error message from\n%s\n'):format(cmd)};
-    return vim.fn.jobstart(cmd, {
+    local terminated_by_client = false
+    local jid
+    jid = vim.fn.jobstart(cmd, {
         on_stdout = function(_, data)
             if opts.on_stdout then
                 vim.list_extend(stdout_lines, data)
                 if #stdout_lines > opts.stdout_buffer_size then
-                    opts.on_stdout(stdout_lines)
+                    local should_terminate = opts.on_stdout(stdout_lines)
                     stdout_lines = {}
+                    if should_terminate then
+                        terminated_by_client = true
+                        vim.fn.jobstop(jid)
+                    end
                 end
             end
             if opts.buffer_stdout then
@@ -33,7 +39,7 @@ function M.jobstart(cmd, opts, callback)
         on_stderr = function(_, data) vim.list_extend(stderr_lines, data) end,
         on_exit = function(_, exit_code)
             if exit_code ~= 0 then
-                if not opts.silent then
+                if not opts.silent and not terminated_by_client then
                     vim.notify(table.concat(stderr_lines, '\n'))
                 end
             elseif opts.on_stdout then
@@ -44,6 +50,7 @@ function M.jobstart(cmd, opts, callback)
             if callback then callback(exit_code) end
         end
     })
+    return jid
 end
 
 local awaitable_jobstart = a.define_async_fn(M.jobstart)

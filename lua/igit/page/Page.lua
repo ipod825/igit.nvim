@@ -28,12 +28,12 @@ function M:open_or_new_buffer(key, opts)
         filename = ('igit://%s-%s%s'):format(path.basename(opts.vcs_root),
                                              opts.type, self.buffer_index[key]),
         b = {vcs_root = opts.vcs_root},
-        bo = {
+        bo = vim.tbl_extend('keep', opts.bo or {}, {
             filetype = 'igit-' .. opts.type,
             bufhidden = 'hide',
             buftype = 'nofile',
             modifiable = false
-        }
+        })
     }, opts)
 
     local buffer = Buffer.open_or_new(opts)
