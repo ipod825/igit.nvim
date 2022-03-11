@@ -2,6 +2,7 @@ local M = {}
 local path = require('igit.lib.path')
 local job = require('igit.lib.job')
 local List = require('igit.lib.datatype.List')
+local log = require('igit.log')
 
 -- A version that allows setting git_dir. Useful when find_root fails (for e.g.
 -- when closing a buffer).
@@ -24,10 +25,16 @@ function M.Git(cmd)
                                                                      cmd) or nil
 end
 
-function M.find_root() return vim.b.vcs_root or path.find_directory('.git') end
+function M.find_root()
+    local res = vim.b.vcs_root or path.find_directory('.git')
+    if res == nil then
+        log.WARN(vim.vcs_root, vim.fn.expand('%:p'), path.find_directory('.git'))
+    end
+    return res
+end
 
-function M.commit_message_file_path()
-    return ('%s/.git/COMMIT_EDITMSG'):format(M.find_root())
+function M.commit_message_file_path(git_dir)
+    return ('%s/.git/COMMIT_EDITMSG'):format(git_dir)
 end
 
 function M.status_porcelain()

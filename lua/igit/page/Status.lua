@@ -38,7 +38,8 @@ function M:commit_submit(git_dir, amend, backup_current_branch)
     if global.pending_commit[git_dir] == nil then return end
     global.pending_commit[git_dir] = nil
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
-                                 vim.fn.readfile(git.commit_message_file_path()))
+                                 vim.fn.readfile(
+                                     git.commit_message_file_path(git_dir)))
     log.WARN(git.rawcmd('branch --show-current', {git_dir = git_dir}))
     if backup_current_branch then
         local base_branch = job.popen(git.rawcmd('branch --show-current',
@@ -59,23 +60,21 @@ function M:commit(opts)
         amend = {opts.amend, 'boolean', true},
         backup_branch = {opts.backup_branch, 'boolean', true}
     })
+    local git_dir = git.find_root()
     local amend = opts.amend and '--amend' or ''
     local prepare_commit_file_cmd = 'GIT_EDITOR=false git commit ' .. amend
     job.run(prepare_commit_file_cmd, {silent = true})
-    local commit_message_file_path = git.commit_message_file_path()
+    local commit_message_file_path = git.commit_message_file_path(git_dir)
     vim.cmd('edit ' .. commit_message_file_path)
     vim.bo.bufhidden = 'wipe'
     vim.cmd('setlocal bufhidden=wipe')
     global.pending_commit = global.pending_commit or {}
     vim.cmd(
         ('autocmd BufWritePost <buffer> ++once :lua require"igit.global".pending_commit["%s"]=true'):format(
-            git.find_root()))
-    log.WARN(
-        ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s", %s, %s)'):format(
-            git.find_root(), tostring(opts.amend), tostring(opts.backup_branch)))
+            git_dir))
     vim.cmd(
         ('autocmd Bufunload <buffer> ++once :lua require"igit".status:commit_submit("%s", %s, %s)'):format(
-            git.find_root(), tostring(opts.amend), tostring(opts.backup_branch)))
+            git_dir, tostring(opts.amend), tostring(opts.backup_branch)))
 end
 
 function M:change_action(action)
