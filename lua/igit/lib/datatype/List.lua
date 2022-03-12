@@ -27,15 +27,13 @@ function M:values()
 end
 
 function M:map(...)
-    return
-        require('igit.lib.datatype.Iterator')({next_fn = next, invariant = self}):map(
-            ...)
+    return require('igit.lib.datatype.Iterator')(
+               {next_fn = next, invariant = self}):map(...)
 end
 
 function M:filter(...)
-    return
-        require('igit.lib.datatype.Iterator')({next_fn = next, invariant = self}):filter(
-            ...)
+    return require('igit.lib.datatype.Iterator')(
+               {next_fn = next, invariant = self}):filter(...)
 end
 
 return M

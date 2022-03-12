@@ -125,11 +125,9 @@ function M:new_branch()
             return Set(self:get_branches_in_rows(vutils.all_rows()))
         end,
         update = function(ori_branches, new_branches)
-            for new_branch in Set.values(new_branches) do
-                if not Set.has(ori_branches, new_branch) then
-                    job.run(git.checkout(
-                                ('-b %s %s'):format(new_branch, base_branch)))
-                end
+            for new_branch in (new_branches - ori_branches):values() do
+                job.run(git.checkout(
+                            ('-b %s %s'):format(new_branch, base_branch)))
             end
         end
     })

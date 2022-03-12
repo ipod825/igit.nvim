@@ -15,6 +15,13 @@ describe("Constructor", function()
     end)
 end)
 
+describe("eq", function()
+    it("Returns true if two sets are equal.",
+       function() assert.equal(Set({1, 2}), Set({1, 2})) end)
+    it("Returns false if two sets are not equal.",
+       function() assert.are_not.equal(Set({1, 2, 3}), Set({1, 2})) end)
+end)
+
 describe("add", function()
     it("Sets value to true by default", function()
         local s = Set({'a', 'b'})
@@ -78,5 +85,27 @@ describe("iter", function()
             i = i + 1
         end
 
+    end)
+end)
+
+describe("intersection", function()
+    it("Returns intersected values", function()
+        local s1 = Set({'a', 'b', 'c'})
+        local s2 = Set({'b', 'c', 'd'})
+        assert.are.equal(Set.intersection(s1, s2), Set({'b', 'c'}))
+    end)
+    it("Returns empty set when no intersection", function()
+        local s1 = Set({'a', 'b', 'c'})
+        local s2 = Set({'d', 'e'})
+        assert.are.equal(Set.intersection(s1, s2), Set())
+    end)
+end)
+
+describe("subtraction", function()
+    it("Returns difference of set", function()
+        local s1 = Set({'a', 'b', 'c'})
+        local s2 = Set({'b', 'c', 'd'})
+        assert.are.equal(s1 - s2, Set({'a'}))
+        assert.are.equal(s2 - s1, Set({'d'}))
     end)
 end)
