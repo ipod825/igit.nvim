@@ -14,11 +14,21 @@ function M:init(opts)
     self.control = opts.control
 end
 
-function M:iter() return self.next_fn, self.invariant, self.control end
+function M:generic_for() return self.next_fn, self.invariant, self.control end
+
+function M:next()
+    local res
+    self.control, res = self.next_fn(self.invariant, self.control)
+    return res
+end
 
 function M:collect()
     local res = {}
-    for k, v in self:iter() do res[k] = v end
+    local i = 1
+    for _, v in self:generic_for() do
+        res[i] = v
+        i = i + 1
+    end
     return List(res)
 end
 

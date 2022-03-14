@@ -26,6 +26,11 @@ function M:values()
     end)
 end
 
+function M:to_iter()
+    return require('igit.lib.datatype.Iterator')(
+               {next_fn = next, invariant = self})
+end
+
 function M:map(...)
     return require('igit.lib.datatype.Iterator')(
                {next_fn = next, invariant = self}):map(...)
@@ -36,4 +41,8 @@ function M:filter(...)
                {next_fn = next, invariant = self}):filter(...)
 end
 
+function M:unbox_if_one()
+    if #self == 1 then return self[1] end
+    return self
+end
 return M
