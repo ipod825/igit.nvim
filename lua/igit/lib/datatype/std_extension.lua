@@ -13,5 +13,5 @@ end
 
 function String:find_str(pattern) return select(3, self:find(pattern)) end
 
-function String:endswith(pattern) return self:find(pattern .. '$') end
-function String:startswith(pattern) return self:find('^' .. pattern) end
+function String:endswith(s) return self:sub(-#s, -1) == s end
+function String:startswith(s) return self:sub(1, #s) == s end

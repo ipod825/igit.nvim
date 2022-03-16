@@ -5,6 +5,7 @@ local term_utils = require('igit.lib.terminal_utils')
 local job = require('igit.lib.job')
 local Iterator = require('igit.lib.datatype.Iterator')
 local Set = require('igit.lib.datatype.Set')
+local a = require('igit.lib.async.async')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -54,41 +55,53 @@ function M:mark() self:current_buf()
     :mark({branch = self:parse_line().branch}, 2) end
 
 function M:rebase()
+    local ori_branch = job.popen(git.branch('--show-current'))
     local anchor = self:get_anchor_branch()
     local base_branch, grafted_ancestor = anchor.base,
                                           anchor.grafted_ancestor or ''
     local branches = self:get_branches_in_rows(vutils.visual_rows())
 
-    for new_branch in branches:values() do
-        local next_grafted_ancestor =
-            ('_%s_original_conflicted_with_%s_created_by_igit'):format(
-                new_branch, base_branch)
-        job.run(git.branch(('%s %s'):format(next_grafted_ancestor, new_branch)))
-        if grafted_ancestor ~= '' then
-            local succ = 0 ==
-                             job.run(git.rebase(
-                                         ('--onto %s %s %s'):format(base_branch,
-                                                                    grafted_ancestor,
-                                                                    new_branch)))
-            if grafted_ancestor:endswith('created_by_igit') then
-                job.run(git.branch('-D ' .. grafted_ancestor))
+    local current_buf = self:current_buf()
+    a.sync(function()
+        for new_branch in branches:values() do
+            local next_grafted_ancestor =
+                ('%s_original_conflicted_with_%s_created_by_igit'):format(
+                    new_branch, base_branch)
+            a.wait(job.run_async(git.branch(
+                                     ('%s %s'):format(next_grafted_ancestor,
+                                                      new_branch))))
+            if grafted_ancestor ~= '' then
+                local succ = 0 ==
+                                 a.wait(job.run_async(
+                                            git.rebase(
+                                                ('--onto %s %s %s'):format(
+                                                    base_branch,
+                                                    grafted_ancestor, new_branch))))
+                if grafted_ancestor:endswith('created_by_igit') then
+                    a.wait(job.run_async(git.branch('-D ' .. grafted_ancestor)))
+                end
+                if not succ then
+                    current_buf:reload()
+                    return
+                end
+            else
+                if 0 ~=
+                    a.wait(job.run_async(
+                               git.rebase(
+                                   ('%s %s'):format(base_branch, new_branch)))) then
+                    a.wait(job.run_async(
+                               git.branch('-D ' .. next_grafted_ancestor)))
+                    current_buf:reload()
+                    return
+                end
             end
-            if not succ then
-                self:current_buf():reload()
-                return
-            end
-        else
-            if 0 ~=
-                job.run(git.rebase(('%s %s'):format(base_branch, new_branch))) then
-                self:runasync_and_reload(
-                    git.branch('-D ' .. next_grafted_ancestor))
-                return
-            end
+            grafted_ancestor = next_grafted_ancestor
+            base_branch = new_branch
         end
-        grafted_ancestor = next_grafted_ancestor
-        base_branch = new_branch
-    end
-    self:runasync_and_reload(git.branch('-D ' .. grafted_ancestor))
+        a.wait(job.run_async(git.branch('-D ' .. grafted_ancestor)))
+        a.wait(job.run_async(git.checkout(ori_branch)))
+        current_buf:reload()
+    end)()
 end
 
 function M:parse_line(linenr)
