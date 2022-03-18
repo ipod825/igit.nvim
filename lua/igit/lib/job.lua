@@ -89,7 +89,6 @@ function M.popen(cmd, return_list)
     }, function(code) if code ~= 0 then stdout_lines = nil end end)
     vim.fn.jobwait({jid})
 
-    log.WARN(#stdout_lines, stdout_lines)
     if return_list then return List(stdout_lines) end
     return table.concat(stdout_lines, '\n')
 end

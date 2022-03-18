@@ -1,5 +1,4 @@
 local M = {}
-local List = require('igit.lib.datatype.List')
 
 function M.visual_rows()
     local row_beg, row_end
@@ -14,18 +13,5 @@ function M.visual_rows()
 end
 
 function M.all_rows() return 1, vim.fn.line('$') end
-
-function M.augroup(name, autocmds)
-    vim.cmd('augroup ' .. name)
-    vim.cmd('autocmd!')
-    for cmd in List(autocmds):values() do vim.cmd('autocmd ' .. cmd) end
-    vim.cmd('augroup END')
-end
-
-function M.open_buffer_and_ping_vcs_root(opencmd, vcs_root, filename)
-    filename = filename or ''
-    vim.cmd(('%s %s'):format(opencmd, filename))
-    vim.b.vcs_root = vcs_root
-end
 
 return M

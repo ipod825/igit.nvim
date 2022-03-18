@@ -43,9 +43,6 @@ end
 
 function M.find_root()
     local res = vim.b.vcs_root or path.find_directory('.git')
-    if res == nil then
-        log.WARN(vim.vcs_root, vim.fn.expand('%:p'), path.find_directory('.git'))
-    end
     return res
 end
 

@@ -1,5 +1,6 @@
 local M = {}
 require('igit.lib.datatype.std_extension')
+local git = require('igit.git.git')
 local global = require('igit.global')
 
 function M.setup(options)
@@ -7,6 +8,7 @@ function M.setup(options)
     M.log = require('igit.page.Log')(options)
     M.branch = require('igit.page.Branch')(options)
     M.status = require('igit.page.Status')(options)
+    M.git_cmds = {'stash'}
     M.define_command()
 end
 
@@ -17,6 +19,7 @@ function M.define_command()
     parser:add_subparser(PipeParser('branch'))
     parser:add_subparser(PipeParser('log'))
     parser:add_subparser(PipeParser('status'))
+    for _, cmd in ipairs(M.git_cmds) do parser:add_subparser(PipeParser(cmd)) end
 
     local complete = function(arg_lead, cmd_line, cursor_pos)
         return parser:get_completion_list(cmd_line, arg_lead)
@@ -33,7 +36,11 @@ function M.define_command()
         assert(#args == 2)
         local module, module_args = unpack(args[2])
         if #module_args == 0 then module_args = nil end
-        M[module]:open(module_args)
+        if M[module] then
+            M[module]:open(module_args)
+        elseif M.git_cmds[module] then
+            git[module](module_args)
+        end
     end
 
     vim.api.nvim_add_user_command('IGit', execute,

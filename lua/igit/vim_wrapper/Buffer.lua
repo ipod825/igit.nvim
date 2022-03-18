@@ -18,17 +18,22 @@ function M.open_or_new(opts)
     if global.buffers[id] == nil then
         global.buffers[id] = M(opts)
 
-        vim.cmd(
-            ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
-                id))
-
-        vim.cmd(
-            ('autocmd BufWinEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
-                id))
+        vim.api.nvim_create_autocmd('BufDelete',
+                                    {
+            buffer = id,
+            once = true,
+            callback = function() global.buffers[id] = nil end
+        })
+        vim.api.nvim_create_autocmd('BufWinEnter', {
+            buffer = id,
+            once = true,
+            callback = function() global.buffers[id]:reload() end
+        })
         if opts.buf_enter_reload then
-            vim.cmd(
-                ('autocmd BufEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
-                    id))
+            vim.api.nvim_create_autocmd('BufEnter', {
+                buffer = id,
+                callback = function() global.buffers[id]:reload() end
+            })
         end
     end
     return global.buffers[id]
@@ -116,9 +121,11 @@ function M:edit(opts)
     self.ctx.edit =
         vim.tbl_extend('error', opts, {ori_items = opts.get_items()})
     vim.bo.buftype = 'acwrite'
-    vim.cmd(
-        ('autocmd BufWriteCmd <buffer> ++once lua require"igit.global".buffers[%d]:save_edit()'):format(
-            self.id))
+    vim.api.nvim_create_autocmd('BufWriteCmd', {
+        buffer = self.id,
+        once = true,
+        callback = function() global.buffers[self.id]:save_edit() end
+    })
     self:unmapfn(self.mappings)
     vim.bo.undolevels = -1
     vim.bo.modifiable = true
