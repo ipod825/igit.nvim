@@ -23,6 +23,7 @@ function M:init(options)
                 ['<cr>'] = self:bind(self.open_file)
             },
             v = {
+                ['X'] = self:bind(self.discard_change),
                 ['H'] = self:bind(self.stage_change),
                 ['L'] = self:bind(self.unstage_change)
             }

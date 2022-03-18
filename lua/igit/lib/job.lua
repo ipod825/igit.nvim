@@ -1,6 +1,7 @@
 local M = {}
 local a = require('igit.lib.async.async')
 local List = require('igit.lib.datatype.List')
+local log = require('igit.log')
 
 function M.jobstart(cmd, opts, callback)
     vim.validate({cmd = {cmd, 'string'}, opts = {opts, 'table'}},
@@ -15,17 +16,21 @@ function M.jobstart(cmd, opts, callback)
 
     opts.stdout_buffer_size = opts.stdout_buffer_size or 5000
 
-    local stdout_lines = {}
+    local stdout_lines = {''}
     local stderr_lines = {('Error message from\n%s\n'):format(cmd)};
     local terminated_by_client = false
     local jid
     jid = vim.fn.jobstart(cmd, {
         on_stdout = function(_, data)
             if opts.on_stdout then
-                vim.list_extend(stdout_lines, data)
+                -- Handle broken line
+                stdout_lines[#stdout_lines] =
+                    stdout_lines[#stdout_lines] .. data[1]
+                vim.list_extend(stdout_lines, data, 2)
+
                 if #stdout_lines > opts.stdout_buffer_size then
                     local should_terminate = opts.on_stdout(stdout_lines)
-                    stdout_lines = {}
+                    stdout_lines = {''}
                     if should_terminate then
                         terminated_by_client = true
                         vim.fn.jobstop(jid)
@@ -43,9 +48,9 @@ function M.jobstart(cmd, opts, callback)
                     vim.notify(table.concat(stderr_lines, '\n'))
                 end
             elseif opts.on_stdout then
-                -- stdout always comes with two empty lines at the end.
+                -- trim the eof
                 opts.on_stdout(
-                    vim.list_slice(stdout_lines, 1, #stdout_lines - 2))
+                    vim.list_slice(stdout_lines, 1, #stdout_lines - 1))
             end
             if callback then callback(exit_code) end
         end
@@ -84,6 +89,7 @@ function M.popen(cmd, return_list)
     }, function(code) if code ~= 0 then stdout_lines = nil end end)
     vim.fn.jobwait({jid})
 
+    log.WARN(#stdout_lines, stdout_lines)
     if return_list then return List(stdout_lines) end
     return table.concat(stdout_lines, '\n')
 end
