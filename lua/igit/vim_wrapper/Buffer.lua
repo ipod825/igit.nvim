@@ -21,7 +21,11 @@ function M.open_or_new(opts)
         vim.cmd(
             ('autocmd BufDelete <buffer> ++once lua require"igit.global".buffers[%d]=nil'):format(
                 id))
-        if opts.auto_reload then
+
+        vim.cmd(
+            ('autocmd BufWinEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
+                id))
+        if opts.buf_enter_reload then
             vim.cmd(
                 ('autocmd BufEnter <buffer> lua require"igit.global".buffers[%d]:reload()'):format(
                     id))
@@ -40,7 +44,7 @@ function M:init(opts)
         reload_respect_empty_line = {
             opts.reload_respect_empty_line, 'boolean', true
         },
-        auto_reload = {opts.auto_reload, 'boolean'},
+        buf_enter_reload = {opts.buf_enter_reload, 'boolean'},
         mappings = {opts.mappings, 'table', true},
         b = {opts.b, 'table', true},
         bo = {opts.bo, 'table', true},
@@ -192,8 +196,8 @@ function M:reload()
     self:clear()
     local w = vim.api.nvim_get_current_win()
     local ori_st = vim.o.statusline
-    vim.wo.statusline = 'Loading... Operations will not take effect.'
     a.sync(function()
+        local count = 1
         a.wait(job.run_async(self.reload_cmd_gen_fn(), {
             on_stdout = function(lines)
                 if not vim.api.nvim_buf_is_valid(self.id) then
@@ -206,6 +210,10 @@ function M:reload()
                 end
                 self:append(lines)
                 self:restore_view()
+                if w == vim.api.nvim_get_current_win() then
+                    vim.wo.statusline = " Loading " .. ('.'):rep(count)
+                    count = count % 6 + 1
+                end
             end
         }))
 

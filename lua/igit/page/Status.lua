@@ -100,7 +100,7 @@ function M:side_diff()
     Buffer.open_or_new({
         open_cmd = 'leftabove vnew',
         filename = ('igit://HEAD:%s'):format(cline_info.filepath),
-        auto_reload = false,
+        buf_enter_reload = false,
         b = {vcs_root = git.find_root()},
         bo = {buftype = 'nofile', modifiable = false, filetype = ori_filetype},
         reload_cmd_gen_fn = function()
@@ -158,7 +158,7 @@ function M:open(args)
         vcs_root = git.find_root(),
         type = 'status',
         mappings = self.options.mapping,
-        auto_reload = true,
+        buf_enter_reload = true,
         reload_cmd_gen_fn = function() return git.status(args) end
     })
 end

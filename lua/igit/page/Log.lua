@@ -17,7 +17,7 @@ function M:init(options)
             v = {['r'] = self:bind(self.rebase)}
         },
         args = {'--oneline', '--branches', '--graph', '--decorate=short'},
-        auto_reload = true
+        buf_enter_reload = false
     }, options.log or {})
 end
 
@@ -94,7 +94,7 @@ function M:open(args)
         vcs_root = git.find_root(),
         type = 'log',
         mappings = self.options.mapping,
-        auto_reload = self.options.auto_reload,
+        buf_enter_reload = self.options.buf_enter_reload,
         reload_cmd_gen_fn = function() return git.log(args) end,
         -- Log page can have too many lines, wiping it on hidden saves memory.
         bo = {bufhidden = 'wipe'}

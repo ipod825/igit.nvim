@@ -160,7 +160,7 @@ function M:open(args)
         vcs_root = git.find_root(),
         type = 'branch',
         mappings = self.options.mapping,
-        auto_reload = true,
+        buf_enter_reload = true,
         reload_cmd_gen_fn = function() return git.branch(args) end
     })
 end
