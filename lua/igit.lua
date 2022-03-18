@@ -1,13 +1,12 @@
 local M = {}
 require('igit.lib.datatype.std_extension')
 local git = require('igit.git.git')
-local global = require('igit.global')
 
-function M.setup(options)
-    global.logger = require('igit.lib.debug.logger')(options)
-    M.log = require('igit.page.Log')(options)
-    M.branch = require('igit.page.Branch')(options)
-    M.status = require('igit.page.Status')(options)
+function M.setup(opts)
+    require('igit.log'):config(opts)
+    M.log = require('igit.page.Log')(opts)
+    M.branch = require('igit.page.Branch')(opts)
+    M.status = require('igit.page.Status')(opts)
     M.git_cmds = {'stash'}
     M.define_command()
 end

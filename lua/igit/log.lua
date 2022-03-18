@@ -1,2 +1,5 @@
--- Should be initiated at toplevel module.
-return require('igit.global').logger
+local global = require('igit.global')
+
+global.logger = global.logger or require('igit.lib.debug.logger')()
+
+return global.logger

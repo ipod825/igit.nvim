@@ -1,8 +1,8 @@
 local M = require 'igit.lib.datatype.Class'()
 local path = require 'igit.lib.path'
 
-function M:init(options)
-    self.current_log_level = options.log_level or vim.log.levels.WARN
+function M:init(opts)
+    self:config(opts)
     self.log_date_format = "%F %H:%M:%S"
     self.format_func = function(arg) return vim.inspect(arg, {newline = ''}) end
 
@@ -14,6 +14,11 @@ function M:init(options)
     for level, levelnr in pairs(vim.log.levels) do
         self[level] = self:bind(self.log, levelnr)
     end
+end
+
+function M:config(opts)
+    opts = vim.tbl_extend('keep', opts or {}, {log_level = vim.log.levels.WARN})
+    self.current_log_level = opts.log_level
 end
 
 function M:get_filename() return self.logfilename end
