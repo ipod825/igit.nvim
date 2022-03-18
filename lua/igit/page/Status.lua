@@ -40,18 +40,17 @@ function M:commit_submit(git_dir, amend, backup_current_branch)
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
                                  vim.fn.readfile(
                                      git.commit_message_file_path(git_dir)))
-    log.WARN(git.rawcmd('branch --show-current', {git_dir = git_dir}))
     if backup_current_branch then
-        local base_branch = job.popen(git.rawcmd('branch --show-current',
-                                                 {git_dir = git_dir}))
+        local base_branch = job.popen(git.run_from(git_dir).branch(
+                                          '--show-current'))
         local backup_branch =
             ('%s_original_created_by_igit'):format(base_branch)
-        job.run(git.rawcmd(('branch %s %s'):format(backup_branch, base_branch)),
-                {git_dir = git_dir})
+        job.run(git.run_from(git_dir).branch(
+                    ('%s %s'):format(backup_branch, base_branch), git_dir))
     end
-    job.run(git.rawcmd(('commit %s -m "%s"'):format(amend and '--amend' or '',
-                                                    table.concat(lines, '\n')),
-                       {git_dir = git_dir}))
+    job.run(git.run_from(git_dir).commit(
+                ('%s -m "%s"'):format(amend and '--amend' or '',
+                                      table.concat(lines, '\n')), git_dir))
 end
 
 function M:commit(opts)
@@ -90,6 +89,7 @@ end
 
 function M:side_diff()
     local cline_info = self:parse_line()
+    local beg_win = vim.api.nvim_get_current_win()
     vim.cmd(('split %s'):format(cline_info.abs_path))
     vim.cmd(('resize %d'):format(999))
     vim.cmd('diffthis')
@@ -108,7 +108,17 @@ function M:side_diff()
         reload_respect_empty_line = true,
         post_open_fn = function() vim.cmd('diffthis') end
     })
-    vim.api.nvim_set_current_win(ori_win)
+    -- vim.api.nvim_set_current_win(ori_win)
+
+    vim.api.nvim_win_set_config(beg_win, {
+        relative = 'editor',
+        width = vim.o.columns,
+        height = 1,
+        row = 0,
+        col = 0,
+        zindex = 60,
+        focusable = true
+    })
 end
 
 function M:clean_files()

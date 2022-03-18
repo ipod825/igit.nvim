@@ -4,25 +4,41 @@ local job = require('igit.lib.job')
 local List = require('igit.lib.datatype.List')
 local log = require('igit.log')
 
--- A version that allows setting git_dir. Useful when find_root fails (for e.g.
--- when closing a buffer).
-function M.rawcmd(cmd, opts)
-    opts = opts or {}
-    vim.validate({
-        cmd = {cmd, 'string'},
-        git_dir = {opts.git_dir, 'string', true}
-    })
-    local git_dir = opts.git_dir or vim.b.vcs_root or M.find_root()
+local create_cmd_factory = function(git_cmd)
+    if git_cmd then
+        return function(...)
+            local args = List()
+            for e in List({...}):values() do
+                if vim.tbl_islist(e) then
+                    args:extend(e)
+                else
+                    args:append(e)
+                end
+            end
+            return ('%s %s'):format(git_cmd, table.concat(args, ' '))
+        end
+    end
+
+    return function()
+        vim.notify('Not a git directory')
+        return ''
+    end
+end
+
+local gen_cmd_with_default_args = function(cmd, git_dir)
+    git_dir = git_dir or vim.b.vcs_root or M.find_root()
     return git_dir and
                ('git --no-pager -c color.ui=always -C %s %s'):format(git_dir,
                                                                      cmd) or nil
 end
 
-function M.Git(cmd)
-    local git_dir = vim.b.vcs_root or M.find_root()
-    return git_dir and
-               ('git --no-pager -c color.ui=always -C %s %s'):format(git_dir,
-                                                                     cmd) or nil
+function M.run_from(git_dir)
+    vim.validate({git_cmd = {git_dir, 'string'}})
+    return setmetatable({}, {
+        __index = function(_, cmd)
+            return create_cmd_factory(gen_cmd_with_default_args(cmd, git_dir))
+        end
+    })
 end
 
 function M.find_root()
@@ -57,25 +73,7 @@ end
 
 setmetatable(M, {
     __index = function(_, cmd)
-        local git_cmd = M.Git(cmd)
-        if git_cmd then
-            return function(...)
-                local args = List()
-                for e in List({...}):values() do
-                    if vim.tbl_islist(e) then
-                        args:extend(e)
-                    else
-                        args:append(e)
-                    end
-                end
-                return ('%s %s'):format(git_cmd, table.concat(args, ' '))
-            end
-        end
-
-        return function()
-            vim.notify('Not a git directory')
-            return ''
-        end
+        return create_cmd_factory(gen_cmd_with_default_args(cmd))
     end
 })
 

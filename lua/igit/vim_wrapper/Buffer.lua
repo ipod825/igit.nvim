@@ -40,7 +40,6 @@ function M:init(opts)
         reload_respect_empty_line = {
             opts.reload_respect_empty_line, 'boolean', true
         },
-        post_reload_fn = {opts.pos_reload, 'function', true},
         auto_reload = {opts.auto_reload, 'boolean'},
         mappings = {opts.mappings, 'table', true},
         b = {opts.b, 'table', true},
@@ -51,7 +50,6 @@ function M:init(opts)
     self.id = vim.api.nvim_get_current_buf()
     self.reload_cmd_gen_fn = opts.reload_cmd_gen_fn or functional.nop
     self.reload_respect_empty_line = opts.reload_respect_empty_line
-    self.post_reload_fn = opts.post_reload_fn or functional.nop
     self.mappings = opts.mappings
     self:mapfn(opts.mappings)
     local ctx = {}
@@ -212,7 +210,6 @@ function M:reload()
         }))
 
         self.is_reloading = false
-        self.post_reload_fn(self.id)
         if vim.api.nvim_win_is_valid(w) then
             vim.api.nvim_win_set_option(w, 'statusline', ori_st)
         end
