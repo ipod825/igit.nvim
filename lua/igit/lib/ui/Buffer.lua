@@ -3,10 +3,11 @@ local global = require('igit.lib.global')('igit')
 local functional = require('igit.lib.functional')
 local a = require('igit.lib.async.async')
 local job = require('igit.lib.job')
+local log = require('igit.log')
 
 function M.open_or_new(opts)
     vim.validate({
-        open_cmd = {opts.open_cmd, {'string', 'boolean'}},
+        open_cmd = {opts.open_cmd, {'string', 'boolean', 'table'}},
         filename = {opts.filename, 'string', true},
         post_open_fn = {opts.post_open_fn, 'function', true}
     })
@@ -15,6 +16,10 @@ function M.open_or_new(opts)
 
     if opts.open_cmd == false then
         id = vim.api.nvim_create_buf(false, true)
+        opts.id = id
+    elseif type(opts.open_cmd) == 'table' then
+        id = vim.api
+                 .nvim_create_buf(opts.open_cmd.listed, opts.open_cmd.scratch)
         opts.id = id
     else
         vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
@@ -82,6 +87,7 @@ function M:init(opts)
     self.id = opts.id or vim.api.nvim_get_current_buf()
     self.content = opts.content or functional.nop
     self.mappings = opts.mappings
+    self.filename = opts.filename
     self:mapfn(opts.mappings)
 
     -- For client to store arbitrary lua object.
@@ -118,6 +124,7 @@ function M:init(opts)
             -- reload might be called before the window is visible (for e.g.,
             -- buffer created by nvim_create_buf).
             vim.api.nvim_buf_set_option(self.id, 'filetype', opts.bo.filetype)
+
             self:reload()
         end
     })
@@ -209,6 +216,11 @@ end
 
 function M:append(lines)
     vim.api.nvim_buf_set_option(self.id, 'modifiable', true)
+    -- Note that we assume the last element in lines is always '' which will be
+    -- overwriten by the next append call as the start index is -2. The reason
+    -- start index is not -1 is for consistency between calls of append. On
+    -- empty buffer, the first line is always non-empty, insertion starting from
+    -- -1 will insert from the second line.
     vim.api.nvim_buf_set_lines(self.id, -2, -1, false, lines)
     vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
 end

@@ -7,6 +7,7 @@ local Iterator = require('igit.lib.datatype.Iterator')
 local Set = require('igit.lib.datatype.Set')
 local a = require('igit.lib.async.async')
 local Buffer = require('igit.lib.ui.Buffer')
+local Grid = require('igit.lib.ui.Grid')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -58,34 +59,16 @@ function M:mark() self:current_buf()
 
 function M:show()
     local branch = self:parse_line().branch
-
-    local b = Buffer.open_or_new({open_cmd = false, content = {branch}})
-    vim.api.nvim_open_win(b.id, false, {
-        relative = 'editor',
-        width = vim.o.columns,
-        height = 1,
-        row = 1,
-        col = 0,
-        zindex = 60,
-        focusable = true
-    })
-
-    b = Buffer.open_or_new({
-        open_cmd = false,
-        b = {vcs_root = git.find_root()},
-        bo = {buftype = 'nofile', modifiable = false, filetype = 'igit-branch'},
-        content = function() return git.show('%s'):format(branch) end
-    })
-
-    vim.api.nvim_open_win(b.id, true, {
-        relative = 'editor',
-        width = vim.o.columns,
-        height = vim.o.lines - 3,
-        row = 3,
-        col = 0,
-        zindex = 60,
-        focusable = true
-    })
+    local grid = Grid()
+    grid:add_row(1):fill_column(Buffer.open_or_new(
+                                    {open_cmd = false, content = {branch}}))
+    grid:add_row():fill_column(Buffer.open_or_new(
+                                   {
+            open_cmd = false,
+            bo = {filetype = 'igit'},
+            content = function() return git.show('%s'):format(branch) end
+        })):set_lead()
+    grid:show()
 end
 
 function M:rebase()

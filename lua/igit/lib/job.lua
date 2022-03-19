@@ -23,14 +23,21 @@ function M.jobstart(cmd, opts, callback)
     jid = vim.fn.jobstart(cmd, {
         on_stdout = function(_, data)
             if opts.on_stdout then
-                -- Handle broken line
+                -- The last line might be partial
                 stdout_lines[#stdout_lines] =
                     stdout_lines[#stdout_lines] .. data[1]
                 vim.list_extend(stdout_lines, data, 2)
 
                 if #stdout_lines > opts.stdout_buffer_size then
+                    -- Though the document said foobar may arrive as ['fo'],
+                    -- ['obar'], indicating that we should probably not flush
+                    -- the last line. However, in practice, the last line seems
+                    -- to be always ''. For efficiency and consistency with
+                    -- Buffer's append function, which assumes that the last
+                    -- line is '', we don't do slice here.
                     local should_terminate = opts.on_stdout(stdout_lines)
                     stdout_lines = {''}
+
                     if should_terminate then
                         terminated_by_client = true
                         vim.fn.jobstop(jid)

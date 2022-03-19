@@ -5,6 +5,8 @@ local global = require('igit.lib.global')('igit')
 local vutils = require('igit.vim_wrapper.vutils')
 local Iterator = require('igit.lib.datatype.Iterator')
 local Buffer = require('igit.lib.ui.Buffer')
+local FileBuffer = require('igit.lib.ui.FileBuffer')
+local Grid = require('igit.lib.ui.Grid')
 local log = require('igit.log')
 
 function M:init(options)
@@ -94,24 +96,46 @@ end
 
 function M:side_diff()
     local cline_info = self:parse_line()
-    vim.cmd(('split %s'):format(cline_info.abs_path))
-    vim.cmd(('resize %d'):format(999))
-    vim.cmd('diffthis')
-    local ori_filetype = vim.bo.filetype
-    local ori_win = vim.api.nvim_get_current_win()
 
-    Buffer.open_or_new({
-        open_cmd = 'leftabove vnew',
-        filename = ('igit://HEAD:%s'):format(cline_info.filepath),
-        buf_enter_reload = false,
-        b = {vcs_root = git.find_root()},
-        bo = {buftype = 'nofile', modifiable = false, filetype = ori_filetype},
-        content = function()
-            return git.show(':%s'):format(cline_info.filepath)
-        end,
-        post_open_fn = function() vim.cmd('diffthis') end
-    })
-    vim.api.nvim_set_current_win(ori_win)
+    local grid = Grid()
+    local index_buf = Buffer.open_or_new(
+                          {
+            open_cmd = false,
+            filename = ('igit://HEAD:%s'):format(cline_info.filepath),
+            content = function()
+                return git.show(':%s'):format(cline_info.filepath)
+            end,
+            post_open_fn = function() vim.cmd('diffthis') end
+        })
+    local worktree_buf = FileBuffer(cline_info.abs_path)
+    vim.filetype.match(cline_info.abs_path, index_buf.id)
+    vim.filetype.match(cline_info.abs_path, worktree_buf.id)
+    grid:add_row(1):fill_column(Buffer.open_or_new(
+                                    {
+            open_cmd = false,
+            content = {cline_info.filepath}
+        }))
+    grid:add_row():fill_columns({index_buf, worktree_buf}):set_lead()
+    grid:show()
+
+    --     vim.cmd(('split %s'):format(cline_info.abs_path))
+    --     vim.cmd(('resize %d'):format(999))
+    --     vim.cmd('diffthis')
+    --     local ori_filetype = vim.bo.filetype
+    --     local ori_win = vim.api.nvim_get_current_win()
+    -- 
+    --     Buffer.open_or_new({
+    --         open_cmd = 'leftabove vnew',
+    --         filename = ('igit://HEAD:%s'):format(cline_info.filepath),
+    --         buf_enter_reload = false,
+    --         b = {vcs_root = git.find_root()},
+    --         bo = {buftype = 'nofile', modifiable = false, filetype = ori_filetype},
+    --         content = function()
+    --             return git.show(':%s'):format(cline_info.filepath)
+    --         end,
+    --         post_open_fn = function() vim.cmd('diffthis') end
+    --     })
+    --     vim.api.nvim_set_current_win(ori_win)
 end
 
 function M:clean_files()
@@ -140,7 +164,7 @@ function M:parse_line(line_nr)
     local res = {}
     local line = vim.fn.getline(line_nr)
     res.filepath = line:find_str('[^%s]+%s+([^%s]+)$')
-    res.abs_path = ('%s/%s'):format(git.find_root(), res.filepath)
+    res.abs_path = ('%s%s'):format(git.find_root(), res.filepath)
     return res
 end
 

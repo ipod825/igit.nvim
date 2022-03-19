@@ -79,8 +79,6 @@ end
 function M:_is_parsed_args_invalid(parsed_args)
     local flag_arg_props = vim.tbl_extend('error', self.arg_props[ArgType.FLAG],
                                           self.arg_props[ArgType.LONG_FLAG])
-    _G.p(parsed_args)
-    _G.p(flag_arg_props)
     for arg, arg_prop in pairs(flag_arg_props) do
         if arg_prop.required and parsed_args[arg] == nil then
             return ('%s is required'):format(arg_prop.repr)
