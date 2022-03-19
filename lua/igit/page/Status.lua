@@ -106,10 +106,9 @@ function M:side_diff()
         buf_enter_reload = false,
         b = {vcs_root = git.find_root()},
         bo = {buftype = 'nofile', modifiable = false, filetype = ori_filetype},
-        reload_cmd_gen_fn = function()
+        content = function()
             return git.show(':%s'):format(cline_info.filepath)
         end,
-        reload_respect_empty_line = true,
         post_open_fn = function() vim.cmd('diffthis') end
     })
     vim.api.nvim_set_current_win(ori_win)
@@ -152,7 +151,7 @@ function M:open(args)
         type = 'status',
         mappings = self.options.mapping,
         buf_enter_reload = true,
-        reload_cmd_gen_fn = function() return git.status(args) end
+        content = function() return git.status(args) end
     })
 end
 

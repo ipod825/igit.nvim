@@ -31,13 +31,48 @@ function M.get_current_buffer()
     return global.buffers[vim.api.nvim_get_current_buf()]
 end
 
+function M:mapfn(mappings)
+    if not mappings then return end
+    self.mapping_handles = self.mapping_handles or {}
+    for mode, mode_mappings in pairs(mappings) do
+        vim.validate({
+            mode = {mode, 'string'},
+            mode_mappings = {mode_mappings, 'table'}
+        })
+        self.mapping_handles[mode] = self.mapping_handles[mode] or {}
+        for key, fn in pairs(mode_mappings) do
+            self:add_key_map(mode, key, fn)
+        end
+    end
+end
+
+function M:add_key_map(mode, key, fn)
+    vim.validate({
+        mode = {mode, 'string'},
+        key = {key, 'string'},
+        fn = {fn, 'function'}
+    })
+    local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
+    self.mapping_handles[mode] = self.mapping_handles[mode] or {}
+    self.mapping_handles[mode][key] = function()
+        if self.is_reloading then return end
+        fn()
+    end
+    vim.api.nvim_buf_set_keymap(self.id, mode, key,
+                                ('%slua require("igit.lib.ui.Buffer").execut_mapping("%s", "%s")<cr>'):format(
+                                    prefix, mode, key:gsub('^<', '<lt>')), {})
+end
+
+function M.execut_mapping(mode, key)
+    local b = global.buffers[vim.api.nvim_get_current_buf()]
+    key = key:gsub('<lt>', '^<')
+    b.mapping_handles[mode][key]()
+end
+
 function M:init(opts)
     vim.validate({
         id = {opts.id, 'number', true},
-        reload_cmd_gen_fn = {opts.reload_cmd_gen_fn, {'function', 'table'}},
-        reload_respect_empty_line = {
-            opts.reload_respect_empty_line, 'boolean', true
-        },
+        content = {opts.content, {'function', 'table'}},
         buf_enter_reload = {opts.buf_enter_reload, 'boolean', true},
         mappings = {opts.mappings, 'table', true},
         b = {opts.b, 'table', true},
@@ -45,10 +80,11 @@ function M:init(opts)
     })
 
     self.id = opts.id or vim.api.nvim_get_current_buf()
-    self.reload_cmd_gen_fn = opts.reload_cmd_gen_fn or functional.nop
-    self.reload_respect_empty_line = opts.reload_respect_empty_line
+    self.content = opts.content or functional.nop
     self.mappings = opts.mappings
     self:mapfn(opts.mappings)
+
+    -- For client to store arbitrary lua object.
     local ctx = {}
     self.ctx = setmetatable({}, {__index = ctx, __newindex = ctx})
 
@@ -73,6 +109,7 @@ function M:init(opts)
         once = true,
         callback = function() global.buffers[self.id] = nil end
     })
+
     vim.api.nvim_create_autocmd('BufWinEnter', {
         buffer = self.id,
         once = true,
@@ -84,6 +121,7 @@ function M:init(opts)
             self:reload()
         end
     })
+
     if opts.buf_enter_reload then
         vim.api.nvim_create_autocmd('BufEnter', {
             buffer = self.id,
@@ -91,6 +129,12 @@ function M:init(opts)
         })
     end
 
+    -- todo: This reload might be a waste in some cases. With open_cmd == false,
+    -- we reload the buffer on creation here while the Window hasn't be created.
+    -- Later, when we defer create the window with nvim_open_win (and focus the
+    -- window on creation), BufWinEnter is triggered and reload is called the
+    -- second time. Note however, we can't simply do no reload when open_cmd is
+    -- false as we might not focus the window with nvim_open_win.
     self:reload()
 end
 
@@ -145,31 +189,6 @@ function M:edit(opts)
                             vim.api.nvim_get_option('undolevels')
 end
 
-function M:mapfn(mappings)
-    if not mappings then return end
-    self.mapping_handles = self.mapping_handles or {}
-    for mode, mode_mappings in pairs(mappings) do
-        vim.validate({
-            mode = {mode, 'string'},
-            mode_mappings = {mode_mappings, 'table'}
-        })
-        self.mapping_handles[mode] = self.mapping_handles[mode] or {}
-        local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
-        for key, fn in pairs(mode_mappings) do
-            vim.validate({key = {key, 'string'}, fn = {fn, 'function'}})
-            self.mapping_handles[mode][key] =
-                function()
-                    if self.is_reloading then return end
-                    fn()
-                end
-            vim.api.nvim_buf_set_keymap(self.id, mode, key,
-                                        ('%slua require("igit.global").buffers[%d].mapping_handles["%s"]["%s"]()<cr>'):format(
-                                            prefix, self.id, mode,
-                                            key:gsub('^<', '<lt>')), {})
-        end
-    end
-end
-
 function M:unmapfn(mappings)
     for mode, mode_mappings in pairs(mappings) do
         vim.validate({
@@ -194,7 +213,11 @@ function M:append(lines)
     vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
 end
 
-function M:save_view() self.saved_view = vim.fn.winsaveview() end
+function M:save_view()
+    if self.id == vim.api.nvim_get_current_buf() then
+        self.saved_view = vim.fn.winsaveview()
+    end
+end
 
 function M:restore_view()
     if self.saved_view and self.id == vim.api.nvim_get_current_buf() then
@@ -204,10 +227,9 @@ function M:restore_view()
 end
 
 function M:reload()
-    if type(self.reload_cmd_gen_fn) == 'table' then
+    if type(self.content) == 'table' then
         vim.api.nvim_buf_set_option(self.id, 'modifiable', true)
-        vim.api
-            .nvim_buf_set_lines(self.id, 0, -1, false, self.reload_cmd_gen_fn)
+        vim.api.nvim_buf_set_lines(self.id, 0, -1, false, self.content)
         vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
         return
     end
@@ -216,24 +238,28 @@ function M:reload()
 
     a.sync(function()
         self.is_reloading = true
+        self:save_view()
         self:clear()
 
-        -- self:save_view()
         local count = 1
         local w = vim.api.nvim_get_current_win()
         local ori_st = vim.o.statusline
-        a.wait(job.run_async(self.reload_cmd_gen_fn(), {
+        a.wait(job.run_async(self.content(), {
             on_stdout = function(lines)
                 if not vim.api.nvim_buf_is_valid(self.id) then
                     return true
                 end
 
-                if not self.reload_respect_empty_line then
-                    lines = vim.tbl_filter(
-                                function(e) return #e > 0 end, lines)
-                end
                 self:append(lines)
-                -- self:restore_view()
+                -- We only restore view once (note that restore_view destroys
+                -- the saved view). This is because that for content that can be
+                -- drawn in one shot, reload should finish before any new user
+                -- interaction. Restoring the view thus compensate the cursor
+                -- move (due to clear). But for content that needs to be drawn
+                -- in multiple run, restoring the cursor after every append
+                -- just makes user can't do anything.
+                self:restore_view()
+
                 if w == vim.api.nvim_get_current_win() then
                     vim.wo.statusline = " Loading " .. ('.'):rep(count)
                     count = count % 6 + 1

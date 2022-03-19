@@ -59,10 +59,7 @@ function M:mark() self:current_buf()
 function M:show()
     local branch = self:parse_line().branch
 
-    local b = Buffer.open_or_new({
-        open_cmd = false,
-        reload_cmd_gen_fn = {branch}
-    })
+    local b = Buffer.open_or_new({open_cmd = false, content = {branch}})
     vim.api.nvim_open_win(b.id, false, {
         relative = 'editor',
         width = vim.o.columns,
@@ -77,10 +74,7 @@ function M:show()
         open_cmd = false,
         b = {vcs_root = git.find_root()},
         bo = {buftype = 'nofile', modifiable = false, filetype = 'igit-branch'},
-        reload_cmd_gen_fn = function()
-            return git.show('%s'):format(branch)
-        end,
-        reload_respect_empty_line = true
+        content = function() return git.show('%s'):format(branch) end
     })
 
     vim.api.nvim_open_win(b.id, true, {
@@ -201,7 +195,7 @@ function M:open(args)
         type = 'branch',
         mappings = self.options.mapping,
         buf_enter_reload = true,
-        reload_cmd_gen_fn = function() return git.branch(args) end
+        content = function() return git.branch(args) end
     })
 end
 

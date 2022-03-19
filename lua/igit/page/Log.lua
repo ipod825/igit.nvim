@@ -95,7 +95,7 @@ function M:open(args)
         type = 'log',
         mappings = self.options.mapping,
         buf_enter_reload = self.options.buf_enter_reload,
-        reload_cmd_gen_fn = function() return git.log(args) end,
+        content = function() return git.log(args) end,
         -- Log page can have too many lines, wiping it on hidden saves memory.
         bo = {bufhidden = 'wipe'}
     })
