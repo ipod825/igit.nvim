@@ -1,4 +1,4 @@
-local a = require 'igit.lib.async.async'
+local a = require 'igit.libp.async.async'
 
 local exec = function(cmd)
     return a.sync(function()

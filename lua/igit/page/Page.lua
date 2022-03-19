@@ -1,9 +1,9 @@
-local M = require('igit.lib.datatype.Class')()
-local path = require('igit.lib.path')
-local Buffer = require('igit.lib.ui.Buffer')
-local Set = require('igit.lib.datatype.Set')
-local job = require('igit.lib.job')
-local a = require('igit.lib.async.async')
+local M = require('igit.libp.datatype.Class')()
+local path = require('igit.libp.path')
+local Buffer = require('igit.libp.ui.Buffer')
+local Set = require('igit.libp.datatype.Set')
+local job = require('igit.libp.job')
+local a = require('igit.libp.async.async')
 
 function M:open_or_new_buffer(key, opts)
     if opts.vcs_root == nil or opts.vcs_root == '' then

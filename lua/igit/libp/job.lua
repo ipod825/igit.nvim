@@ -1,6 +1,6 @@
 local M = {}
-local a = require('igit.lib.async.async')
-local List = require('igit.lib.datatype.List')
+local a = require('igit.libp.async.async')
+local List = require('igit.libp.datatype.List')
 local log = require('igit.log')
 
 function M.jobstart(cmd, opts, callback)

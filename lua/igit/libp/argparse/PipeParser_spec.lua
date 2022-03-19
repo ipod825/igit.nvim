@@ -1,4 +1,4 @@
-local PipeParser = require('igit.lib.argparse.PipeParser')
+local PipeParser = require('igit.libp.argparse.PipeParser')
 
 describe("parse", function()
     it("Returns all args passed to it", function()

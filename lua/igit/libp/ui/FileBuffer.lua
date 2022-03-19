@@ -1,6 +1,6 @@
-local M = require 'igit.lib.datatype.Class'()
-local a = require('igit.lib.async.async')
-local job = require('igit.lib.job')
+local M = require 'igit.libp.datatype.Class'()
+local a = require('igit.libp.async.async')
+local job = require('igit.libp.job')
 
 function M:init(filename)
     vim.validate({filename = {filename, 'string'}})

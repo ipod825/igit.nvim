@@ -1,4 +1,4 @@
-local Set = require('igit.lib.datatype.Set')
+local Set = require('igit.libp.datatype.Set')
 
 describe("Constructor", function()
     it("Takes zero argument.", function()

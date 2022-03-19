@@ -1,8 +1,8 @@
-local M = require 'igit.lib.datatype.Class'()
-local global = require('igit.lib.global')('igit')
-local functional = require('igit.lib.functional')
-local a = require('igit.lib.async.async')
-local job = require('igit.lib.job')
+local M = require 'igit.libp.datatype.Class'()
+local global = require('igit.libp.global')('igit')
+local functional = require('igit.libp.functional')
+local a = require('igit.libp.async.async')
+local job = require('igit.libp.job')
 local log = require('igit.log')
 
 function M.open_or_new(opts)
@@ -60,7 +60,7 @@ function M:add_key_map(mode, key, fn)
         fn()
     end
     vim.api.nvim_buf_set_keymap(self.id, mode, key,
-                                ('%slua require("igit.lib.ui.Buffer").execut_mapping("%s", "%s")<cr>'):format(
+                                ('%slua require("igit.libp.ui.Buffer").execut_mapping("%s", "%s")<cr>'):format(
                                     prefix, mode, key:gsub('^<', '<lt>')), {})
 end
 

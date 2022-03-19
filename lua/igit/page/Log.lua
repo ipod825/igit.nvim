@@ -1,10 +1,10 @@
 local M = require('igit.page.Page')()
 local git = require('igit.git.git')
-local job = require('igit.lib.job')
-local List = require('igit.lib.datatype.List')
+local job = require('igit.libp.job')
+local List = require('igit.libp.datatype.List')
 local nui = require('igit.nui.nui')
-local Iterator = require('igit.lib.datatype.Iterator')
-local term_utils = require('igit.lib.terminal_utils')
+local Iterator = require('igit.libp.datatype.Iterator')
+local term_utils = require('igit.libp.terminal_utils')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {

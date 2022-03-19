@@ -1,4 +1,4 @@
-local M = require 'igit.lib.argparse.Parser'()
+local M = require 'igit.libp.argparse.Parser'()
 
 function M:parse(str, return_hierarchical_result)
     vim.validate({str = {str, 'string'}})

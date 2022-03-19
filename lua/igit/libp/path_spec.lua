@@ -1,4 +1,4 @@
-local path = require 'igit.lib.path'
+local path = require 'igit.libp.path'
 
 describe("dirname", function()
     it("Returns parent for file",

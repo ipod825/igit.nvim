@@ -1,5 +1,5 @@
-local M = require 'igit.lib.datatype.Class'()
-local List = require 'igit.lib.datatype.List'
+local M = require 'igit.libp.datatype.Class'()
+local List = require 'igit.libp.datatype.List'
 
 M.iter = {}
 function M:init(opts)

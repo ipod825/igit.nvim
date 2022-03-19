@@ -1,5 +1,5 @@
-local M = require 'igit.lib.datatype.Class'()
-local path = require 'igit.lib.path'
+local M = require 'igit.libp.datatype.Class'()
+local path = require 'igit.libp.path'
 
 function M:init(opts)
     self:config(opts)

@@ -1,4 +1,4 @@
-local Parser = require('igit.lib.argparse.Parser')
+local Parser = require('igit.libp.argparse.Parser')
 
 describe("add_argument", function()
     describe("type", function()

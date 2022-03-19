@@ -1,7 +1,7 @@
 local M = {}
-local path = require('igit.lib.path')
-local job = require('igit.lib.job')
-local List = require('igit.lib.datatype.List')
+local path = require('igit.libp.path')
+local job = require('igit.libp.job')
+local List = require('igit.libp.datatype.List')
 local log = require('igit.log')
 
 local create_cmd_factory = function(git_cmd)

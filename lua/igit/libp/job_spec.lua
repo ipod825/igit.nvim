@@ -1,4 +1,4 @@
-local job = require 'igit.lib.job'
+local job = require 'igit.libp.job'
 
 describe("popen", function()
     it("Returns  stdout string by default",

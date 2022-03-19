@@ -1,5 +1,5 @@
 local M = {}
-require('igit.lib.datatype.std_extension')
+require('igit.libp.datatype.std_extension')
 local git = require('igit.git.git')
 
 function M.setup(opts)
@@ -12,8 +12,8 @@ function M.setup(opts)
 end
 
 function M.define_command()
-    local PipeParser = require 'igit.lib.argparse.PipeParser'
-    local parser = require 'igit.lib.argparse.Parser'('IGit')
+    local PipeParser = require 'igit.libp.argparse.PipeParser'
+    local parser = require 'igit.libp.argparse.Parser'('IGit')
     parser:add_argument('--open_cmd')
     parser:add_subparser(PipeParser('branch'))
     parser:add_subparser(PipeParser('log'))

@@ -1,4 +1,4 @@
-local M = require 'igit.lib.datatype.Class'()
+local M = require 'igit.libp.datatype.Class'()
 
 function M:init(opts, root, buffer_id)
     opts = opts or {}

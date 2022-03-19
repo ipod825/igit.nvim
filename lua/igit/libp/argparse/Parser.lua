@@ -1,8 +1,8 @@
-local M = require 'igit.lib.datatype.Class'()
-require 'igit.lib.datatype.std_extension'
-local List = require 'igit.lib.datatype.List'
-local Dict = require 'igit.lib.datatype.Dict'
-local functional = require 'igit.lib.functional'
+local M = require 'igit.libp.datatype.Class'()
+require 'igit.libp.datatype.std_extension'
+local List = require 'igit.libp.datatype.List'
+local Dict = require 'igit.libp.datatype.Dict'
+local functional = require 'igit.libp.functional'
 
 local ArgType = {POSITION = 1, FLAG = 2, LONG_FLAG = 3}
 
