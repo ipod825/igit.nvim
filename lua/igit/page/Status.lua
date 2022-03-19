@@ -1,10 +1,10 @@
 local M = require 'igit.page.Page'()
 local git = require('igit.git.git')
 local job = require('igit.lib.job')
-local global = require('igit.global')
+local global = require('igit.lib.global')('igit')
 local vutils = require('igit.vim_wrapper.vutils')
 local Iterator = require('igit.lib.datatype.Iterator')
-local Buffer = require('igit.vim_wrapper.Buffer')
+local Buffer = require('igit.lib.ui.Buffer')
 local log = require('igit.log')
 
 function M:init(options)

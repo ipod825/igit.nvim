@@ -6,6 +6,7 @@ local job = require('igit.lib.job')
 local Iterator = require('igit.lib.datatype.Iterator')
 local Set = require('igit.lib.datatype.Set')
 local a = require('igit.lib.async.async')
+local Buffer = require('igit.lib.ui.Buffer')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -16,7 +17,8 @@ function M:init(options)
                 ['m'] = self:bind(self.mark),
                 ['r'] = self:bind(self.rebase),
                 ['o'] = self:bind(self.new_branch),
-                ['X'] = self:bind(self.force_delete_branch)
+                ['X'] = self:bind(self.force_delete_branch),
+                ['s'] = self:bind(self.show)
             },
             v = {
                 ['r'] = self:bind(self.rebase),
@@ -53,6 +55,44 @@ end
 
 function M:mark() self:current_buf()
     :mark({branch = self:parse_line().branch}, 2) end
+
+function M:show()
+    local branch = self:parse_line().branch
+
+    local b = Buffer.open_or_new({
+        open_cmd = false,
+        reload_cmd_gen_fn = {branch}
+    })
+    vim.api.nvim_open_win(b.id, false, {
+        relative = 'editor',
+        width = vim.o.columns,
+        height = 1,
+        row = 1,
+        col = 0,
+        zindex = 60,
+        focusable = true
+    })
+
+    b = Buffer.open_or_new({
+        open_cmd = false,
+        b = {vcs_root = git.find_root()},
+        bo = {buftype = 'nofile', modifiable = false, filetype = 'igit-branch'},
+        reload_cmd_gen_fn = function()
+            return git.show('%s'):format(branch)
+        end,
+        reload_respect_empty_line = true
+    })
+
+    vim.api.nvim_open_win(b.id, true, {
+        relative = 'editor',
+        width = vim.o.columns,
+        height = vim.o.lines - 3,
+        row = 3,
+        col = 0,
+        zindex = 60,
+        focusable = true
+    })
+end
 
 function M:rebase()
     local ori_branch = job.popen(git.branch('--show-current'))

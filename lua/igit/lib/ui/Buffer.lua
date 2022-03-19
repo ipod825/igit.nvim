@@ -1,41 +1,29 @@
 local M = require 'igit.lib.datatype.Class'()
-local global = require('igit.global')
+local global = require('igit.lib.global')('igit')
 local functional = require('igit.lib.functional')
 local a = require('igit.lib.async.async')
 local job = require('igit.lib.job')
 
 function M.open_or_new(opts)
     vim.validate({
-        open_cmd = {opts.open_cmd, 'string'},
-        filename = {opts.filename, 'string'},
+        open_cmd = {opts.open_cmd, {'string', 'boolean'}},
+        filename = {opts.filename, 'string', true},
         post_open_fn = {opts.post_open_fn, 'function', true}
     })
-    vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
-    if opts.post_open_fn then opts.post_open_fn() end
-    local id = vim.api.nvim_get_current_buf()
+
+    local id
+
+    if opts.open_cmd == false then
+        id = vim.api.nvim_create_buf(false, true)
+        opts.id = id
+    else
+        vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
+        if opts.post_open_fn then opts.post_open_fn() end
+        id = vim.api.nvim_get_current_buf()
+    end
 
     global.buffers = global.buffers or {}
-    if global.buffers[id] == nil then
-        global.buffers[id] = M(opts)
-
-        vim.api.nvim_create_autocmd('BufDelete',
-                                    {
-            buffer = id,
-            once = true,
-            callback = function() global.buffers[id] = nil end
-        })
-        vim.api.nvim_create_autocmd('BufWinEnter', {
-            buffer = id,
-            once = true,
-            callback = function() global.buffers[id]:reload() end
-        })
-        if opts.buf_enter_reload then
-            vim.api.nvim_create_autocmd('BufEnter', {
-                buffer = id,
-                callback = function() global.buffers[id]:reload() end
-            })
-        end
-    end
+    if global.buffers[id] == nil then global.buffers[id] = M(opts) end
     return global.buffers[id]
 end
 
@@ -45,18 +33,18 @@ end
 
 function M:init(opts)
     vim.validate({
-        reload_cmd_gen_fn = {opts.reload_cmd_gen_fn, 'function'},
+        id = {opts.id, 'number', true},
+        reload_cmd_gen_fn = {opts.reload_cmd_gen_fn, {'function', 'table'}},
         reload_respect_empty_line = {
             opts.reload_respect_empty_line, 'boolean', true
         },
-        buf_enter_reload = {opts.buf_enter_reload, 'boolean'},
+        buf_enter_reload = {opts.buf_enter_reload, 'boolean', true},
         mappings = {opts.mappings, 'table', true},
         b = {opts.b, 'table', true},
-        bo = {opts.bo, 'table', true},
-        wo = {opts.wo, 'table', true}
+        bo = {opts.bo, 'table', true}
     })
 
-    self.id = vim.api.nvim_get_current_buf()
+    self.id = opts.id or vim.api.nvim_get_current_buf()
     self.reload_cmd_gen_fn = opts.reload_cmd_gen_fn or functional.nop
     self.reload_respect_empty_line = opts.reload_respect_empty_line
     self.mappings = opts.mappings
@@ -66,8 +54,9 @@ function M:init(opts)
 
     self.namespace = vim.api.nvim_create_namespace('')
 
-    for k, v in pairs(opts.b or {}) do vim.b[k] = v end
-    for k, v in pairs(opts.wo or {}) do vim.wo[k] = v end
+    for k, v in pairs(opts.b or {}) do
+        vim.api.nvim_buf_set_var(self.id, k, v)
+    end
 
     local bo = vim.tbl_extend('force', {
         modifiable = false,
@@ -75,10 +64,32 @@ function M:init(opts)
         buftype = 'nofile',
         undolevels = -1,
         swapfile = false
-    }, opts.bo)
-    for k, v in pairs(bo) do vim.bo[k] = v end
-    self.filetype = bo.filetype
+    }, opts.bo or {})
+    for k, v in pairs(bo) do vim.api.nvim_buf_set_option(self.id, k, v) end
     self.undolevels = bo.undolevels
+
+    vim.api.nvim_create_autocmd('BufDelete', {
+        buffer = self.id,
+        once = true,
+        callback = function() global.buffers[self.id] = nil end
+    })
+    vim.api.nvim_create_autocmd('BufWinEnter', {
+        buffer = self.id,
+        once = true,
+        callback = function()
+            -- setting filetype is put here instead of inside reload because
+            -- reload might be called before the window is visible (for e.g.,
+            -- buffer created by nvim_create_buf).
+            vim.api.nvim_buf_set_option(self.id, 'filetype', opts.bo.filetype)
+            self:reload()
+        end
+    })
+    if opts.buf_enter_reload then
+        vim.api.nvim_create_autocmd('BufEnter', {
+            buffer = self.id,
+            callback = function() self:reload() end
+        })
+    end
 
     self:reload()
 end
@@ -193,18 +204,24 @@ function M:restore_view()
 end
 
 function M:reload()
+    if type(self.reload_cmd_gen_fn) == 'table' then
+        vim.api.nvim_buf_set_option(self.id, 'modifiable', true)
+        vim.api
+            .nvim_buf_set_lines(self.id, 0, -1, false, self.reload_cmd_gen_fn)
+        vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
+        return
+    end
+
     if self.is_reloading then return end
 
-    self.is_reloading = true
-    -- Force trigger syntax on
-    vim.api.nvim_buf_set_option(self.id, 'filetype', self.filetype)
-
-    self:save_view()
-    self:clear()
-    local w = vim.api.nvim_get_current_win()
-    local ori_st = vim.o.statusline
     a.sync(function()
+        self.is_reloading = true
+        self:clear()
+
+        -- self:save_view()
         local count = 1
+        local w = vim.api.nvim_get_current_win()
+        local ori_st = vim.o.statusline
         a.wait(job.run_async(self.reload_cmd_gen_fn(), {
             on_stdout = function(lines)
                 if not vim.api.nvim_buf_is_valid(self.id) then
@@ -216,7 +233,7 @@ function M:reload()
                                 function(e) return #e > 0 end, lines)
                 end
                 self:append(lines)
-                self:restore_view()
+                -- self:restore_view()
                 if w == vim.api.nvim_get_current_win() then
                     vim.wo.statusline = " Loading " .. ('.'):rep(count)
                     count = count % 6 + 1

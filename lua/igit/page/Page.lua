@@ -1,6 +1,6 @@
 local M = require('igit.lib.datatype.Class')()
 local path = require('igit.lib.path')
-local Buffer = require('igit.vim_wrapper.Buffer')
+local Buffer = require('igit.lib.ui.Buffer')
 local Set = require('igit.lib.datatype.Set')
 local job = require('igit.lib.job')
 local a = require('igit.lib.async.async')
