@@ -7,7 +7,7 @@ local log = require('igit.log')
 
 function M.open_or_new(opts)
     vim.validate({
-        open_cmd = {opts.open_cmd, {'string', 'boolean', 'table'}},
+        open_cmd = {opts.open_cmd, {'string', 'boolean'}},
         filename = {opts.filename, 'string', true},
         post_open_fn = {opts.post_open_fn, 'function', true}
     })
@@ -16,10 +16,6 @@ function M.open_or_new(opts)
 
     if opts.open_cmd == false then
         id = vim.api.nvim_create_buf(false, true)
-        opts.id = id
-    elseif type(opts.open_cmd) == 'table' then
-        id = vim.api
-                 .nvim_create_buf(opts.open_cmd.listed, opts.open_cmd.scratch)
         opts.id = id
     else
         vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
@@ -118,6 +114,7 @@ function M:init(opts)
 
     vim.api.nvim_create_autocmd('BufWinEnter', {
         buffer = self.id,
+
         once = true,
         callback = function()
             -- setting filetype is put here instead of inside reload because

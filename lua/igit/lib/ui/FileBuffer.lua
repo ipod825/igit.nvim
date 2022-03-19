@@ -8,14 +8,16 @@ function M:init(filename)
     self.id = vim.api.nvim_create_buf(true, false)
 
     a.sync(function()
+        local done = false
         vim.api.nvim_create_autocmd('BufWriteCmd', {
             buffer = self.id,
-            once = true,
             callback = function()
-                vim.fn.writefile(vim.api.nvim_buf_get_lines(self.id, 0, -1,
-                                                            false), filename)
+                if not done then
+                    vim.notify('Buffer is still loading. Save later.')
+                end
             end
         })
+
         vim.api.nvim_buf_set_option(self.id, 'undolevels', -1)
         a.wait(job.run_async('cat ' .. filename, {
             on_stdout = function(lines)
@@ -30,6 +32,13 @@ function M:init(filename)
         vim.api.nvim_buf_set_option(self.id, 'undolevels',
                                     vim.api.nvim_get_option('undolevels'))
         vim.api.nvim_buf_set_option(self.id, 'modified', false)
+
+        done = true
+        vim.api.nvim_create_autocmd('CursorMoved', {
+            buffer = self.id,
+            once = true,
+            callback = function() vim.api.nvim_command('silent! w!') end
+        })
     end)()
 end
 
