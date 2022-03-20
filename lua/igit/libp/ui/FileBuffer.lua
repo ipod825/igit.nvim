@@ -15,6 +15,7 @@ function M:init(filename)
     a.sync(function()
         vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
         vim.api.nvim_buf_set_option(self.id, 'undolevels', -1)
+        vim.api.nvim_buf_set_option(self.id, 'undofile', false)
 
         a.wait(job.run_async('cat ' .. filename, {
             on_stdout = function(lines)
@@ -38,15 +39,17 @@ function M:init(filename)
         -- force wrintg the file (or do it on next bufer enter). This can be
         -- improved when there's an API for writing a buffer to a file that
         -- takes a buf id.
-        if vim.api.nvim_get_current_buf() == self.id then
+        local associate_file = function()
             vim.api.nvim_command('silent! w!')
+            vim.api.nvim_buf_set_option(self.id, 'undofile', vim.o.undofile)
+        end
+        if vim.api.nvim_get_current_buf() == self.id then
+            associate_file()
         else
             vim.api.nvim_create_autocmd('BufEnter', {
                 buffer = self.id,
                 once = true,
-                callback = function()
-                    vim.api.nvim_command('silent! w!')
-                end
+                callback = associate_file
             })
         end
     end)()
