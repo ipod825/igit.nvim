@@ -12,7 +12,7 @@ function M:init(opts)
     self.logfile = assert(io.open(self.logfilename, "a+"))
 
     for level, levelnr in pairs(vim.log.levels) do
-        self[level] = self:BIND(self.log, levelnr)
+        self[level:lower()] = self:BIND(self.log, levelnr)
     end
 end
 
