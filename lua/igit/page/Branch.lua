@@ -1,6 +1,6 @@
 local M = require 'igit.page.Page':EXTEND()
 local git = require('igit.git.git')
-local vimfn = require('igit.vim_wrapper.vimfn')
+local vimfn = require('igit.libp.vimfn')
 local term_utils = require('igit.libp.terminal_utils')
 local job = require('igit.libp.job')
 local Iterator = require('igit.libp.datatype.Iterator')

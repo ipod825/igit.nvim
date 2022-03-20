@@ -1,4 +1,4 @@
-local global = require('igit.libp.global')('igit')
+local global = require('igit.global')
 
 global.logger = global.logger or require('igit.libp.debug.logger')()
 
