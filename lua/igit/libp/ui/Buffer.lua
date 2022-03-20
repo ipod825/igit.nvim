@@ -64,26 +64,22 @@ function M:init(opts)
     }, opts.bo or {})
     for k, v in pairs(bo) do vim.api.nvim_buf_set_option(self.id, k, v) end
     self.undolevels = bo.undolevels
+    self.filetype = bo.filetype
 
+    -- free memory on wipe
     vim.api.nvim_create_autocmd('BufDelete', {
         buffer = self.id,
         once = true,
         callback = function() global.buffers[self.id] = nil end
     })
 
-    vim.api.nvim_create_autocmd('BufWinEnter', {
+    -- reload on :edit
+    vim.api.nvim_create_autocmd('BufReadCmd', {
         buffer = self.id,
-
-        once = true,
-        callback = function()
-            -- setting filetype is put here instead of inside reload because
-            -- reload might be called before the window is visible (for e.g.,
-            -- buffer created by nvim_create_buf).
-            vim.api.nvim_buf_set_option(self.id, 'filetype', opts.bo.filetype)
-            self:reload()
-        end
+        callback = function() self:reload() end
     })
 
+    -- reload on BufEnter
     if opts.buf_enter_reload then
         vim.api.nvim_create_autocmd('BufEnter', {
             buffer = self.id,
@@ -91,12 +87,6 @@ function M:init(opts)
         })
     end
 
-    -- todo: This reload might be a waste in some cases. With open_cmd == false,
-    -- we reload the buffer on creation here while the Window hasn't be created.
-    -- Later, when we defer create the window with nvim_open_win (and focus the
-    -- window on creation), BufWinEnter is triggered and reload is called the
-    -- second time. Note however, we can't simply do no reload when open_cmd is
-    -- false as we might not focus the window with nvim_open_win.
     self:reload()
 end
 
@@ -239,6 +229,9 @@ function M:restore_view()
 end
 
 function M:reload()
+    if self.filetype then
+        vim.api.nvim_buf_set_option(self.id, 'filetype', self.filetype)
+    end
     if type(self.content) == 'table' then
         vim.api.nvim_buf_set_option(self.id, 'modifiable', true)
         vim.api.nvim_buf_set_lines(self.id, 0, -1, false, self.content)
