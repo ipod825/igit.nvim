@@ -1,4 +1,4 @@
-local M = require('igit.page.Page')()
+local M = require 'igit.page.Page':EXTEND()
 local git = require('igit.git.git')
 local job = require('igit.libp.job')
 local List = require('igit.libp.datatype.List')
@@ -10,11 +10,11 @@ function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
-                ['<cr>'] = self:bind(self.switch),
-                ['m'] = self:bind(self.mark),
-                ['r'] = self:bind(self.rebase)
+                ['<cr>'] = self:BIND(self.switch),
+                ['m'] = self:BIND(self.mark),
+                ['r'] = self:BIND(self.rebase)
             },
-            v = {['r'] = self:bind(self.rebase)}
+            v = {['r'] = self:BIND(self.rebase)}
         },
         args = {'--oneline', '--branches', '--graph', '--decorate=short'},
         buf_enter_reload = false

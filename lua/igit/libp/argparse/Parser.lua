@@ -1,4 +1,4 @@
-local M = require 'igit.libp.datatype.Class'()
+local M = require 'igit.libp.datatype.Class':EXTEND()
 require 'igit.libp.datatype.std_extension'
 local List = require 'igit.libp.datatype.List'
 local Dict = require 'igit.libp.datatype.Dict'

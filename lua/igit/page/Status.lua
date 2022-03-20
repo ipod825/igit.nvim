@@ -1,10 +1,12 @@
-local M = require 'igit.page.Page'()
+local M = require 'igit.page.Page':EXTEND()
 local git = require('igit.git.git')
 local job = require('igit.libp.job')
 local global = require('igit.libp.global')('igit')
 local vutils = require('igit.vim_wrapper.vutils')
 local Iterator = require('igit.libp.datatype.Iterator')
 local Buffer = require('igit.libp.ui.Buffer')
+local Window = require('igit.libp.ui.Window')
+local DiffWindow = require('igit.libp.ui.DiffWindow')
 local FileBuffer = require('igit.libp.ui.FileBuffer')
 local Grid = require('igit.libp.ui.Grid')
 local log = require('igit.log')
@@ -13,21 +15,21 @@ function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
-                ['H'] = self:bind(self.stage_change),
-                ['L'] = self:bind(self.unstage_change),
-                ['X'] = self:bind(self.discard_change),
-                ['C'] = self:bind(self.clean_files),
-                ['cc'] = self:bind(self.commit),
-                ['ca'] = self:bind(self.commit, {amend = true}),
-                ['cA'] = self:bind(self.commit,
+                ['H'] = self:BIND(self.stage_change),
+                ['L'] = self:BIND(self.unstage_change),
+                ['X'] = self:BIND(self.discard_change),
+                ['C'] = self:BIND(self.clean_files),
+                ['cc'] = self:BIND(self.commit),
+                ['ca'] = self:BIND(self.commit, {amend = true}),
+                ['cA'] = self:BIND(self.commit,
                                    {amend = true, backup_branch = true}),
-                ['dd'] = self:bind(self.side_diff),
-                ['<cr>'] = self:bind(self.open_file)
+                ['dd'] = self:BIND(self.side_diff),
+                ['<cr>'] = self:BIND(self.open_file)
             },
             v = {
-                ['X'] = self:bind(self.discard_change),
-                ['H'] = self:bind(self.stage_change),
-                ['L'] = self:bind(self.unstage_change)
+                ['X'] = self:BIND(self.discard_change),
+                ['H'] = self:BIND(self.stage_change),
+                ['L'] = self:BIND(self.unstage_change)
             }
         },
         args = {'-s'}
@@ -98,44 +100,22 @@ function M:side_diff()
     local cline_info = self:parse_line()
 
     local grid = Grid()
-    local index_buf = Buffer.open_or_new(
-                          {
-            open_cmd = false,
-            filename = ('igit://HEAD:%s'):format(cline_info.filepath),
-            content = function()
-                return git.show(':%s'):format(cline_info.filepath)
-            end,
-            post_open_fn = function() vim.cmd('diffthis') end
-        })
+    local index_buf = Buffer({
+        filename = ('igit://HEAD:%s'):format(cline_info.filepath),
+        content = function()
+            return git.show(':%s'):format(cline_info.filepath)
+        end
+    })
     local worktree_buf = FileBuffer(cline_info.abs_path)
     vim.filetype.match(cline_info.abs_path, index_buf.id)
     vim.filetype.match(cline_info.abs_path, worktree_buf.id)
-    grid:add_row(1):fill_column(Buffer.open_or_new(
-                                    {
-            open_cmd = false,
-            content = {cline_info.filepath}
-        }))
-    grid:add_row():fill_columns({index_buf, worktree_buf}):set_lead()
-    grid:show()
 
-    --     vim.cmd(('split %s'):format(cline_info.abs_path))
-    --     vim.cmd(('resize %d'):format(999))
-    --     vim.cmd('diffthis')
-    --     local ori_filetype = vim.bo.filetype
-    --     local ori_win = vim.api.nvim_get_current_win()
-    -- 
-    --     Buffer.open_or_new({
-    --         open_cmd = 'leftabove vnew',
-    --         filename = ('igit://HEAD:%s'):format(cline_info.filepath),
-    --         buf_enter_reload = false,
-    --         b = {vcs_root = git.find_root()},
-    --         bo = {buftype = 'nofile', modifiable = false, filetype = ori_filetype},
-    --         content = function()
-    --             return git.show(':%s'):format(cline_info.filepath)
-    --         end,
-    --         post_open_fn = function() vim.cmd('diffthis') end
-    --     })
-    --     vim.api.nvim_set_current_win(ori_win)
+    grid:add_row(1):fill_window(
+        Window(Buffer({content = {cline_info.filepath}})))
+    grid:add_row():vfill_windows({
+        DiffWindow(index_buf), DiffWindow(worktree_buf, {focus_on_open = true})
+    })
+    -- grid:show()
 end
 
 function M:clean_files()

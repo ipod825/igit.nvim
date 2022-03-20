@@ -1,73 +1,25 @@
-local M = require 'igit.libp.datatype.Class'()
-local global = require('igit.libp.global')('igit')
+local M = require 'igit.libp.datatype.Class':EXTEND()
+local global = require('igit.libp.global')('libp')
 local functional = require('igit.libp.functional')
 local a = require('igit.libp.async.async')
 local job = require('igit.libp.job')
 local log = require('igit.log')
 
-function M.open_or_new(opts)
-    vim.validate({
-        open_cmd = {opts.open_cmd, {'string', 'boolean'}},
-        filename = {opts.filename, 'string', true},
-        post_open_fn = {opts.post_open_fn, 'function', true}
-    })
-
-    local id
-
-    if opts.open_cmd == false then
-        id = vim.api.nvim_create_buf(false, true)
-        opts.id = id
-    else
-        vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
-        if opts.post_open_fn then opts.post_open_fn() end
-        id = vim.api.nvim_get_current_buf()
-    end
-
-    global.buffers = global.buffers or {}
-    if global.buffers[id] == nil then global.buffers[id] = M(opts) end
-    return global.buffers[id]
-end
-
 function M.get_current_buffer()
     return global.buffers[vim.api.nvim_get_current_buf()]
 end
 
-function M:mapfn(mappings)
-    if not mappings then return end
-    self.mapping_handles = self.mapping_handles or {}
-    for mode, mode_mappings in pairs(mappings) do
-        vim.validate({
-            mode = {mode, 'string'},
-            mode_mappings = {mode_mappings, 'table'}
-        })
-        self.mapping_handles[mode] = self.mapping_handles[mode] or {}
-        for key, fn in pairs(mode_mappings) do
-            self:add_key_map(mode, key, fn)
-        end
-    end
-end
-
-function M:add_key_map(mode, key, fn)
+function M.open_or_new(opts)
     vim.validate({
-        mode = {mode, 'string'},
-        key = {key, 'string'},
-        fn = {fn, 'function'}
+        open_cmd = {opts.open_cmd, 'string'},
+        filename = {opts.filename, 'string'}
     })
-    local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
-    self.mapping_handles[mode] = self.mapping_handles[mode] or {}
-    self.mapping_handles[mode][key] = function()
-        if self.is_reloading then return end
-        fn()
-    end
-    vim.api.nvim_buf_set_keymap(self.id, mode, key,
-                                ('%slua require("igit.libp.ui.Buffer").execut_mapping("%s", "%s")<cr>'):format(
-                                    prefix, mode, key:gsub('^<', '<lt>')), {})
-end
 
-function M.execut_mapping(mode, key)
-    local b = global.buffers[vim.api.nvim_get_current_buf()]
-    key = key:gsub('<lt>', '^<')
-    b.mapping_handles[mode][key]()
+    vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
+    global.buffers = global.buffers or {}
+    opts.id = vim.api.nvim_get_current_buf()
+    if global.buffers[opts.id] == nil then global.buffers[opts.id] = M(opts) end
+    return global.buffers[opts.id]
 end
 
 function M:init(opts)
@@ -80,7 +32,7 @@ function M:init(opts)
         bo = {opts.bo, 'table', true}
     })
 
-    self.id = opts.id or vim.api.nvim_get_current_buf()
+    self.id = opts.id or vim.api.nvim_create_buf(false, true)
     self.content = opts.content or functional.nop
     self.mappings = opts.mappings
     self.filename = opts.filename
@@ -121,7 +73,6 @@ function M:init(opts)
             -- reload might be called before the window is visible (for e.g.,
             -- buffer created by nvim_create_buf).
             vim.api.nvim_buf_set_option(self.id, 'filetype', opts.bo.filetype)
-
             self:reload()
         end
     })
@@ -140,6 +91,44 @@ function M:init(opts)
     -- second time. Note however, we can't simply do no reload when open_cmd is
     -- false as we might not focus the window with nvim_open_win.
     self:reload()
+end
+
+function M:mapfn(mappings)
+    if not mappings then return end
+    self.mapping_handles = self.mapping_handles or {}
+    for mode, mode_mappings in pairs(mappings) do
+        vim.validate({
+            mode = {mode, 'string'},
+            mode_mappings = {mode_mappings, 'table'}
+        })
+        self.mapping_handles[mode] = self.mapping_handles[mode] or {}
+        for key, fn in pairs(mode_mappings) do
+            self:add_key_map(mode, key, fn)
+        end
+    end
+end
+
+function M:add_key_map(mode, key, fn)
+    vim.validate({
+        mode = {mode, 'string'},
+        key = {key, 'string'},
+        fn = {fn, 'function'}
+    })
+    local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
+    self.mapping_handles[mode] = self.mapping_handles[mode] or {}
+    self.mapping_handles[mode][key] = function()
+        if self.is_reloading then return end
+        fn()
+    end
+    vim.api.nvim_buf_set_keymap(self.id, mode, key,
+                                ('%slua require("igit.libp.ui.Buffer").execut_mapping("%s", "%s")<cr>'):format(
+                                    prefix, mode, key:gsub('^<', '<lt>')), {})
+end
+
+function M.execut_mapping(mode, key)
+    local b = global.buffers[vim.api.nvim_get_current_buf()]
+    key = key:gsub('<lt>', '^<')
+    b.mapping_handles[mode][key]()
 end
 
 function M:mark(data, max_num_data)

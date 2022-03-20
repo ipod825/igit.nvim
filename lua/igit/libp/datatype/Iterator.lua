@@ -1,4 +1,4 @@
-local M = require 'igit.libp.datatype.Class'()
+local M = require 'igit.libp.datatype.Class':EXTEND()
 local List = require 'igit.libp.datatype.List'
 
 M.iter = {}

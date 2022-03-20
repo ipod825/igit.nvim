@@ -1,17 +1,25 @@
 local M = {}
 
-function M:new(...)
+function M:NEW(...)
     local obj = setmetatable({
-        __call = function(cls, ...) return cls:new(...) end
+        __call = function(cls, ...) return cls:NEW(...) end
     }, self)
     self.__index = self
     obj:init(...)
     return obj
 end
 
+function M:EXTEND()
+    local obj = setmetatable({
+        __call = function(cls, ...) return cls:NEW(...) end
+    }, self)
+    self.__index = self
+    return obj
+end
+
 function M:init() end
 
-function M:bind(fn, ...)
+function M:BIND(fn, ...)
     local bind_args = {...}
     return function(...)
         local args = vim.deepcopy(bind_args)
@@ -21,8 +29,10 @@ function M:bind(fn, ...)
     end
 end
 
-function M:__call(...) return self:new(...) end
+function M:super(name) return self:BIND(getmetatable(self).__index[name]) end
 
-setmetatable(M, {__call = function(cls, ...) return cls:new(...) end})
+function M:__call(...) return self:NEW(...) end
+
+setmetatable(M, {__call = function(cls, ...) return cls:NEW(...) end})
 
 return M

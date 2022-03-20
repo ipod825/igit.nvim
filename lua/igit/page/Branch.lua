@@ -1,4 +1,4 @@
-local M = require('igit.page.Page')()
+local M = require 'igit.page.Page':EXTEND()
 local git = require('igit.git.git')
 local vutils = require('igit.vim_wrapper.vutils')
 local term_utils = require('igit.libp.terminal_utils')
@@ -13,17 +13,17 @@ function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
-                ['<cr>'] = self:bind(self.switch),
-                ['i'] = self:bind(self.rename),
-                ['m'] = self:bind(self.mark),
-                ['r'] = self:bind(self.rebase),
-                ['o'] = self:bind(self.new_branch),
-                ['X'] = self:bind(self.force_delete_branch),
-                ['s'] = self:bind(self.show)
+                ['<cr>'] = self:BIND(self.switch),
+                ['i'] = self:BIND(self.rename),
+                ['m'] = self:BIND(self.mark),
+                ['r'] = self:BIND(self.rebase),
+                ['o'] = self:BIND(self.new_branch),
+                ['X'] = self:BIND(self.force_delete_branch),
+                ['s'] = self:BIND(self.show)
             },
             v = {
-                ['r'] = self:bind(self.rebase),
-                ['X'] = self:bind(self.force_delete_branch)
+                ['r'] = self:BIND(self.rebase),
+                ['X'] = self:BIND(self.force_delete_branch)
             }
         },
         args = {'-v'}
@@ -60,14 +60,11 @@ function M:mark() self:current_buf()
 function M:show()
     local branch = self:parse_line().branch
     local grid = Grid()
-    grid:add_row(1):fill_column(Buffer.open_or_new(
-                                    {open_cmd = false, content = {branch}}))
-    grid:add_row():fill_column(Buffer.open_or_new(
-                                   {
-            open_cmd = false,
-            bo = {filetype = 'igit'},
-            content = function() return git.show('%s'):format(branch) end
-        })):set_lead()
+    grid:add_row(1):fill_column(Buffer({content = {branch}}))
+    grid:add_row():fill_column(Buffer({
+        bo = {filetype = 'igit'},
+        content = function() return git.show('%s'):format(branch) end
+    })):set_lead()
     grid:show()
 end
 

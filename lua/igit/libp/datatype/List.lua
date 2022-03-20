@@ -1,6 +1,6 @@
-local M = require('igit.libp.datatype.Class')()
+local M = require 'igit.libp.datatype.Class':EXTEND()
 
-function M:new(lst)
+function M:NEW(lst)
     lst = lst or {}
     local obj = setmetatable(lst, self)
     self.__index = self

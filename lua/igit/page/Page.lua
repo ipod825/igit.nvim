@@ -1,4 +1,4 @@
-local M = require('igit.libp.datatype.Class')()
+local M = require 'igit.libp.datatype.Class':EXTEND()
 local path = require('igit.libp.path')
 local Buffer = require('igit.libp.ui.Buffer')
 local Set = require('igit.libp.datatype.Set')
