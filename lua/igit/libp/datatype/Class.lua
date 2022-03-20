@@ -29,7 +29,23 @@ function M:BIND(fn, ...)
     end
 end
 
-function M:super(name) return self:BIND(getmetatable(self).__index[name]) end
+function M:SUPER()
+    local ori_self = self
+    local parent_cls = getmetatable(getmetatable(ori_self))
+    return setmetatable({}, {
+        __index = function(_, key)
+            if type(parent_cls[key]) == 'function' then
+                -- Return a member-function-like function that binds to the
+                -- original self.
+                return function(_, ...)
+                    parent_cls[key](ori_self, ...)
+                end
+            else
+                return ori_self[key]
+            end
+        end
+    })
+end
 
 function M:__call(...) return self:NEW(...) end
 

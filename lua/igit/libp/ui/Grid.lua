@@ -11,7 +11,7 @@ function M:init(opts, root)
         zindex = {opts.zindex, 'number', true}
     })
 
-    self.geo = {
+    self.fwin_cfg = {
         relative = opts.relative or 'editor',
         width = opts.width or vim.o.columns,
         height = opts.height or vim.o.lines - 2,
@@ -28,37 +28,37 @@ end
 
 function M:add_row(height)
     vim.validate({height = {height, 'number', true}})
-    height = height or self.geo.height
-    height = math.min(height, self.geo.height)
+    height = height or self.fwin_cfg.height
+    height = math.min(height, self.fwin_cfg.height)
     assert(height > 0, "Can't add more rows")
 
-    local geo = vim.tbl_extend('force', self.geo, {height = height})
-    local row = M(geo, self.root)
+    local fwin_cfg = vim.tbl_extend('force', self.fwin_cfg, {height = height})
+    local row = M(fwin_cfg, self.root)
     table.insert(self.children, row)
-    self.geo.row = self.geo.row + height
-    self.geo.height = self.geo.height - height
+    self.fwin_cfg.row = self.fwin_cfg.row + height
+    self.fwin_cfg.height = self.fwin_cfg.height - height
     return row
 end
 
 function M:add_column(width)
     vim.validate({width = {width, 'number', true}})
-    width = width or self.geo.width
-    width = math.min(width, self.geo.width)
+    width = width or self.fwin_cfg.width
+    width = math.min(width, self.fwin_cfg.width)
     assert(width > 0, "Can't add more columns")
 
-    local geo = vim.tbl_extend('force', self.geo, {width = width})
-    local column = M(geo, self.root)
+    local fwin_cfg = vim.tbl_extend('force', self.fwin_cfg, {width = width})
+    local column = M(fwin_cfg, self.root)
     table.insert(self.children, column)
-    self.geo.col = self.geo.col + width
-    self.geo.width = self.geo.width - width
+    self.fwin_cfg.col = self.fwin_cfg.col + width
+    self.fwin_cfg.width = self.fwin_cfg.width - width
     return column
 end
 
 function M:fill_window(window) self.window = window end
 
 function M:vfill_windows(windows)
-    local width = math.floor(self.geo.width / #windows)
-    local last_width = self.geo.width - width * (#windows - 1)
+    local width = math.floor(self.fwin_cfg.width / #windows)
+    local last_width = self.fwin_cfg.width - width * (#windows - 1)
     for i, window in ipairs(windows) do
         local column = self:add_column(i == #windows and last_width or width)
         column:fill_window(window)
@@ -75,7 +75,7 @@ end
 
 function M:show()
     if self.window then
-        local win_id = self.window:open(self.geo)
+        local win_id = self.window:open(self.fwin_cfg)
         vim.api.nvim_create_autocmd('WinClosed', {
             pattern = tostring(win_id),
             once = true,

@@ -1,6 +1,6 @@
 local M = require 'igit.page.Page':EXTEND()
 local git = require('igit.git.git')
-local vutils = require('igit.vim_wrapper.vutils')
+local vimfn = require('igit.vim_wrapper.vimfn')
 local term_utils = require('igit.libp.terminal_utils')
 local job = require('igit.libp.job')
 local Iterator = require('igit.libp.datatype.Iterator')
@@ -73,7 +73,7 @@ function M:rebase()
     local anchor = self:get_anchor_branch()
     local base_branch, grafted_ancestor = anchor.base,
                                           anchor.grafted_ancestor or ''
-    local branches = self:get_branches_in_rows(vutils.visual_rows())
+    local branches = self:get_branches_in_rows(vimfn.visual_rows())
 
     local current_buf = self:current_buf()
     a.sync(function()
@@ -149,7 +149,7 @@ function M:new_branch()
     local base_branch = self:get_anchor_branch().base
     self:current_buf():edit({
         get_items = function()
-            return Set(self:get_branches_in_rows(vutils.all_rows()))
+            return Set(self:get_branches_in_rows(vimfn.all_rows()))
         end,
         update = function(ori_branches, new_branches)
             for new_branch in (new_branches - ori_branches):values() do
@@ -163,7 +163,7 @@ function M:new_branch()
 end
 
 function M:force_delete_branch()
-    local cmds = self:get_branches_in_rows(vutils.visual_rows()):map(
+    local cmds = self:get_branches_in_rows(vimfn.visual_rows()):map(
                      function(b) return git.branch('-D ' .. b) end):collect()
     self:runasync_all_and_reload(cmds)
 end

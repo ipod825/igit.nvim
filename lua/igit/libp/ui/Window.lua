@@ -11,22 +11,19 @@ function M:init(buffer, opts)
 
     self.focus_on_open = opts.focus_on_open
     self.buf_id = buffer.id
-    self.win_id = nil
     self.wo = opts.wo or {}
 end
 
-function M:open(geo)
-    vim.validate({geo = {geo, 'table'}})
-    self.win_id = vim.api.nvim_open_win(self.buf_id, self.focus_on_open, geo)
-    for k, v in pairs(self.wo) do
-        vim.api.nvim_win_set_option(self.win_id, k, v)
-    end
-    return self.win_id
+function M:open(fwin_cfg)
+    vim.validate({fwin_cfg = {fwin_cfg, 'table'}})
+    self.id = vim.api.nvim_open_win(self.buf_id, self.focus_on_open, fwin_cfg)
+    for k, v in pairs(self.wo) do vim.api.nvim_win_set_option(self.id, k, v) end
+    return self.id
 end
 
 function M:close()
-    if vim.api.nvim_win_is_valid(self.win_id) then
-        vim.api.nvim_win_close(self.win_id, false)
+    if vim.api.nvim_win_is_valid(self.id) then
+        vim.api.nvim_win_close(self.id, false)
     end
 end
 

@@ -1,14 +1,18 @@
 local M = require 'igit.libp.datatype.Class':EXTEND()
+local Buffer = require('igit.libp.ui.Buffer')
+local Window = require('igit.libp.ui.Window')
+local functional = require('igit.libp.functional')
 
 function M:init(opts)
     vim.validate({
         title = {opts.title, 'string', true},
         content = {opts.content, 'table'},
-        geo_opts = {opts.geo_opts, 'table', true},
-        win_opts = {opts.win_opts, 'table', true}
+        fwin_cfg = {opts.fwin_cfg, 'table', true},
+        wo = {opts.wo, 'table', true},
+        on_select = {opts.on_select, 'function', true}
     })
 
-    self.geo_opts = vim.tbl_extend('keep', opts.geo_opts or {}, {
+    self.fwin_cfg = vim.tbl_extend('keep', opts.fwin_cfg or {}, {
         relative = 'cursor',
         row = 0,
         col = 0,
@@ -20,34 +24,47 @@ function M:init(opts)
     })
 
     self.title = opts.title
-    self.content = opts.title and {'[' .. opts.title .. ']'} or {}
-    vim.list_extend(self.content, opts.content)
-    self.win_opts = opts.win_opts or {}
+    self.on_select = opts.on_select or functional.nop
+    self.wo = opts.wo or {}
 
-    self.geo_opts.height = #self.content
-    for _, c in ipairs(self.content) do
-        if #c > self.geo_opts.width then self.geo_opts.width = #c end
+    local content = opts.title and {'[' .. opts.title .. ']'} or {}
+    vim.list_extend(content, opts.content or {})
+
+    self.fwin_cfg.height = #content
+    for _, c in ipairs(content) do
+        if #c > self.fwin_cfg.width then self.fwin_cfg.width = #c end
     end
-    if self.geo_opts.width > #self.content[1] then
-        local diff = self.geo_opts.width - #self.content[1]
+
+    if self.fwin_cfg.width > #content[1] then
+        local diff = self.fwin_cfg.width - #content[1]
         local left_pad = math.floor((diff) / 2)
         local right_pad = diff - left_pad
-        self.content[1] = string.rep(' ', left_pad) .. self.content[1] ..
-                              string.rep(' ', right_pad)
+        content[1] = string.rep(' ', left_pad) .. content[1] ..
+                         string.rep(' ', right_pad)
     end
+    self.buffer = Buffer({
+        content = content,
+        mappings = {
+            n = {
+                ['<cr>'] = function()
+                    local text = vim.fn.getline('.')
+                    vim.api.nvim_win_close(0, true)
+                    self.on_select(text)
+                end
+            }
+        }
+    })
 end
 
 function M:show()
-    local b = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(b, 0, -1, false, self.content)
-    local w = vim.api.nvim_open_win(b, true, self.geo_opts)
-    for k, v in pairs(self.win_opts) do vim.api.nvim_win_set_option(w, k, v) end
+    local w = Window(self.buffer, {focus_on_open = true, wo = self.wo})
+    local w_id = w:open(self.fwin_cfg)
     if self.title then
         vim.api.nvim_create_autocmd('CursorMoved', {
-            buffer = b,
+            buffer = self.buffer.id,
             callback = function()
                 if vim.fn.line('.') == 1 then
-                    vim.api.nvim_win_set_cursor(w, {2, 0})
+                    vim.api.nvim_win_set_cursor(w_id, {2, 0})
                 end
             end
         })

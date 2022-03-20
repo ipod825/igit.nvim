@@ -2,7 +2,7 @@ local M = require 'igit.page.Page':EXTEND()
 local git = require('igit.git.git')
 local job = require('igit.libp.job')
 local global = require('igit.libp.global')('igit')
-local vutils = require('igit.vim_wrapper.vutils')
+local vimfn = require('igit.vim_wrapper.vimfn')
 local Iterator = require('igit.libp.datatype.Iterator')
 local Buffer = require('igit.libp.ui.Buffer')
 local Window = require('igit.libp.ui.Window')
@@ -87,7 +87,7 @@ end
 
 function M:change_action(action)
     local status = git.status_porcelain()
-    local paths = Iterator.range(vutils.visual_rows()):map(
+    local paths = Iterator.range(vimfn.visual_rows()):map(
                       function(e)
             local path = self:parse_line(e).filepath
             return status[path] and path or ''
@@ -115,7 +115,7 @@ function M:side_diff()
     grid:add_row():vfill_windows({
         DiffWindow(index_buf), DiffWindow(worktree_buf, {focus_on_open = true})
     })
-    -- grid:show()
+    grid:show()
 end
 
 function M:clean_files()

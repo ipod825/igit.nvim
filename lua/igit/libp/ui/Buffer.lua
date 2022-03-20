@@ -32,10 +32,17 @@ function M:init(opts)
         bo = {opts.bo, 'table', true}
     })
 
+    if opts.id then
+        assert(global.buffers[opts.id] == nil,
+               "Each vim buffer can only maps to one Buffer instance")
+    end
+
     self.id = opts.id or vim.api.nvim_create_buf(false, true)
+    global.buffers = global.buffers or {}
+    global.buffers[self.id] = self
+
     self.content = opts.content or functional.nop
     self.mappings = opts.mappings
-    self.filename = opts.filename
     self:mapfn(opts.mappings)
 
     -- For client to store arbitrary lua object.
@@ -117,7 +124,14 @@ function M:add_key_map(mode, key, fn)
     local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
     self.mapping_handles[mode] = self.mapping_handles[mode] or {}
     self.mapping_handles[mode][key] = function()
-        if self.is_reloading then return end
+        if self.is_reloading then
+            require('igit.libp.ui.Menu')(
+                {
+                    content = {'Still Loafing. Try Later!'},
+                    wo = {winhighlight = 'Normal:ErrorMsg'}
+                }):show()
+            return
+        end
         fn()
     end
     vim.api.nvim_buf_set_keymap(self.id, mode, key,

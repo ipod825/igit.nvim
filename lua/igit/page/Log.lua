@@ -2,9 +2,9 @@ local M = require 'igit.page.Page':EXTEND()
 local git = require('igit.git.git')
 local job = require('igit.libp.job')
 local List = require('igit.libp.datatype.List')
-local nui = require('igit.nui.nui')
 local Iterator = require('igit.libp.datatype.Iterator')
 local term_utils = require('igit.libp.terminal_utils')
+local Menu = require('igit.libp.ui.Menu')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -48,29 +48,13 @@ end
 
 function M:rebase() end
 
-function M:select_branch(branches, title, callback)
+function M:select_branch(branches, op_title, callback)
     if #branches < 2 then return callback(branches[1]) end
-    local popup_options = {
-        relative = 'cursor',
-        position = {row = 1, col = 0},
-        border = {
-            style = 'rounded',
-            text = {
-                top = ('[%s Commit]'):format(title or ''),
-                top_align = 'center'
-            }
-        },
-        win_options = {winhighlight = 'Normal:Normal'}
-    }
-
-    local menu = nui.Menu(popup_options, {
-        lines = List(branches):map(nui.Menu.item):collect(),
-        min_width = 20,
-        keymap = {submit = {'<CR>', '<Space>'}},
-        on_submit = function(item) callback(item.text) end
-    })
-    menu:mount()
-    menu:on({nui.event.BufLeave}, function() menu:unmount() end, {once = true})
+    Menu({
+        title = ('%s Commit'):format(op_title),
+        content = branches,
+        on_select = function(item) callback(item) end
+    }):show()
 end
 
 function M:parse_line(linenr)
@@ -83,7 +67,8 @@ function M:parse_line(linenr)
                        vim.tbl_filter(function(e)
             return e ~= '->' and e ~= 'HEAD'
         end, branch_candidates:split('%s,')) or {}
-    table.insert(res.branches, res.sha)
+    res.references = vim.deepcopy(res.branches)
+    table.insert(res.references, res.sha)
     res.author = line:find_str('%s(<.->)%s')
     return res
 end
