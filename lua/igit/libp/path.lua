@@ -18,13 +18,15 @@ end
 
 function M.dirname(str)
     vim.validate({std = {str, 'string'}})
-    local name = str:gsub("/[^/]*$", "")
+    local pat = ("%s[^%s]*$"):format(path_sep, path_sep)
+    local name = str:gsub(pat, "")
     return name
 end
 
 function M.basename(str)
     vim.validate({std = {str, 'string'}})
-    local name = str:gsub(".*/([^/]+)/?", "%1")
+    local pat = (".*%s([^%s]+)%s?"):format(path_sep, path_sep, path_sep)
+    local name = str:gsub(pat, "%1")
     return name
 end
 

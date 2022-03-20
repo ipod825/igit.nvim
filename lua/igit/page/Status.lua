@@ -9,6 +9,7 @@ local Window = require('igit.libp.ui.Window')
 local DiffWindow = require('igit.libp.ui.DiffWindow')
 local FileBuffer = require('igit.libp.ui.FileBuffer')
 local Grid = require('igit.libp.ui.Grid')
+local path = require('igit.libp.path')
 local log = require('igit.log')
 
 function M:init(options)
@@ -144,7 +145,7 @@ function M:parse_line(line_nr)
     local res = {}
     local line = vim.fn.getline(line_nr)
     res.filepath = line:find_str('[^%s]+%s+([^%s]+)$')
-    res.abs_path = ('%s%s'):format(git.find_root(), res.filepath)
+    res.abs_path = path.path_join(git.find_root(), res.filepath)
     return res
 end
 
