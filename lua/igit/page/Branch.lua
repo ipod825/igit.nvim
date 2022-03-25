@@ -16,7 +16,7 @@ function M:init(options)
             n = {
                 ['<cr>'] = self:BIND(self.switch),
                 ['i'] = self:BIND(self.rename),
-                ['m'] = self:BIND(self.mark),
+                ['m'] = {callback = self:BIND(self.mark), modify_buffer = false},
                 ['r'] = self:BIND(self.rebase),
                 ['o'] = self:BIND(self.new_branch),
                 ['X'] = self:BIND(self.force_delete_branch),
@@ -71,53 +71,13 @@ function M:show()
 end
 
 function M:rebase()
-    local ori_branch = job.popen(git.branch('--show-current'))
-    local anchor = self:get_anchor_branch()
-    local base_branch, grafted_ancestor = anchor.base,
-                                          anchor.grafted_ancestor or ''
-    local branches = self:get_branches_in_rows(vimfn.visual_rows())
-
-    local current_buf = self:current_buf()
-    a.sync(function()
-        for new_branch in branches:values() do
-            local next_grafted_ancestor =
-                ('%s_original_conflicted_with_%s_created_by_igit'):format(
-                    new_branch, base_branch)
-            a.wait(job.run_async(git.branch(
-                                     ('%s %s'):format(next_grafted_ancestor,
-                                                      new_branch))))
-            if grafted_ancestor ~= '' then
-                local succ = 0 ==
-                                 a.wait(job.run_async(
-                                            git.rebase(
-                                                ('--onto %s %s %s'):format(
-                                                    base_branch,
-                                                    grafted_ancestor, new_branch))))
-                if grafted_ancestor:endswith('created_by_igit') then
-                    a.wait(job.run_async(git.branch('-D ' .. grafted_ancestor)))
-                end
-                if not succ then
-                    current_buf:reload()
-                    return
-                end
-            else
-                if 0 ~=
-                    a.wait(job.run_async(
-                               git.rebase(
-                                   ('%s %s'):format(base_branch, new_branch)))) then
-                    a.wait(job.run_async(
-                               git.branch('-D ' .. next_grafted_ancestor)))
-                    current_buf:reload()
-                    return
-                end
-            end
-            grafted_ancestor = next_grafted_ancestor
-            base_branch = new_branch
-        end
-        a.wait(job.run_async(git.branch('-D ' .. grafted_ancestor)))
-        a.wait(job.run_async(git.checkout(ori_branch)))
-        current_buf:reload()
-    end)()
+    self:rebase_branches({
+        current_buf = self:current_buf(),
+        ori_reference = job.popen(git.branch('--show-current')),
+        branches = self:get_branches_in_rows(vimfn.visual_rows()),
+        base_reference = self:get_primary_mark_or_current_branch(),
+        grafted_ancestor = self.get_secondary_mark_branch() or ''
+    })
 end
 
 function M:parse_line(linenr)
@@ -133,7 +93,17 @@ function M:switch()
     self:runasync_and_reload(git.checkout(self:parse_line().branch))
 end
 
-function M:get_anchor_branch()
+function M:get_primary_mark_or_current_branch()
+    local mark = self:current_buf().ctx.mark
+    return mark and mark[1].branch or job.popen(git.branch('--show-current'))
+end
+
+function M:get_secondary_mark_branch()
+    local mark = self:current_buf().ctx.mark
+    return mark and mark[2] and mark[2].branch
+end
+
+function M:get_anchor()
     local mark = self:current_buf().ctx.mark
     return {
         base = mark and mark[1].branch or
@@ -148,7 +118,7 @@ function M:get_branches_in_rows(row_beg, row_end)
 end
 
 function M:new_branch()
-    local base_branch = self:get_anchor_branch().base
+    local base_branch = self:get_primary_mark_or_current_branch()
     self:current_buf():edit({
         get_items = function()
             return Set(self:get_branches_in_rows(vimfn.all_rows()))

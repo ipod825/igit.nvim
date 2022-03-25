@@ -4,6 +4,7 @@ local Buffer = require('igit.libp.ui.Buffer')
 local Set = require('igit.libp.datatype.Set')
 local job = require('igit.libp.job')
 local a = require('igit.libp.async.async')
+local git = require('igit.git.git')
 
 function M:open_or_new_buffer(key, opts)
     if opts.vcs_root == nil or opts.vcs_root == '' then
@@ -56,6 +57,59 @@ function M:runasync_all_and_reload(cmds)
     a.sync(function()
         a.wait(job.runasync_all(cmds))
         current_buf:reload()
+    end)()
+end
+
+function M:rebase_branches(opts)
+    vim.validate({
+        branches = {opts.branches, 'table'},
+        current_buf = {opts.current_buf, 'table'},
+        grafted_ancestor = {opts.grafted_ancestor, 'string'},
+        base_reference = {opts.base_reference, 'string'},
+        ori_reference = {opts.ori_reference, 'string'}
+    })
+
+    local grafted_ancestor = opts.grafted_ancestor
+    local base_branch = opts.base_reference
+    a.sync(function()
+        for new_branch in opts.branches:values() do
+            local next_grafted_ancestor =
+                ('%s_original_conflicted_with_%s_created_by_igit'):format(
+                    new_branch, base_branch)
+            a.wait(job.run_async(git.branch(
+                                     ('%s %s'):format(next_grafted_ancestor,
+                                                      new_branch))))
+            if grafted_ancestor ~= '' then
+                local succ = 0 ==
+                                 a.wait(job.run_async(
+                                            git.rebase(
+                                                ('--onto %s %s %s'):format(
+                                                    base_branch,
+                                                    grafted_ancestor, new_branch))))
+                if grafted_ancestor:endswith('created_by_igit') then
+                    a.wait(job.run_async(git.branch('-D ' .. grafted_ancestor)))
+                end
+                if not succ then
+                    opts.current_buf:reload()
+                    return
+                end
+            else
+                if 0 ~=
+                    a.wait(job.run_async(
+                               git.rebase(
+                                   ('%s %s'):format(base_branch, new_branch)))) then
+                    a.wait(job.run_async(
+                               git.branch('-D ' .. next_grafted_ancestor)))
+                    opts.current_buf:reload()
+                    return
+                end
+            end
+            grafted_ancestor = next_grafted_ancestor
+            base_branch = new_branch
+        end
+        a.wait(job.run_async(git.branch('-D ' .. grafted_ancestor)))
+        a.wait(job.run_async(git.checkout(opts.ori_reference)))
+        opts.current_buf:reload()
     end)()
 end
 

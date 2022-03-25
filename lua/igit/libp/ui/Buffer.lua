@@ -113,18 +113,21 @@ function M:add_key_map(mode, key, fn)
     vim.validate({
         mode = {mode, 'string'},
         key = {key, 'string'},
-        fn = {fn, 'function'}
+        fn = {fn, {'function', 'table'}}
     })
+
+    local modify_buffer = true
+    if type(fn) == 'table' then
+        modify_buffer = fn.modify_buffer
+        fn = fn.callback
+    end
+
     local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
     self.mapping_handles[mode] = self.mapping_handles[mode] or {}
     self.mapping_handles[mode][key] = function()
-        if self.is_reloading then
-            require('igit.libp.ui.Menu')(
-                {
-                    content = {'Still Loafing. Try Later!'},
-                    wo = {winhighlight = 'Normal:ErrorMsg'}
-                }):show()
-            return
+        if self.is_reloading and modify_buffer then
+            -- Cancel reload since we will reload after calling fn.
+            self.cancel_reload = true
         end
         fn()
     end
@@ -247,6 +250,7 @@ function M:reload()
 
     a.sync(function()
         self.is_reloading = true
+        self.cancel_reload = false
         self:save_view()
         self:clear()
 
@@ -255,7 +259,7 @@ function M:reload()
         local ori_st = vim.o.statusline
         a.wait(job.run_async(self.content(), {
             on_stdout = function(lines)
-                if not vim.api.nvim_buf_is_valid(self.id) then
+                if not vim.api.nvim_buf_is_valid(self.id) or self.cancel_reload then
                     return true
                 end
 

@@ -1,17 +1,19 @@
 local M = require 'igit.page.Page':EXTEND()
 local git = require('igit.git.git')
 local job = require('igit.libp.job')
-local List = require('igit.libp.datatype.List')
 local Iterator = require('igit.libp.datatype.Iterator')
 local term_utils = require('igit.libp.terminal_utils')
 local Menu = require('igit.libp.ui.Menu')
+local InfoBox = require('igit.libp.ui.InfoBox')
+local vimfn = require('igit.libp.vimfn')
+local a = require('igit.libp.async.async')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
                 ['<cr>'] = self:BIND(self.switch),
-                ['m'] = self:BIND(self.mark),
+                ['m'] = {callback = self:BIND(self.mark), modify_buffer = false},
                 ['r'] = self:BIND(self.rebase)
             },
             v = {['r'] = self:BIND(self.rebase)}
@@ -22,14 +24,17 @@ function M:init(options)
 end
 
 function M:switch()
-    self:select_branch(self:parse_line().references, 'Checkout',
-                       function(branch)
-        self:runasync_and_reload(git.checkout(branch))
-    end)
+    a.sync(function()
+        local reference = a.wait(self:select_reference(
+                                     self:parse_line().references, 'Checkout'))
+        self:runasync_and_reload(git.checkout(reference))
+    end)()
 end
 
 function M:mark()
-    self:current_buf():mark({branch = self:parse_line().branches[1]}, 1)
+    local references = self:parse_line().references
+    assert(#references >= 1)
+    self:current_buf():mark({reference = references[1]}, 1)
 end
 
 function M:get_anchor_branch()
@@ -40,6 +45,17 @@ function M:get_anchor_branch()
     }
 end
 
+function M:get_current_branch_or_sha()
+    local branch = job.popen(git.branch('--show-current'))
+    if branch ~= '' then return branch end
+    return job.popen(git['rev-parse']('HEAD'))
+end
+
+function M:get_primary_mark_or_current_reference()
+    local mark = self:current_buf().ctx.mark
+    return mark and mark[1].reference or self:get_current_branch_or_sha()
+end
+
 function M:get_branches_in_rows(row_beg, row_end)
     return Iterator.range(row_beg, row_end):map(
                function(e) return self:parse_line(e).branches end):filter(
@@ -47,15 +63,46 @@ function M:get_branches_in_rows(row_beg, row_end)
                :collect()
 end
 
-function M:rebase() end
+function M:rebase()
+    local row_beg, row_end = vimfn.visual_rows()
+    local branches = {}
 
-function M:select_branch(branches, op_title, callback)
-    if #branches < 2 then return callback(branches[1]) end
-    Menu({
-        title = ('%s Commit'):format(op_title),
-        content = branches,
-        on_select = function(item) callback(item) end
-    }):show()
+    local first_row_references = self:parse_line(row_beg).references
+    if #first_row_references <= 1 then
+        InfoBox({
+            content = ('No branch for %s at the first selected line %d!'):format(
+                first_row_references[1], row_beg)
+        }):show()
+        return
+    end
+
+    a.sync(function()
+        for i = row_end, row_beg, -1 do
+            local reference = a.wait(self:select_reference(
+                                         self:parse_line(i).branches,
+                                         'Rebase Pick Branch'))
+            if reference then table.insert(branches, reference) end
+        end
+    end)()
+
+    -- self:rebase_branches({
+    --     current_buf = self:current_buf(),
+    --     ori_reference = job.popen(git.branch('--show-current')),
+    --     branches = branches,
+    --     base_reference = self:get_primary_mark_or_current_reference(),
+    --     grafted_ancestor = self.parse_line(row_end + 1).sha
+    -- })
+end
+
+function M:select_reference(references, op_title)
+    return function(callback)
+        if #references < 2 then return callback(references[1]) end
+        Menu({
+            title = ('%s Commit'):format(op_title),
+            content = references,
+            on_select = function(item) callback(item) end
+        }):show()
+    end
 end
 
 function M:parse_line(linenr)

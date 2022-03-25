@@ -59,7 +59,7 @@ end
 function M:show()
     local w = Window(self.buffer, {focus_on_open = true, wo = self.wo})
     local w_id = w:open(self.fwin_cfg)
-    vim.api.nvim_win_set_cursor(0, {2, 0})
+    vim.api.nvim_win_set_cursor(w_id, {self.title and 2 or 1, 0})
     if self.title then
         vim.api.nvim_create_autocmd('CursorMoved', {
             buffer = self.buffer.id,
