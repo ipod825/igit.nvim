@@ -25,7 +25,8 @@ function M:init(options)
                 ['cA'] = self:BIND(self.commit,
                                    {amend = true, backup_branch = true}),
                 ['dd'] = self:BIND(self.side_diff),
-                ['<cr>'] = self:BIND(self.open_file)
+                ['<cr>'] = self:BIND(self.open_file),
+                ['t'] = self:BIND(self.open_file, 'tab drop')
             },
             v = {
                 ['X'] = self:BIND(self.discard_change),
@@ -37,7 +38,10 @@ function M:init(options)
     }, options.status or {})
 end
 
-function M:open_file() vim.cmd('edit ' .. self:parse_line().abs_path) end
+function M:open_file(open_cmd)
+    open_cmd = open_cmd or 'edit'
+    vim.cmd(('%s %s'):format(open_cmd, self:parse_line().abs_path))
+end
 
 function M:commit_submit(git_dir, opts)
     opts = opts or {}
@@ -51,13 +55,13 @@ function M:commit_submit(git_dir, opts)
     local lines = vim.tbl_filter(function(e) return e:sub(1, 1) ~= '#' end,
                                  vim.fn.readfile(
                                      git.commit_message_file_path(git_dir)))
-    if opts.backup_current_branch then
+    if opts.backup_branch then
         local base_branch = job.popen(git.run_from(git_dir).branch(
                                           '--show-current'))
         local backup_branch =
             ('%s_original_created_by_igit'):format(base_branch)
         job.run(git.run_from(git_dir).branch(
-                    ('%s %s'):format(backup_branch, base_branch), git_dir))
+                    ('%s %s'):format(backup_branch, base_branch)))
     end
     job.run(git.run_from(git_dir).commit(
                 ('%s -m "%s"'):format(opts.amend and '--amend' or '',
@@ -74,7 +78,7 @@ function M:commit(opts)
     vim.cmd('edit ' .. commit_message_file_path)
     vim.bo.bufhidden = 'wipe'
     global.pending_commit = global.pending_commit or {}
-    vim.api.nvim_create_autocmd('BufWritePost', {
+    vim.api.nvim_create_autocmd('BufWritePre', {
         buffer = 0,
         once = true,
         callback = function() global.pending_commit[git_dir] = true end
@@ -111,11 +115,19 @@ function M:side_diff()
     vim.filetype.match(cline_info.abs_path, index_buf.id)
     vim.filetype.match(cline_info.abs_path, worktree_buf.id)
 
-    grid:add_row(1):fill_window(
+    grid:add_row({height = 1}):fill_window(
         Window(Buffer({content = {cline_info.filepath}})))
-    grid:add_row():vfill_windows({
-        DiffWindow(index_buf), DiffWindow(worktree_buf, {focus_on_open = true})
-    })
+    grid:add_row({focusable = true}):vfill_windows(
+        {
+            DiffWindow(index_buf),
+            DiffWindow(worktree_buf, {focus_on_open = true})
+        }, true)
+    -- grid:add_row():vfill_windows({
+    --     Window(Buffer({content = {'                 HEAD'}}),
+    --            {wo = {winhighlight = 'Normal:Normal'}}),
+    --     Window(Buffer({content = {'           Worktree'}},
+    --                   {wo = {winhighlight = 'Normal:Normal'}}))
+    -- })
     grid:show()
 end
 

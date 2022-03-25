@@ -9,7 +9,7 @@ function M.setup(opts)
     M.log = require('igit.page.Log')(opts)
     M.branch = require('igit.page.Branch')(opts)
     M.status = require('igit.page.Status')(opts)
-    M.git_cmds = Set({'stash'})
+    M.git_cmds = Set({'stash', 'push', 'pull', 'rebase'})
     M.define_command()
 end
 

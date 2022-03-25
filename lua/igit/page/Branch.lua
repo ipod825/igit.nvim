@@ -7,6 +7,7 @@ local Iterator = require('igit.libp.datatype.Iterator')
 local Set = require('igit.libp.datatype.Set')
 local a = require('igit.libp.async.async')
 local Buffer = require('igit.libp.ui.Buffer')
+local Window = require('igit.libp.ui.Window')
 local Grid = require('igit.libp.ui.Grid')
 
 function M:init(options)
@@ -60,11 +61,12 @@ function M:mark() self:current_buf()
 function M:show()
     local branch = self:parse_line().branch
     local grid = Grid()
-    grid:add_row(1):fill_column(Buffer({content = {branch}}))
-    grid:add_row():fill_column(Buffer({
-        bo = {filetype = 'igit'},
-        content = function() return git.show('%s'):format(branch) end
-    })):set_lead()
+    grid:add_row({height = 1}):fill_window(Window(Buffer({content = {branch}})))
+    grid:add_row({focusable = true}):fill_window(
+        Window(Buffer({
+            bo = {filetype = 'igit'},
+            content = function() return git.show('%s'):format(branch) end
+        }), {focus_on_open = true}))
     grid:show()
 end
 

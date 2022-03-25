@@ -1,4 +1,5 @@
 local M = require 'igit.libp.datatype.Class':EXTEND()
+local log = require 'igit.log'
 
 function M:init(opts, root)
     opts = opts or {}
@@ -8,7 +9,8 @@ function M:init(opts, root)
         height = {opts.height, 'number', true},
         row = {opts.row, 'number', true},
         col = {opts.col, 'number', true},
-        zindex = {opts.zindex, 'number', true}
+        zindex = {opts.zindex, 'number', true},
+        focusable = {opts.focusable, 'boolean', true}
     })
 
     self.fwin_cfg = {
@@ -18,6 +20,7 @@ function M:init(opts, root)
         row = opts.row or 0,
         col = opts.col or 0,
         zindex = opts.zindex or 50,
+        focusable = opts.focusable or false,
         anchor = 'NW'
     }
 
@@ -26,13 +29,22 @@ function M:init(opts, root)
     self.children = {}
 end
 
-function M:add_row(height)
-    vim.validate({height = {height, 'number', true}})
+function M:add_row(opts)
+    opts = opts or {}
+    vim.validate({
+        height = {opts.height, 'number', true},
+        focusable = {opts.focusable, 'boolean', true}
+    })
+
+    local height = opts.height
+    if height and height < 0 then height = self.fwin_cfg.height + height end
     height = height or self.fwin_cfg.height
     height = math.min(height, self.fwin_cfg.height)
-    assert(height > 0, "Can't add more rows")
+    assert(height > 0,
+           ("Can't add more rows %d %d"):format(height, self.fwin_cfg.height))
 
     local fwin_cfg = vim.tbl_extend('force', self.fwin_cfg, {height = height})
+    fwin_cfg.focusable = opts.focusable
     local row = M(fwin_cfg, self.root)
     table.insert(self.children, row)
     self.fwin_cfg.row = self.fwin_cfg.row + height
@@ -40,13 +52,20 @@ function M:add_row(height)
     return row
 end
 
-function M:add_column(width)
-    vim.validate({width = {width, 'number', true}})
+function M:add_column(opts)
+    opts = opts or {}
+    vim.validate({
+        width = {opts.width, 'number', true},
+        focusable = {opts.focusable, 'boolean', true}
+    })
+
+    local width = opts.width
     width = width or self.fwin_cfg.width
     width = math.min(width, self.fwin_cfg.width)
     assert(width > 0, "Can't add more columns")
 
     local fwin_cfg = vim.tbl_extend('force', self.fwin_cfg, {width = width})
+    fwin_cfg.focusable = opts.focusable
     local column = M(fwin_cfg, self.root)
     table.insert(self.children, column)
     self.fwin_cfg.col = self.fwin_cfg.col + width
@@ -60,7 +79,10 @@ function M:vfill_windows(windows)
     local width = math.floor(self.fwin_cfg.width / #windows)
     local last_width = self.fwin_cfg.width - width * (#windows - 1)
     for i, window in ipairs(windows) do
-        local column = self:add_column(i == #windows and last_width or width)
+        local column = self:add_column({
+            width = (i == #windows and last_width or width),
+            focusable = self.fwin_cfg.focusable
+        })
         column:fill_window(window)
     end
 end

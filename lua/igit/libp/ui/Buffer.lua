@@ -18,7 +18,11 @@ function M.open_or_new(opts)
     vim.cmd(('%s %s'):format(opts.open_cmd, opts.filename))
     global.buffers = global.buffers or {}
     opts.id = vim.api.nvim_get_current_buf()
-    if global.buffers[opts.id] == nil then global.buffers[opts.id] = M(opts) end
+    if global.buffers[opts.id] == nil then
+        global.buffers[opts.id] = M(opts)
+    elseif not global.buffers[opts.id].buf_enter_reload then
+        global.buffers[opts.id]:reload()
+    end
     return global.buffers[opts.id]
 end
 

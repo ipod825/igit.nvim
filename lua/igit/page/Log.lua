@@ -22,7 +22,8 @@ function M:init(options)
 end
 
 function M:switch()
-    self:select_branch(self:parse_line().branches, 'Checkout', function(branch)
+    self:select_branch(self:parse_line().references, 'Checkout',
+                       function(branch)
         self:runasync_and_reload(git.checkout(branch))
     end)
 end
