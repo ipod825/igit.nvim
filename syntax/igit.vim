@@ -7,8 +7,7 @@ let b:current_syntax = "igit"
 syn match IgitTermConceal conceal '\e\[[0-9;]*m'
 hi default link IgitTermConceal Conceal
 setlocal conceallevel=3
-" setlocal concealcursor=nvci
-setlocal concealcursor=nci
+setlocal concealcursor=nvci
 setlocal nowrap
 
 exec 'syntax match Igit30 "\e\[33m[^\e]*\e\[m"  contains=IgitTermConceal'

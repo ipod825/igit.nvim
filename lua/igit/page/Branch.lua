@@ -76,7 +76,7 @@ function M:rebase()
         ori_reference = job.popen(git.branch('--show-current')),
         branches = self:get_branches_in_rows(vimfn.visual_rows()),
         base_reference = self:get_primary_mark_or_current_branch(),
-        grafted_ancestor = self.get_secondary_mark_branch() or ''
+        grafted_ancestor = self:get_secondary_mark_branch() or ''
     })
 end
 
