@@ -5,6 +5,7 @@ local Set = require('igit.libp.datatype.Set')
 local job = require('igit.libp.job')
 local a = require('igit.libp.async.async')
 local git = require('igit.git.git')
+local log = require('igit.log')
 
 function M:open_or_new_buffer(key, opts)
     if opts.vcs_root == nil or opts.vcs_root == '' then
@@ -69,10 +70,12 @@ function M:rebase_branches(opts)
         ori_reference = {opts.ori_reference, 'string'}
     })
 
+    log.warn(opts)
+
     local grafted_ancestor = opts.grafted_ancestor
     local base_branch = opts.base_reference
     a.sync(function()
-        for new_branch in opts.branches:values() do
+        for _, new_branch in ipairs(opts.branches) do
             local next_grafted_ancestor =
                 ('%s_original_conflicted_with_%s_created_by_igit'):format(
                     new_branch, base_branch)

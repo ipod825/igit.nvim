@@ -83,15 +83,17 @@ function M:rebase()
                                          'Rebase Pick Branch'))
             if reference then table.insert(branches, reference) end
         end
+
+        self:rebase_branches({
+            current_buf = self:current_buf(),
+            ori_reference = job.popen(git.branch('--show-current')),
+            branches = branches,
+            base_reference = self:get_primary_mark_or_current_reference(),
+            grafted_ancestor = job.popen(
+                git['rev-parse'](('%s^1'):format(self:parse_line(row_end).sha)))
+        })
     end)()
 
-    -- self:rebase_branches({
-    --     current_buf = self:current_buf(),
-    --     ori_reference = job.popen(git.branch('--show-current')),
-    --     branches = branches,
-    --     base_reference = self:get_primary_mark_or_current_reference(),
-    --     grafted_ancestor = self.parse_line(row_end + 1).sha
-    -- })
 end
 
 function M:select_reference(references, op_title)
