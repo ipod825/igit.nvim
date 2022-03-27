@@ -1,7 +1,7 @@
 local M = require 'igit.libp.datatype.Class':EXTEND()
 local global = require('igit.libp.global')('libp')
 local functional = require('igit.libp.functional')
-local a = require('igit.libp.async.async')
+local a = require('plenary.async')
 local job = require('igit.libp.job')
 local log = require('igit.log')
 
@@ -248,7 +248,7 @@ function M:reload()
 
     if self.is_reloading then return end
 
-    a.sync(function()
+    a.void(function()
         self.is_reloading = true
         self.cancel_reload = false
         self:save_view()
@@ -257,7 +257,7 @@ function M:reload()
         local count = 1
         local w = vim.api.nvim_get_current_win()
         local ori_st = vim.o.statusline
-        a.wait(job.run_async(self.content(), {
+        job.run_async(self.content(), {
             on_stdout = function(lines)
                 if not vim.api.nvim_buf_is_valid(self.id) or self.cancel_reload then
                     return true
@@ -278,7 +278,7 @@ function M:reload()
                     count = count % 6 + 1
                 end
             end
-        }))
+        })
 
         self.is_reloading = false
         if vim.api.nvim_win_is_valid(w) then

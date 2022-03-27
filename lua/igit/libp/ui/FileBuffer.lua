@@ -1,5 +1,5 @@
 local M = require 'igit.libp.datatype.Class':EXTEND()
-local a = require('igit.libp.async.async')
+local a = require('plenary.async')
 local job = require('igit.libp.job')
 
 function M:init(filename)
@@ -12,12 +12,12 @@ function M:init(filename)
 
     self.id = vim.api.nvim_create_buf(true, false)
 
-    a.sync(function()
+    a.void(function()
         vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
         vim.api.nvim_buf_set_option(self.id, 'undolevels', -1)
         vim.api.nvim_buf_set_option(self.id, 'undofile', false)
 
-        a.wait(job.run_async('cat ' .. filename, {
+        job.run_async('cat ' .. filename, {
             on_stdout = function(lines)
                 if not vim.api.nvim_buf_is_valid(self.id) then
                     return true
@@ -27,7 +27,7 @@ function M:init(filename)
                 vim.api.nvim_buf_set_lines(self.id, -2, -1, false, lines)
                 vim.api.nvim_buf_set_option(self.id, 'modifiable', false)
             end
-        }))
+        })
         vim.api.nvim_buf_set_name(self.id, filename)
         vim.api.nvim_buf_set_option(self.id, 'undolevels',
                                     vim.api.nvim_get_option('undolevels'))

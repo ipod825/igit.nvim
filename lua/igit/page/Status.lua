@@ -92,13 +92,13 @@ end
 
 function M:change_action(action)
     local status = git.status_porcelain()
-    local paths = Iterator.range(vimfn.visual_rows()):map(
-                      function(e)
-            local path = self:parse_line(e).filepath
-            return status[path] and path or ''
+    local filepaths = Iterator.range(vimfn.visual_rows()):map(
+                          function(e)
+            local filepath = self:parse_line(e).filepath
+            return status[filepath] and filepath or ''
         end):collect()
-    self:runasync_and_reload(action(paths))
-    return #paths == 1
+    self:runasync_and_reload(action(filepaths))
+    return #filepaths == 1
 end
 
 function M:side_diff()

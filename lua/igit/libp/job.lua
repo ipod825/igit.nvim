@@ -1,11 +1,12 @@
 local M = {}
-local a = require('igit.libp.async.async')
+local a = require('plenary.async')
 local List = require('igit.libp.datatype.List')
 local log = require('igit.log')
 
 function M.jobstart(cmd, opts, callback)
-    vim.validate({cmd = {cmd, 'string'}, opts = {opts, 'table'}},
+    vim.validate({cmd = {cmd, 'string'}, opts = {opts, 'table', true}},
                  {callback = {callback, 'function', true}})
+    opts = opts or {}
 
     vim.validate({
         on_stdout = {opts.on_stdout, 'function', true},
@@ -65,22 +66,13 @@ function M.jobstart(cmd, opts, callback)
     return jid
 end
 
-local awaitable_jobstart = a.define_async_fn(M.jobstart)
+M.run_async = a.wrap(M.jobstart, 3)
 
-function M.run_async(cmd, opts)
-    return a.sync(function()
-        return a.wait(awaitable_jobstart(cmd, opts or {}))
-    end)
-end
-
-function M.runasync_all(cmds, opts)
-    return a.sync(function()
-        return a.wait_all(List(cmds):map(
-                              function(cmd)
-                return awaitable_jobstart(cmd, opts or {})
-            end):collect())
-    end)
-end
+M.runasync_all = a.wrap(function(cmds, opts, callback)
+    a.util.run_all(List(cmds):map(function(cmd)
+        return a.wrap(function(cb) M.jobstart(cmd, opts, cb) end, 1)
+    end):collect(), callback)
+end, 3)
 
 function M.run(cmd, opts)
     local exit_code = 0

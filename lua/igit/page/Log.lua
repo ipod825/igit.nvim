@@ -6,7 +6,7 @@ local term_utils = require('igit.libp.terminal_utils')
 local Menu = require('igit.libp.ui.Menu')
 local InfoBox = require('igit.libp.ui.InfoBox')
 local vimfn = require('igit.libp.vimfn')
-local a = require('igit.libp.async.async')
+local a = require('plenary.async')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
@@ -24,9 +24,9 @@ function M:init(options)
 end
 
 function M:switch()
-    a.sync(function()
-        local reference = a.wait(self:select_reference(
-                                     self:parse_line().references, 'Checkout'))
+    a.void(function()
+        local reference = self:select_reference(self:parse_line().references,
+                                                'Checkout')
         self:runasync_and_reload(git.checkout(reference))
     end)()
 end
@@ -76,11 +76,10 @@ function M:rebase()
         return
     end
 
-    a.sync(function()
+    a.void(function()
         for i = row_end, row_beg, -1 do
-            local reference = a.wait(self:select_reference(
-                                         self:parse_line(i).branches,
-                                         'Rebase Pick Branch'))
+            local reference = self:select_reference(self:parse_line(i).branches,
+                                                    'Rebase Pick Branch')
             if reference then table.insert(branches, reference) end
         end
 
@@ -93,19 +92,16 @@ function M:rebase()
                 git['rev-parse'](('%s^1'):format(self:parse_line(row_end).sha)))
         })
     end)()
-
 end
 
-function M:select_reference(references, op_title)
-    return function(callback)
-        if #references < 2 then return callback(references[1]) end
-        Menu({
-            title = ('%s Commit'):format(op_title),
-            content = references,
-            on_select = function(item) callback(item) end
-        }):show()
-    end
-end
+M.select_reference = a.wrap(function(_, references, op_title, callback)
+    if #references < 2 then return callback(references[1]) end
+    Menu({
+        title = ('%s Commit'):format(op_title),
+        content = references,
+        on_select = function(item) callback(item) end
+    }):show()
+end, 4)
 
 function M:parse_line(linenr)
     linenr = linenr or '.'
