@@ -1,5 +1,5 @@
 local M = require 'igit.page.Page':EXTEND()
-local git = require('igit.git.git')
+local git = require('igit.git')
 local job = require('igit.libp.job')
 local Iterator = require('igit.libp.datatype.Iterator')
 local term_utils = require('igit.libp.terminal_utils')

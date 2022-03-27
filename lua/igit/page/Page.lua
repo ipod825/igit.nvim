@@ -4,7 +4,7 @@ local Buffer = require('igit.libp.ui.Buffer')
 local Set = require('igit.libp.datatype.Set')
 local job = require('igit.libp.job')
 local a = require('igit.libp.async.async')
-local git = require('igit.git.git')
+local git = require('igit.git')
 local log = require('igit.log')
 
 function M:open_or_new_buffer(key, opts)
