@@ -58,17 +58,7 @@ end
 function M:mark() self:current_buf()
     :mark({branch = self:parse_line().branch}, 2) end
 
-function M:show()
-    local branch = self:parse_line().branch
-    local grid = Grid()
-    grid:add_row({height = 1}):fill_window(Window(Buffer({content = {branch}})))
-    grid:add_row({focusable = true}):fill_window(
-        Window(Buffer({
-            bo = {filetype = 'igit'},
-            content = function() return git.show('%s'):format(branch) end
-        }), {focus_on_open = true}))
-    grid:show()
-end
+function M:show() self:SUPER():show(self:parse_line().branch) end
 
 function M:rebase()
     self:rebase_branches({

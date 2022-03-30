@@ -14,7 +14,8 @@ function M:init(options)
             n = {
                 ['<cr>'] = self:BIND(self.switch),
                 ['m'] = {callback = self:BIND(self.mark), modify_buffer = false},
-                ['r'] = self:BIND(self.rebase)
+                ['r'] = self:BIND(self.rebase),
+                ['s'] = self:BIND(self.show)
             },
             v = {['r'] = self:BIND(self.rebase)}
         },
@@ -62,6 +63,8 @@ function M:get_branches_in_rows(row_beg, row_end)
                function(e) return #e == 2 end):map(function(e) return e[0] end)
                :collect()
 end
+
+function M:show() self:SUPER():show(self:parse_line().sha) end
 
 function M:rebase()
     local row_beg, row_end = vimfn.visual_rows()

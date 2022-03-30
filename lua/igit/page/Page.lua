@@ -6,6 +6,8 @@ local job = require('igit.libp.job')
 local a = require('plenary.async')
 local git = require('igit.git')
 local log = require('igit.log')
+local Grid = require('igit.libp.ui.Grid')
+local Window = require('igit.libp.ui.Window')
 
 function M:open_or_new_buffer(key, opts)
     if opts.vcs_root == nil or opts.vcs_root == '' then
@@ -72,6 +74,26 @@ function M:runasync_all_and_reload(cmds)
         job.runasync_all(cmds)
         current_buf:reload()
     end)()
+end
+
+function M:show(reference)
+    vim.validate({reference = {reference, 'string'}})
+    local grid = Grid()
+    grid:add_row({height = 1}):fill_window(
+        Window(Buffer({content = {reference}})))
+    grid:add_row({focusable = true}):fill_window(
+        Window(Buffer({
+            -- todo: with filetype equal to git, the floating window somehow
+            -- shrink the height. Forking the syntax file to the igit folders
+            -- does not have the same problem. Might be a neovim bug.
+            bo = {filetype = 'git_fork'},
+            content = function()
+                return
+                    git.with_default_args({no_color = true}).show('%s'):format(
+                        reference)
+            end
+        }), {focus_on_open = true}))
+    grid:show()
 end
 
 function M:rebase_branches(opts)

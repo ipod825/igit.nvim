@@ -1,7 +1,6 @@
 local M = {}
 require('igit.libp.datatype.std_extension')
 local git = require('igit.git')
-local Set = require('igit.libp.datatype.Set')
 local job = require('igit.libp.job')
 
 function M.setup(opts)
