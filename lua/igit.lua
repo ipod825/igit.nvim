@@ -41,7 +41,8 @@ function M.define_command()
         if M[module] then
             M[module]:open(module_args)
         elseif Set.has(M.git_cmds, module) then
-            job.jobstart(git[module](module_args), {
+            local gita = git.with_default_args({no_color = true})
+            job.jobstart(gita[module](module_args), {
                 on_stdout = function(lines)
                     vim.notify(table.concat(lines, '\n'))
                 end

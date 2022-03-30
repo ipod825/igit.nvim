@@ -4,7 +4,7 @@ local job = require('igit.libp.job')
 local List = require('igit.libp.datatype.List')
 local log = require('igit.log')
 
-local create_cmd_factory = function(git_cmd)
+local arg_strcat_factory = function(git_cmd)
     if git_cmd then
         return function(...)
             local args = List()
@@ -25,20 +25,17 @@ local create_cmd_factory = function(git_cmd)
     end
 end
 
-local gen_cmd_with_default_args = function(cmd, git_dir)
-    git_dir = git_dir or vim.b.vcs_root or M.find_root()
-    return git_dir and
-               ('git --no-pager -c color.ui=always -C %s %s'):format(git_dir,
-                                                                     cmd) or nil
-end
-
-function M.run_from(git_dir)
-    vim.validate({git_cmd = {git_dir, 'string'}})
-    return setmetatable({}, {
-        __index = function(_, cmd)
-            return create_cmd_factory(gen_cmd_with_default_args(cmd, git_dir))
-        end
+local cmd_with_default_args = function(cmd, opts)
+    opts = opts or {}
+    vim.validate({
+        git_dir = {opts.git_dir, 'string', true},
+        no_color = {opts.no_color, 'boolean', true}
     })
+    local git_dir = opts.git_dir or vim.b.vcs_root or M.find_root()
+    local color_str = opts.no_color and '' or '-c color.ui=always'
+    return git_dir and
+               ('git --no-pager %s -C %s %s'):format(color_str, git_dir, cmd) or
+               nil
 end
 
 function M.find_root()
@@ -68,9 +65,17 @@ function M.status_porcelain()
     return res
 end
 
+function M.with_default_args(opts)
+    return setmetatable({}, {
+        __index = function(_, cmd)
+            return arg_strcat_factory(cmd_with_default_args(cmd, opts))
+        end
+    })
+end
+
 setmetatable(M, {
     __index = function(_, cmd)
-        return create_cmd_factory(gen_cmd_with_default_args(cmd))
+        return arg_strcat_factory(cmd_with_default_args(cmd))
     end
 })
 
