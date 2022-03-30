@@ -38,7 +38,7 @@ function M:SUPER()
                 -- Return a member-function-like function that binds to the
                 -- original self.
                 return function(_, ...)
-                    parent_cls[key](ori_self, ...)
+                    return parent_cls[key](ori_self, ...)
                 end
             else
                 return ori_self[key]

@@ -3,6 +3,7 @@ local git = require('igit.git')
 local vimfn = require('igit.libp.vimfn')
 local term_utils = require('igit.libp.terminal_utils')
 local job = require('igit.libp.job')
+local a = require('plenary.async')
 local Iterator = require('igit.libp.datatype.Iterator')
 local Set = require('igit.libp.datatype.Set')
 local Buffer = require('igit.libp.ui.Buffer')
@@ -13,7 +14,7 @@ function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
-                ['<cr>'] = self:BIND(self.switch),
+                ['<cr>'] = {acallback = self:BIND(self.switch)},
                 ['i'] = self:BIND(self.rename),
                 ['m'] = {callback = self:BIND(self.mark), modify_buffer = false},
                 ['r'] = self:BIND(self.rebase),

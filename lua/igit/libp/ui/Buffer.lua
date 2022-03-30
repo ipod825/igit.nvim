@@ -117,9 +117,11 @@ function M:add_key_map(mode, key, fn)
     })
 
     local modify_buffer = true
+    local async = false
     if type(fn) == 'table' then
         modify_buffer = fn.modify_buffer
-        fn = fn.callback
+        async = fn.acallback and true or false
+        fn = fn.callback or a.wrap(fn.acallback, 1)
     end
 
     local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
@@ -130,6 +132,10 @@ function M:add_key_map(mode, key, fn)
             self.cancel_reload = true
         end
         fn()
+    end
+    if async then
+        local ori_fn = self.mapping_handles[mode][key]
+        self.mapping_handles[mode][key] = a.void(function() ori_fn() end)
     end
     vim.api.nvim_buf_set_keymap(self.id, mode, key,
                                 ('%slua require("igit.libp.ui.Buffer").execut_mapping("%s", "%s")<cr>'):format(

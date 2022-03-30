@@ -45,6 +45,19 @@ end
 
 function M:current_buf() return Buffer.get_current_buffer() end
 
+M.runasync_and_reload2 = a.wrap(function(self, cmd)
+    local current_buf = self:current_buf()
+    job.run_async(cmd)
+    current_buf:reload()
+end, 2)
+
+M.runasync_and_reload3 = function(cmd)
+    -- local current_buf = self:current_buf()
+    job.run_async(cmd)
+    -- current_buf:reload()
+    -- callback()
+end
+
 function M:runasync_and_reload(cmd)
     local current_buf = self:current_buf()
     a.void(function()
