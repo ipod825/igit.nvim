@@ -9,7 +9,6 @@ function M.setup(opts)
     M.log = require('igit.page.Log')(opts)
     M.branch = require('igit.page.Branch')(opts)
     M.status = require('igit.page.Status')(opts)
-    M.git_cmds = Set({'stash', 'push', 'pull', 'rebase'})
     M.define_command()
 end
 
@@ -20,7 +19,10 @@ function M.define_command()
     parser:add_subparser(PipeParser('branch'))
     parser:add_subparser(PipeParser('log'))
     parser:add_subparser(PipeParser('status'))
-    for cmd in M.git_cmds:values() do parser:add_subparser(PipeParser(cmd)) end
+    local sub_commands = {'stash', 'push', 'pull', 'rebase'}
+    for _, cmd in ipairs(sub_commands) do
+        parser:add_subparser(PipeParser(cmd))
+    end
 
     local complete = function(arg_lead, cmd_line, cursor_pos)
         return parser:get_completion_list(cmd_line, arg_lead)
@@ -38,21 +40,23 @@ function M.define_command()
         local module, module_args = unpack(args[2])
 
         if #module_args == 0 then module_args = nil end
-        if M[module] then
+        if M[module] and not opts.bang then
             M[module]:open(module_args)
-        elseif Set.has(M.git_cmds, module) then
+        else
             local gita = git.with_default_args({no_color = true})
             job.jobstart(gita[module](module_args), {
                 on_stdout = function(lines)
                     vim.notify(table.concat(lines, '\n'))
                 end
             })
-
         end
     end
 
-    vim.api.nvim_add_user_command('IGit', execute,
-                                  {nargs = '+', complete = complete})
+    vim.api.nvim_add_user_command('IGit', execute, {
+        nargs = '+',
+        bang = true,
+        complete = complete
+    })
 end
 
 return M

@@ -256,6 +256,8 @@ function M:reload()
 
     a.void(function()
         self.is_reloading = true
+        -- Clear the marks so that we don't hit into invisible marks.
+        self.ctx.mark = {}
         self.cancel_reload = false
         self:save_view()
         self:clear()
