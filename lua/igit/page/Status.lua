@@ -4,11 +4,7 @@ local job = require('igit.libp.job')
 local global = require('igit.global')
 local vimfn = require('igit.libp.vimfn')
 local Iterator = require('igit.libp.datatype.Iterator')
-local Buffer = require('igit.libp.ui.Buffer')
-local Window = require('igit.libp.ui.Window')
-local DiffWindow = require('igit.libp.ui.DiffWindow')
-local FileBuffer = require('igit.libp.ui.FileBuffer')
-local Grid = require('igit.libp.ui.Grid')
+local ui = require('igit.libp.ui')
 local path = require('igit.libp.path')
 local log = require('igit.log')
 
@@ -103,30 +99,29 @@ end
 function M:side_diff()
     local cline_info = self:parse_line()
 
-    local grid = Grid()
-    local index_buf = Buffer({
+    local grid = ui.Grid()
+    local index_buf = ui.Buffer({
         filename = ('igit://HEAD:%s'):format(cline_info.filepath),
         content = function()
             return git.show(':%s'):format(cline_info.filepath)
         end
     })
-    local worktree_buf = FileBuffer(cline_info.abs_path)
+    local worktree_buf = ui.FileBuffer(cline_info.abs_path)
     vim.filetype.match(cline_info.abs_path, index_buf.id)
     vim.filetype.match(cline_info.abs_path, worktree_buf.id)
 
     grid:add_row({height = 1}):fill_window(
-        Window(Buffer({content = {cline_info.filepath}})))
-    grid:add_row({focusable = true}):vfill_windows(
+        ui.Window(ui.Buffer({content = {cline_info.filepath}})))
+    grid:add_row({height = 1}):vfill_windows(
         {
-            DiffWindow(index_buf),
-            DiffWindow(worktree_buf, {focus_on_open = true})
+            ui.Window(ui.Buffer({content = {'                 HEAD'}})),
+            ui.Window(ui.Buffer({content = {'           Worktree'}}))
+        })
+    grid:add_row({focusable = true, height = -1}):vfill_windows(
+        {
+            ui.DiffWindow(index_buf),
+            ui.DiffWindow(worktree_buf, {focus_on_open = true})
         }, true)
-    -- grid:add_row():vfill_windows({
-    --     Window(Buffer({content = {'                 HEAD'}}),
-    --            {wo = {winhighlight = 'Normal:Normal'}}),
-    --     Window(Buffer({content = {'           Worktree'}},
-    --                   {wo = {winhighlight = 'Normal:Normal'}}))
-    -- })
     grid:show()
 end
 

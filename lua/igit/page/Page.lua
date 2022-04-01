@@ -1,13 +1,11 @@
 local M = require 'igit.libp.datatype.Class':EXTEND()
 local path = require('igit.libp.path')
-local Buffer = require('igit.libp.ui.Buffer')
 local Set = require('igit.libp.datatype.Set')
 local job = require('igit.libp.job')
 local a = require('plenary.async')
 local git = require('igit.git')
 local log = require('igit.log')
-local Grid = require('igit.libp.ui.Grid')
-local Window = require('igit.libp.ui.Window')
+local ui = require('igit.libp.ui')
 
 function M:open_or_new_buffer(key, opts)
     if opts.vcs_root == nil or opts.vcs_root == '' then
@@ -40,12 +38,12 @@ function M:open_or_new_buffer(key, opts)
         })
     }, opts)
 
-    local buffer = Buffer.open_or_new(opts)
+    local buffer = ui.Buffer.open_or_new(opts)
     vim.cmd('lcd ' .. opts.vcs_root)
     return buffer
 end
 
-function M:current_buf() return Buffer.get_current_buffer() end
+function M:current_buf() return ui.Buffer.get_current_buffer() end
 
 M.runasync_and_reload2 = a.wrap(function(self, cmd)
     local current_buf = self:current_buf()
@@ -78,11 +76,11 @@ end
 
 function M:show(reference)
     vim.validate({reference = {reference, 'string'}})
-    local grid = Grid()
+    local grid = ui.Grid()
     grid:add_row({height = 1}):fill_window(
-        Window(Buffer({content = {reference}})))
+        ui.Window(ui.Buffer({content = {reference}})))
     grid:add_row({focusable = true}):fill_window(
-        Window(Buffer({
+        ui.Window(ui.Buffer({
             -- todo: with filetype equal to git, the floating window somehow
             -- shrink the height. Forking the syntax file to the igit folders
             -- does not have the same problem. Might be a neovim bug.

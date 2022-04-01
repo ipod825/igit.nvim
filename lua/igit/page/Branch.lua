@@ -3,12 +3,8 @@ local git = require('igit.git')
 local vimfn = require('igit.libp.vimfn')
 local term_utils = require('igit.libp.terminal_utils')
 local job = require('igit.libp.job')
-local a = require('plenary.async')
 local Iterator = require('igit.libp.datatype.Iterator')
 local Set = require('igit.libp.datatype.Set')
-local Buffer = require('igit.libp.ui.Buffer')
-local Window = require('igit.libp.ui.Window')
-local Grid = require('igit.libp.ui.Grid')
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {

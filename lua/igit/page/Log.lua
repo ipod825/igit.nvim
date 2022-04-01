@@ -3,8 +3,7 @@ local git = require('igit.git')
 local job = require('igit.libp.job')
 local Iterator = require('igit.libp.datatype.Iterator')
 local term_utils = require('igit.libp.terminal_utils')
-local Menu = require('igit.libp.ui.Menu')
-local InfoBox = require('igit.libp.ui.InfoBox')
+local ui = require('igit.libp.ui')
 local vimfn = require('igit.libp.vimfn')
 local a = require('plenary.async')
 
@@ -72,7 +71,7 @@ function M:rebase()
 
     local first_row_references = self:parse_line(row_beg).references
     if #first_row_references <= 1 then
-        InfoBox({
+        ui.InfoBox({
             content = ('No branch for %s at the first selected line %d!'):format(
                 first_row_references[1], row_beg)
         }):show()
@@ -99,7 +98,7 @@ end
 
 M.select_reference = a.wrap(function(_, references, op_title, callback)
     if #references < 2 then return callback(references[1]) end
-    Menu({
+    ui.Menu({
         title = ('%s Commit'):format(op_title),
         content = references,
         on_select = function(item) callback(item) end
