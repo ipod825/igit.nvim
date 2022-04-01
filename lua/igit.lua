@@ -2,6 +2,7 @@ local M = {}
 require('igit.libp.datatype.std_extension')
 local git = require('igit.git')
 local job = require('igit.libp.job')
+local a = require('plenary.async')
 
 function M.setup(opts)
     require('igit.log'):config(opts)
@@ -28,27 +29,30 @@ function M.define_command()
     end
 
     local execute = function(opts)
-        local args = parser:parse(opts.args, true)
-        if not args then return end
+        a.void(function()
+            local args = parser:parse(opts.args, true)
+            if not args then return end
 
-        if #args <= 1 then
-            vim.notify('Not enough arguments!')
-            return
-        end
-        assert(#args == 2)
-        local module, module_args = unpack(args[2])
+            if #args <= 1 then
+                vim.notify('Not enough arguments!')
+                return
+            end
+            assert(#args == 2)
+            local module, module_args = unpack(args[2])
 
-        if #module_args == 0 then module_args = nil end
-        if M[module] and not opts.bang then
-            M[module]:open(module_args)
-        else
-            local gita = git.with_default_args({no_color = true})
-            job.jobstart(gita[module](module_args), {
-                on_stdout = function(lines)
-                    vim.notify(table.concat(lines, '\n'))
-                end
-            })
-        end
+            if #module_args == 0 then module_args = nil end
+            if M[module] and not opts.bang then
+                M[module]:open(module_args)
+            else
+                local gita = git.with_default_args({no_color = true})
+                job.jobstart(gita[module](module_args),
+                             {
+                    on_stdout = function(lines)
+                        vim.notify(table.concat(lines, '\n'))
+                    end
+                })
+            end
+        end)()
     end
 
     vim.api.nvim_add_user_command('IGit', execute, {

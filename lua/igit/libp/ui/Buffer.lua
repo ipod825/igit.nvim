@@ -80,14 +80,16 @@ function M:init(opts)
     -- reload on :edit
     vim.api.nvim_create_autocmd('BufReadCmd', {
         buffer = self.id,
-        callback = function() self:reload() end
+        callback = function() a.void(function() self:reload() end) end
     })
 
     -- reload on BufEnter
     if opts.buf_enter_reload then
         vim.api.nvim_create_autocmd('BufEnter', {
             buffer = self.id,
-            callback = function() self:reload() end
+            callback = function()
+                a.void(function() self:reload() end)
+            end
         })
     end
 
@@ -117,11 +119,9 @@ function M:add_key_map(mode, key, fn)
     })
 
     local modify_buffer = true
-    local async = false
     if type(fn) == 'table' then
         modify_buffer = fn.modify_buffer
-        async = fn.acallback and true or false
-        fn = fn.callback or a.wrap(fn.acallback, 1)
+        fn = fn.callback
     end
 
     local prefix = (mode == 'v') and ':<c-u>' or '<cmd>'
@@ -133,10 +133,6 @@ function M:add_key_map(mode, key, fn)
         end
         fn()
     end
-    if async then
-        local ori_fn = self.mapping_handles[mode][key]
-        self.mapping_handles[mode][key] = a.void(function() ori_fn() end)
-    end
     vim.api.nvim_buf_set_keymap(self.id, mode, key,
                                 ('%slua require("igit.libp.ui.Buffer").execut_mapping("%s", "%s")<cr>'):format(
                                     prefix, mode, key:gsub('^<', '<lt>')), {})
@@ -145,7 +141,7 @@ end
 function M.execut_mapping(mode, key)
     local b = global.buffers[vim.api.nvim_get_current_buf()]
     key = key:gsub('<lt>', '^<')
-    b.mapping_handles[mode][key]()
+    a.void(function() b.mapping_handles[mode][key]() end)()
 end
 
 function M:mark(data, max_num_data)
@@ -254,45 +250,43 @@ function M:reload()
 
     if self.is_reloading then return end
 
-    a.void(function()
-        self.is_reloading = true
-        -- Clear the marks so that we don't hit into invisible marks.
-        self.ctx.mark = {}
-        self.cancel_reload = false
-        self:save_view()
-        self:clear()
+    self.is_reloading = true
+    -- Clear the marks so that we don't hit into invisible marks.
+    self.ctx.mark = {}
+    self.cancel_reload = false
+    self:save_view()
+    self:clear()
 
-        local count = 1
-        local w = vim.api.nvim_get_current_win()
-        local ori_st = vim.o.statusline
-        job.run_async(self.content(), {
-            on_stdout = function(lines)
-                if not vim.api.nvim_buf_is_valid(self.id) or self.cancel_reload then
-                    return true
-                end
-
-                self:append(lines)
-                -- We only restore view once (note that restore_view destroys
-                -- the saved view). This is because that for content that can be
-                -- drawn in one shot, reload should finish before any new user
-                -- interaction. Restoring the view thus compensate the cursor
-                -- move (due to clear). But for content that needs to be drawn
-                -- in multiple run, restoring the cursor after every append
-                -- just makes user can't do anything.
-                self:restore_view()
-
-                if w == vim.api.nvim_get_current_win() then
-                    vim.wo.statusline = " Loading " .. ('.'):rep(count)
-                    count = count % 6 + 1
-                end
+    local count = 1
+    local w = vim.api.nvim_get_current_win()
+    local ori_st = vim.o.statusline
+    job.run_async(self.content(), {
+        on_stdout = function(lines)
+            if not vim.api.nvim_buf_is_valid(self.id) or self.cancel_reload then
+                return true
             end
-        })
 
-        self.is_reloading = false
-        if vim.api.nvim_win_is_valid(w) then
-            vim.api.nvim_win_set_option(w, 'statusline', ori_st)
+            self:append(lines)
+            -- We only restore view once (note that restore_view destroys
+            -- the saved view). This is because that for content that can be
+            -- drawn in one shot, reload should finish before any new user
+            -- interaction. Restoring the view thus compensate the cursor
+            -- move (due to clear). But for content that needs to be drawn
+            -- in multiple run, restoring the cursor after every append
+            -- just makes user can't do anything.
+            self:restore_view()
+
+            if w == vim.api.nvim_get_current_win() then
+                vim.wo.statusline = " Loading " .. ('.'):rep(count)
+                count = count % 6 + 1
+            end
         end
-    end)()
+    })
+
+    self.is_reloading = false
+    if vim.api.nvim_win_is_valid(w) then
+        vim.api.nvim_win_set_option(w, 'statusline', ori_st)
+    end
 end
 
 return M

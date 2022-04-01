@@ -5,12 +5,13 @@ local term_utils = require('igit.libp.terminal_utils')
 local job = require('igit.libp.job')
 local Iterator = require('igit.libp.datatype.Iterator')
 local Set = require('igit.libp.datatype.Set')
+local log = require 'igit.log'
 
 function M:init(options)
     self.options = vim.tbl_deep_extend('force', {
         mapping = {
             n = {
-                ['<cr>'] = {acallback = self:BIND(self.switch)},
+                ['<cr>'] = self:BIND(self.switch),
                 ['i'] = self:BIND(self.rename),
                 ['m'] = {callback = self:BIND(self.mark), modify_buffer = false},
                 ['r'] = self:BIND(self.rebase),

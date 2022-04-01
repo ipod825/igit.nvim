@@ -68,6 +68,7 @@ end
 function M.with_default_args(opts)
     return setmetatable({}, {
         __index = function(_, cmd)
+            log.warn('*', cmd)
             return arg_strcat_factory(cmd_with_default_args(cmd, opts))
         end
     })

@@ -60,18 +60,14 @@ end
 
 function M:runasync_and_reload(cmd)
     local current_buf = self:current_buf()
-    a.void(function()
-        job.run_async(cmd)
-        current_buf:reload()
-    end)()
+    job.run_async(cmd)
+    current_buf:reload()
 end
 
 function M:runasync_all_and_reload(cmds)
     local current_buf = self:current_buf()
-    a.void(function()
-        job.runasync_all(cmds)
-        current_buf:reload()
-    end)()
+    job.runasync_all(cmds)
+    current_buf:reload()
 end
 
 function M:show(reference)

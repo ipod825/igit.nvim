@@ -22,6 +22,7 @@ function M.jobstart(cmd, opts, callback)
     local terminated_by_client = false
     local jid
     jid = vim.fn.jobstart(cmd, {
+        cwd = opts.cwd,
         on_stdout = function(_, data)
             if opts.on_stdout then
                 -- The last line might be partial
