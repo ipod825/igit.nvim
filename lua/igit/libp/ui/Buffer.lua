@@ -80,16 +80,14 @@ function M:init(opts)
     -- reload on :edit
     vim.api.nvim_create_autocmd('BufReadCmd', {
         buffer = self.id,
-        callback = function() a.void(function() self:reload() end) end
+        callback = a.void(function() self:reload() end)
     })
 
     -- reload on BufEnter
     if opts.buf_enter_reload then
         vim.api.nvim_create_autocmd('BufEnter', {
             buffer = self.id,
-            callback = function()
-                a.void(function() self:reload() end)
-            end
+            callback = a.void(function() self:reload() end)
         })
     end
 
@@ -185,7 +183,7 @@ function M:edit(opts)
     vim.api.nvim_create_autocmd('BufWriteCmd', {
         buffer = self.id,
         once = true,
-        callback = function() global.buffers[self.id]:save_edit() end
+        callback = a.void(function() global.buffers[self.id]:save_edit() end)
     })
     self:unmapfn(self.mappings)
     vim.bo.undolevels = -1
