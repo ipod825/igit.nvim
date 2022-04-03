@@ -45,8 +45,8 @@ function M.define_command()
                 M[module]:open(module_args)
             else
                 local gita = git.with_default_args({no_color = true})
-                job.jobstart(gita[module](module_args),
-                             {
+                job.start(gita[module](module_args),
+                          {
                     on_stdout = function(lines)
                         vim.notify(table.concat(lines, '\n'))
                     end
