@@ -1,11 +1,12 @@
 local M = {}
+local log = require('igit.libp.log')
 
 local path_sep = vim.loop.os_uname().version:match("Windows") and "\\" or "/"
 
 function M.path_join(...) return table.concat({...}, path_sep) end
 
 function M.find_directory(anchor, dir)
-    dir = dir or vim.fn.expand('%:p')
+    dir = dir or vim.api.nvim_buf_get_name(0)
     local res = nil
     while #dir > 1 do
         if vim.fn.glob(M.path_join(dir, anchor)) ~= "" then return dir end

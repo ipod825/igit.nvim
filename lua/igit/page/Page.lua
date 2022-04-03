@@ -45,22 +45,9 @@ end
 
 function M:current_buf() return ui.Buffer.get_current_buffer() end
 
-M.runasync_and_reload2 = a.wrap(function(self, cmd)
-    local current_buf = self:current_buf()
-    job.run_async(cmd)
-    current_buf:reload()
-end, 2)
-
-M.runasync_and_reload3 = function(cmd)
-    -- local current_buf = self:current_buf()
-    job.run_async(cmd)
-    -- current_buf:reload()
-    -- callback()
-end
-
 function M:runasync_and_reload(cmd)
     local current_buf = self:current_buf()
-    job.run_async(cmd)
+    job.start(cmd)
     current_buf:reload()
 end
 
@@ -99,8 +86,6 @@ function M:rebase_branches(opts)
         ori_reference = {opts.ori_reference, 'string'}
     })
 
-    log.warn(opts)
-
     local grafted_ancestor = opts.grafted_ancestor
     local base_branch = opts.base_reference
     a.void(function()
@@ -108,17 +93,17 @@ function M:rebase_branches(opts)
             local next_grafted_ancestor =
                 ('%s_original_conflicted_with_%s_created_by_igit'):format(
                     new_branch, base_branch)
-            job.run_async(git.branch(('%s %s'):format(next_grafted_ancestor,
-                                                      new_branch)))
+            job.start(git.branch(('%s %s'):format(next_grafted_ancestor,
+                                                  new_branch)))
             if grafted_ancestor ~= '' then
                 local succ = 0 ==
-                                 job.run_async(
+                                 job.start(
                                      git.rebase(
                                          ('--onto %s %s %s'):format(base_branch,
                                                                     grafted_ancestor,
                                                                     new_branch)))
                 if grafted_ancestor:endswith('created_by_igit') then
-                    job.run_async(git.branch('-D ' .. grafted_ancestor))
+                    job.start(git.branch('-D ' .. grafted_ancestor))
                 end
                 if not succ then
                     opts.current_buf:reload()
@@ -126,9 +111,9 @@ function M:rebase_branches(opts)
                 end
             else
                 if 0 ~=
-                    job.run_async(git.rebase(
-                                      ('%s %s'):format(base_branch, new_branch))) then
-                    job.run_async(git.branch('-D ' .. next_grafted_ancestor))
+                    job.start(git.rebase(
+                                  ('%s %s'):format(base_branch, new_branch))) then
+                    job.start(git.branch('-D ' .. next_grafted_ancestor))
                     opts.current_buf:reload()
                     return
                 end
@@ -136,8 +121,8 @@ function M:rebase_branches(opts)
             grafted_ancestor = next_grafted_ancestor
             base_branch = new_branch
         end
-        job.run_async(git.branch('-D ' .. grafted_ancestor))
-        job.run_async(git.checkout(opts.ori_reference))
+        job.start(git.branch('-D ' .. grafted_ancestor))
+        job.start(git.checkout(opts.ori_reference))
         opts.current_buf:reload()
     end)()
 end

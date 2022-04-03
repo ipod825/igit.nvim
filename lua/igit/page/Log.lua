@@ -24,11 +24,9 @@ function M:init(options)
 end
 
 function M:switch()
-    a.void(function()
-        local reference = self:select_reference(self:parse_line().references,
-                                                'Checkout')
-        self:runasync_and_reload(git.checkout(reference))
-    end)()
+    local reference = self:select_reference(self:parse_line().references,
+                                            'Checkout')
+    self:runasync_and_reload(git.checkout(reference))
 end
 
 function M:mark()
@@ -78,22 +76,21 @@ function M:rebase()
         return
     end
 
-    a.void(function()
-        for i = row_end, row_beg, -1 do
-            local reference = self:select_reference(self:parse_line(i).branches,
-                                                    'Rebase Pick Branch')
-            if reference then table.insert(branches, reference) end
-        end
+    for i = row_end, row_beg, -1 do
+        local reference = self:select_reference(self:parse_line(i).branches,
+                                                'Rebase Pick Branch')
+        if reference then table.insert(branches, reference) end
+    end
 
-        self:rebase_branches({
-            current_buf = self:current_buf(),
-            ori_reference = job.popen(git.branch('--show-current')),
-            branches = branches,
-            base_reference = self:get_primary_mark_or_current_reference(),
-            grafted_ancestor = job.popen(
-                git['rev-parse'](('%s^1'):format(self:parse_line(row_end).sha)))
-        })
-    end)()
+    self:rebase_branches({
+        current_buf = self:current_buf(),
+        ori_reference = job.popen(git.branch('--show-current')),
+        branches = branches,
+        base_reference = self:get_primary_mark_or_current_reference(),
+        grafted_ancestor = job.popen(git['rev-parse'](
+                                         ('%s^1'):format(
+                                             self:parse_line(row_end).sha)))
+    })
 end
 
 M.select_reference = a.wrap(function(_, references, op_title, callback)

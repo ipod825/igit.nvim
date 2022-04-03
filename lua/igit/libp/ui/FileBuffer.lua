@@ -17,7 +17,7 @@ function M:init(filename)
         vim.api.nvim_buf_set_option(self.id, 'undolevels', -1)
         vim.api.nvim_buf_set_option(self.id, 'undofile', false)
 
-        job.run_async('cat ' .. filename, {
+        job.start('cat ' .. filename, {
             on_stdout = function(lines)
                 if not vim.api.nvim_buf_is_valid(self.id) then
                     return true

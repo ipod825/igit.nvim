@@ -250,7 +250,7 @@ function M:reload()
 
     self.is_reloading = true
     -- Clear the marks so that we don't hit into invisible marks.
-    self.ctx.mark = {}
+    self.ctx.mark = nil
     self.cancel_reload = false
     self:save_view()
     self:clear()
@@ -258,7 +258,7 @@ function M:reload()
     local count = 1
     local w = vim.api.nvim_get_current_win()
     local ori_st = vim.o.statusline
-    job.run_async(self.content(), {
+    job.start(self.content(), {
         on_stdout = function(lines)
             if not vim.api.nvim_buf_is_valid(self.id) or self.cancel_reload then
                 return true

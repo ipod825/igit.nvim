@@ -6,6 +6,7 @@ local vimfn = require('igit.libp.vimfn')
 local Iterator = require('igit.libp.datatype.Iterator')
 local ui = require('igit.libp.ui')
 local path = require('igit.libp.path')
+local a = require('plenary.async')
 local log = require('igit.log')
 
 function M:init(options)
@@ -56,11 +57,11 @@ function M:commit_submit(git_dir, opts)
         local base_branch = job.popen(gita.branch('--show-current'))
         local backup_branch =
             ('%s_original_created_by_igit'):format(base_branch)
-        job.run(gita.branch(('%s %s'):format(backup_branch, base_branch)))
+        job.start(gita.branch(('%s %s'):format(backup_branch, base_branch)))
     end
-    job.run(gita.commit(('%s -m "%s"'):format(opts.amend and '--amend' or '',
-                                              table.concat(lines, '\n')),
-                        git_dir))
+    job.start(gita.commit(('%s -m "%s"'):format(opts.amend and '--amend' or '',
+                                                table.concat(lines, '\n')),
+                          git_dir))
 end
 
 function M:commit(opts)
@@ -68,7 +69,7 @@ function M:commit(opts)
     local git_dir = git.find_root()
     local amend = opts.amend and '--amend' or ''
     local prepare_commit_file_cmd = 'GIT_EDITOR=false git commit ' .. amend
-    job.run(prepare_commit_file_cmd, {silent = true})
+    job.start(prepare_commit_file_cmd, {silent = true})
     local commit_message_file_path = git.commit_message_file_path(git_dir)
     vim.cmd('edit ' .. commit_message_file_path)
     vim.bo.bufhidden = 'wipe'
@@ -81,7 +82,7 @@ function M:commit(opts)
     vim.api.nvim_create_autocmd('Bufunload', {
         buffer = 0,
         once = true,
-        callback = function() self:commit_submit(git_dir, opts) end
+        callback = a.void(function() self:commit_submit(git_dir, opts) end)
     })
 end
 

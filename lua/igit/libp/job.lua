@@ -3,7 +3,7 @@ local a = require('plenary.async')
 local List = require('igit.libp.datatype.List')
 local log = require('igit.log')
 
-function M.jobstart(cmd, opts, callback)
+M.start = a.wrap(function(cmd, opts, callback)
     vim.validate({cmd = {cmd, 'string'}, opts = {opts, 'table', true}},
                  {callback = {callback, 'function', true}})
     opts = opts or {}
@@ -21,6 +21,7 @@ function M.jobstart(cmd, opts, callback)
     local stderr_lines = {('Error message from\n%s\n'):format(cmd)};
     local terminated_by_client = false
     local jid
+
     jid = vim.fn.jobstart(cmd, {
         cwd = opts.cwd,
         on_stdout = function(_, data)
@@ -65,26 +66,24 @@ function M.jobstart(cmd, opts, callback)
         end
     })
     return jid
-end
-
-M.run_async = a.wrap(M.jobstart, 3)
+end, 3)
 
 M.runasync_all = a.wrap(function(cmds, opts, callback)
     a.util.run_all(List(cmds):map(function(cmd)
-        return a.wrap(function(cb) M.jobstart(cmd, opts, cb) end, 1)
+        return a.wrap(function(cb) M.start(cmd, opts, cb) end, 1)
     end):collect(), callback)
 end, 3)
 
 function M.run(cmd, opts)
     local exit_code = 0
-    local jid = M.jobstart(cmd, opts or {}, function(code) exit_code = code end)
+    local jid = M.start(cmd, opts or {}, function(code) exit_code = code end)
     vim.fn.jobwait({jid})
     return exit_code
 end
 
 function M.popen(cmd, return_list)
     local stdout_lines = {}
-    local jid = M.jobstart(cmd, {
+    local jid = M.start(cmd, {
         on_stdout = function(lines) vim.list_extend(stdout_lines, lines) end
     }, function(code) if code ~= 0 then stdout_lines = nil end end)
     vim.fn.jobwait({jid})

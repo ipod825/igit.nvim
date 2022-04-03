@@ -40,13 +40,13 @@ function M:rename()
             end
             for i = 1, #ori_items do
                 local intermediate = ('%s-igitrename'):format(ori_items[i])
-                job.run(('git branch -m %s %s'):format(ori_items[i],
-                                                       intermediate))
+                job.start(('git branch -m %s %s'):format(ori_items[i],
+                                                         intermediate))
             end
             for i = 1, #ori_items do
                 local intermediate = ('%s-igitrename'):format(ori_items[i])
-                job.run(('git branch -m %s %s'):format(intermediate,
-                                                       new_items[i]))
+                job.start(('git branch -m %s %s'):format(intermediate,
+                                                         new_items[i]))
             end
         end
     })
@@ -82,6 +82,7 @@ end
 
 function M:get_primary_mark_or_current_branch()
     local mark = self:current_buf().ctx.mark
+    job.popen(git.branch('--show-current'))
     return mark and mark[1].branch or job.popen(git.branch('--show-current'))
 end
 
@@ -112,8 +113,8 @@ function M:new_branch()
         end,
         update = function(ori_branches, new_branches)
             for new_branch in (new_branches - ori_branches):values() do
-                job.run(git.checkout(
-                            ('-b %s %s'):format(new_branch, base_branch)))
+                job.start(git.checkout(('-b %s %s'):format(new_branch,
+                                                           base_branch)))
             end
         end
     })

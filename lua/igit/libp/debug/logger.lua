@@ -1,12 +1,14 @@
 local M = require 'igit.libp.datatype.Class':EXTEND()
-local path = require 'igit.libp.path'
+
+local path_sep = vim.loop.os_uname().version:match("Windows") and "\\" or "/"
+local path_join = function(...) return table.concat({...}, path_sep) end
 
 function M:init(opts)
     self:config(opts)
     self.log_date_format = "%F %H:%M:%S"
     self.format_func = function(arg) return vim.inspect(arg, {newline = ''}) end
 
-    self.logfilename = path.path_join(vim.fn.stdpath('cache'), 'igit.log')
+    self.logfilename = path_join(vim.fn.stdpath('cache'), 'igit.log')
 
     vim.fn.mkdir(vim.fn.stdpath('cache'), "p")
     self.logfile = assert(io.open(self.logfilename, "a+"))
