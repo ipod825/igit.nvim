@@ -12,7 +12,7 @@ local setup = function()
     igit.branch:open()
     -- todo: Not sure why we need this in order for job.start in open to finish
     -- starting from the second test.
-    require'igit.libp.job'.start('')
+    a.util.sleep(10)
 end
 
 describe("switch", function()
@@ -31,17 +31,34 @@ end)
 describe("parse_line", function()
     it("Parses the information of the lines", function()
         setup()
-        assert.are.same(igit.branch.parse_line(), igit.branch.parse_line(1))
-        assert.are.same(igit.branch.parse_line(),
+        assert.are.same(igit.branch:parse_line(), igit.branch.parse_line(1))
+        assert.are.same(igit.branch:parse_line(),
                         {branch = test_dir.branches[1], is_current = true})
+        assert.are.same(igit.branch:parse_line(2),
+                        {branch = test_dir.branches[2], is_current = false})
     end)
 end)
 
--- describe("rename", function()
---     it("Renames branches", function()
---         setup_test_dir()
---         igit.branch:rename()
---         -- vim.api.nvim_buf_set_lines(0, )
---         assert.are.same(test_dir:current_branch(), test_dir.branches[2])
---     end)
--- end)
+describe("rename", function()
+    it("Renames branches", function()
+        setup()
+        igit.branch:rename()
+        local new_name = function(ori) return ori .. 'new' end
+        vim.api.nvim_buf_set_lines(0, 0, 1, true,
+                                   {new_name(test_dir.branches[1])})
+        vim.api.nvim_buf_set_lines(0, 1, 2, true,
+                                   {new_name(test_dir.branches[2])})
+        vim.cmd('write')
+        a.util.sleep(200)
+        assert.are.same(test_dir:current_branch(),
+                        new_name(test_dir.branches[1]))
+        assert.are.same(igit.branch:parse_line(1), {
+            branch = new_name(test_dir.branches[1]),
+            is_current = true
+        })
+        assert.are.same(igit.branch:parse_line(2), {
+            branch = new_name(test_dir.branches[2]),
+            is_current = false
+        })
+    end)
+end)
