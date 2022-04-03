@@ -68,25 +68,18 @@ M.start = a.wrap(function(cmd, opts, callback)
     return jid
 end, 3)
 
-M.runasync_all = a.wrap(function(cmds, opts, callback)
+M.start_all = a.wrap(function(cmds, opts, callback)
     a.util.run_all(List(cmds):map(function(cmd)
         return a.wrap(function(cb) M.start(cmd, opts, cb) end, 1)
     end):collect(), callback)
 end, 3)
 
-function M.run(cmd, opts)
-    local exit_code = 0
-    local jid = M.start(cmd, opts or {}, function(code) exit_code = code end)
-    vim.fn.jobwait({jid})
-    return exit_code
-end
-
-function M.popen(cmd, return_list)
+M.check_output = function(cmd, return_list)
     local stdout_lines = {}
-    local jid = M.start(cmd, {
+    local exit_code = M.start(cmd, {
         on_stdout = function(lines) vim.list_extend(stdout_lines, lines) end
-    }, function(code) if code ~= 0 then stdout_lines = nil end end)
-    vim.fn.jobwait({jid})
+    })
+    if exit_code ~= 0 then stdout_lines = nil end
 
     if return_list then return List(stdout_lines) end
     return table.concat(stdout_lines, '\n')

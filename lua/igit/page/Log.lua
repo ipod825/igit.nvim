@@ -39,14 +39,14 @@ function M:get_anchor_branch()
     local mark = self:current_buf().ctx.mark
     return {
         base = mark and mark[1].branch or
-            job.popen(git.branch('--show-current'))
+            job.check_output(git.branch('--show-current'))
     }
 end
 
 function M:get_current_branch_or_sha()
-    local branch = job.popen(git.branch('--show-current'))
+    local branch = job.check_output(git.branch('--show-current'))
     if branch ~= '' then return branch end
-    return job.popen(git['rev-parse']('HEAD'))
+    return job.check_output(git['rev-parse']('HEAD'))
 end
 
 function M:get_primary_mark_or_current_reference()
@@ -84,12 +84,11 @@ function M:rebase()
 
     self:rebase_branches({
         current_buf = self:current_buf(),
-        ori_reference = job.popen(git.branch('--show-current')),
+        ori_reference = job.check_output(git.branch('--show-current')),
         branches = branches,
         base_reference = self:get_primary_mark_or_current_reference(),
-        grafted_ancestor = job.popen(git['rev-parse'](
-                                         ('%s^1'):format(
-                                             self:parse_line(row_end).sha)))
+        grafted_ancestor = job.check_output(
+            git['rev-parse'](('%s^1'):format(self:parse_line(row_end).sha)))
     })
 end
 

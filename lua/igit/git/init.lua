@@ -49,7 +49,7 @@ end
 
 function M.status_porcelain()
     local res = {}
-    for line in job.popen(M.status('--porcelain'), true):values() do
+    for line in job.check_output(M.status('--porcelain'), true):values() do
         local state, old_filename, _, new_filename = unpack(line:split())
         res[old_filename] = {
             index = state:sub(1, 1),

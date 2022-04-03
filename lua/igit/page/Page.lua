@@ -53,7 +53,7 @@ end
 
 function M:runasync_all_and_reload(cmds)
     local current_buf = self:current_buf()
-    job.runasync_all(cmds)
+    job.start_all(cmds)
     current_buf:reload()
 end
 

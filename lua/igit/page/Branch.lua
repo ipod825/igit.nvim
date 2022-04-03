@@ -60,7 +60,7 @@ function M:show() self:SUPER():show(self:parse_line().branch) end
 function M:rebase()
     self:rebase_branches({
         current_buf = self:current_buf(),
-        ori_reference = job.popen(git.branch('--show-current')),
+        ori_reference = job.check_output(git.branch('--show-current')),
         branches = self:get_branches_in_rows(vimfn.visual_rows()),
         base_reference = self:get_primary_mark_or_current_branch(),
         grafted_ancestor = self:get_secondary_mark_branch() or ''
@@ -82,8 +82,9 @@ end
 
 function M:get_primary_mark_or_current_branch()
     local mark = self:current_buf().ctx.mark
-    job.popen(git.branch('--show-current'))
-    return mark and mark[1].branch or job.popen(git.branch('--show-current'))
+    job.check_output(git.branch('--show-current'))
+    return mark and mark[1].branch or
+               job.check_output(git.branch('--show-current'))
 end
 
 function M:get_secondary_mark_branch()
@@ -95,7 +96,7 @@ function M:get_anchor()
     local mark = self:current_buf().ctx.mark
     return {
         base = mark and mark[1].branch or
-            job.popen(git.branch('--show-current')),
+            job.check_output(git.branch('--show-current')),
         grafted_ancestor = mark and mark[2] and mark[2].branch
     }
 end

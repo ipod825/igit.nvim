@@ -54,7 +54,7 @@ function M:commit_submit(git_dir, opts)
                                      git.commit_message_file_path(git_dir)))
     local gita = git.with_default_args({git_dir = git_dir})
     if opts.backup_branch then
-        local base_branch = job.popen(gita.branch('--show-current'))
+        local base_branch = job.check_output(gita.branch('--show-current'))
         local backup_branch =
             ('%s_original_created_by_igit'):format(base_branch)
         job.start(gita.branch(('%s %s'):format(backup_branch, base_branch)))

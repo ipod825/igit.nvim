@@ -33,7 +33,9 @@ end
 
 function M:remove_dir(d) job.start(('rm -rf %s %s_bak'):format(d, d)) end
 
-function M:current_branch() return job.popen(self.git.branch('--show-current')) end
+function M:current_branch()
+    return job.check_output(self.git.branch('--show-current'))
+end
 
 function M:create_dir()
     local root = '/tmp/igit-test'
