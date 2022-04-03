@@ -1,5 +1,4 @@
 local M = require 'igit.libp.datatype.Class':EXTEND()
-local job = require 'igit.libp.job'
 local uv = vim.loop
 
 M.git = setmetatable({}, {
@@ -11,40 +10,35 @@ M.git = setmetatable({}, {
     end
 })
 
+local sync = function(cmd, opts)
+    vim.fn.jobwait({vim.fn.jobstart(cmd, opts or {cwd = '.'})})
+end
+
 function M:init()
     self.files = {'f1', 'f2'}
     self.branches = {'b1', 'b2'}
-    self.root = self:refresh()
 end
 
 function M:refresh()
     if self.root ~= nil then
-        vim.fn.system(('rm -rf %s'):format(self.root))
-        vim.fn.system(('cp -r %s_bak %s'):format(self.root, self.root))
-        -- job.start(('rm -rf %s'):format(self.root))
-        -- job.start(('cp -r %s_bak %s'):format(self.root, self.root))
+        sync(('rm -rf %s'):format(self.root))
+        sync(('cp -r %s_bak %s'):format(self.root, self.root))
         return self.root
     end
     self.root = self:create_dir()
-    vim.fn.system(('cp -r %s %s_bak'):format(self.root, self.root))
-    -- job.start(('cp -r %s %s_bak'):format(self.root, self.root))
+    sync(('cp -r %s %s_bak'):format(self.root, self.root))
     return self.root
 end
 
-function M:remove_dir(d) job.start(('rm -rf %s %s_bak'):format(d, d)) end
-
 function M:current_branch()
-    return job.check_output(self.git.branch('--show-current'))
+    return vim.fn.trim(vim.fn.system(self.git.branch('--show-current')))
 end
 
 function M:create_dir()
     local root = '/tmp/igit-test'
-    vim.fn.system(('rm -rf %s %s_bak'):format(root, root))
-    -- job.start(('rm -rf %s %s_bak'):format(root, root))
+    sync(('rm -rf %s %s_bak'):format(root, root))
     assert(uv.fs_mkdir(root, 448), "Faile to create directory")
-    local run = function(cmd)
-        vim.fn.jobwait({vim.fn.jobstart(cmd, {cwd = root})})
-    end
+    local run = function(cmd) sync(cmd, {cwd = root}) end
     run(('git init --initial-branch %s .'):format(self.branches[1]))
     run(('echo "line 1" > %s'):format(self.files[1]))
     run(self.git.add('.'))
