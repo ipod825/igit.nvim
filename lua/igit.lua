@@ -5,6 +5,7 @@ local job = require("igit.libp.job")
 local a = require("plenary.async")
 
 function M.setup(opts)
+	opts = opts or {}
 	require("igit.log"):config(opts)
 	M.log = require("igit.page.Log")(opts)
 	M.branch = require("igit.page.Branch")(opts)

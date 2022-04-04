@@ -9,6 +9,7 @@ local path = require("igit.libp.path")
 local Set = require("igit.libp.datatype.Set")
 local log = require("igit.log")
 
+igit.setup()
 local reload_done
 local setup = function()
 	local root = test_dir:refresh()
