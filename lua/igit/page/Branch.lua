@@ -114,8 +114,7 @@ function M:new_branch()
         end,
         update = function(ori_branches, new_branches)
             for new_branch in (new_branches - ori_branches):values() do
-                job.start(git.checkout(('-b %s %s'):format(new_branch,
-                                                           base_branch)))
+                job.start(git.branch(('%s %s'):format(new_branch, base_branch)))
             end
         end
     })
@@ -124,6 +123,7 @@ function M:new_branch()
 end
 
 function M:force_delete_branch()
+    log.warn(vimfn.visual_rows())
     local cmds = self:get_branches_in_rows(vimfn.visual_rows()):map(
                      function(b) return git.branch('-D ' .. b) end):collect()
     self:runasync_all_and_reload(cmds)
