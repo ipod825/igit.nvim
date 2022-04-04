@@ -118,7 +118,7 @@ function M:add_key_map(mode, key, fn)
 
     local modify_buffer = true
     if type(fn) == 'table' then
-        modify_buffer = fn.modify_buffer
+        modify_buffer = fn.modify_buffer or true
         fn = fn.callback
     end
 
@@ -235,6 +235,17 @@ function M:restore_view()
     end
 end
 
+function M:register_reload_notification()
+    -- This functoin is mainly for testing purpose. When the reload function is
+    -- not invoked by the main testing coroutine (a.void) but by a (autocmd)
+    -- callback, the main testing coroutine won't block until reload finishes as
+    -- reload is invoked by another coroutine. This function returns a mutex so
+    -- that the other coroutine can notify the main testing coroutine when it
+    -- completes the reload function.
+    self.reload_done = a.control.Condvar.new()
+    return self.reload_done
+end
+
 function M:reload()
     if self.filetype then
         vim.api.nvim_buf_set_option(self.id, 'filetype', self.filetype)
@@ -285,6 +296,8 @@ function M:reload()
     if vim.api.nvim_win_is_valid(w) then
         vim.api.nvim_win_set_option(w, 'statusline', ori_st)
     end
+
+    if self.reload_done then self.reload_done:notify_one() end
 end
 
 return M
