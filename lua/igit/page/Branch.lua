@@ -123,7 +123,6 @@ function M:new_branch()
 end
 
 function M:force_delete_branch()
-    log.warn(vimfn.visual_rows())
     local cmds = self:get_branches_in_rows(vimfn.visual_rows()):map(
                      function(b) return git.branch('-D ' .. b) end):collect()
     self:runasync_all_and_reload(cmds)

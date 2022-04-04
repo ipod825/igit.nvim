@@ -6,6 +6,7 @@ local uv = vim.loop
 function M:init()
     self.files = {'f1', 'f2'}
     self.path1 = {'b1', 'b2'}
+    self.path2 = {'b3', 'b4'}
 end
 
 function M:refresh()
@@ -39,6 +40,22 @@ function M:create_dir()
     run(('echo "line 2" >> %s'):format(self.files[1]))
     run(git.add('.'))
     run(git.commit('-m "second"'))
+
+    run(git.checkout(self.path1[1]))
+
+    run(git.checkout('-b ' .. self.path2[1]))
+    run(('echo "line 1" >> %s'):format(self.files[2]))
+    run(git.add('.'))
+    run(git.commit('-m "path2 first"'))
+
+    run(git.checkout('-b ' .. self.path2[2]))
+    run(('echo "line 2" >> %s'):format(self.files[2]))
+    run(git.add('.'))
+    run(git.commit('-m "path2 second"'))
+
+    run(('echo "line 2" >> %s'):format(self.files[2]))
+    run(git.add('.'))
+    run(git.commit('-m "path2 third"'))
 
     run(git.checkout(self.path1[1]))
     return root
