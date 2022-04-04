@@ -5,7 +5,7 @@ local uv = vim.loop
 
 function M:init()
     self.files = {'f1', 'f2'}
-    self.init_branches = {'b1', 'b2', 'b3'}
+    self.path1 = {'b1', 'b2'}
 end
 
 function M:refresh()
@@ -30,22 +30,17 @@ function M:create_dir()
     test_util.jobrun(('rm -rf %s %s_bak'):format(root, root))
     assert(uv.fs_mkdir(root, 448), "Faile to create directory")
     local run = function(cmd) test_util.jobrun(cmd, {cwd = root}) end
-    run(('git init --initial-branch %s .'):format(self.init_branches[1]))
+    run(('git init --initial-branch %s .'):format(self.path1[1]))
     run(('echo "line 1" > %s'):format(self.files[1]))
     run(git.add('.'))
     run(git.commit('-m "first"'))
 
-    run(git.checkout('-b ' .. self.init_branches[2]))
+    run(git.checkout('-b ' .. self.path1[2]))
     run(('echo "line 2" >> %s'):format(self.files[1]))
     run(git.add('.'))
     run(git.commit('-m "second"'))
 
-    run(git.checkout('-b ' .. self.init_branches[3]))
-    run(('echo "line 3" >> %s'):format(self.files[1]))
-    run(git.add('.'))
-    run(git.commit('-m "third"'))
-
-    run(git.checkout(self.init_branches[1]))
+    run(git.checkout(self.path1[1]))
     return root
 end
 
