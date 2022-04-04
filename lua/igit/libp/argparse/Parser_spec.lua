@@ -125,27 +125,27 @@ describe("add_subparser", function()
 	end)
 end)
 
-describe("get_completion_list", function()
-	local parser = nil
-	before_each(function()
-		parser = Parser()
-		parser:add_argument("a", { type = "number" })
-		parser:add_argument("--flag", { nargs = 2 })
-		parser:add_subparser("sub2")
-		local sub_parser = parser:add_subparser("sub")
-		sub_parser:add_argument("sub_a", { type = "number" })
-		sub_parser:add_argument("--sub_flag", { nargs = 2 })
-	end)
-
-	it("Returns top flag and subcommands", function()
-		assert.are.same(parser:get_completion_list("PROG"), {
-			flags = { "--flag" },
-			argparse_commands = { "sub", "sub2" },
-		})
-	end)
-
-	it("Returns sub-flags", function()
-		assert.are.same(parser:get_completion_list("sub"), { flags = { "--sub_flag" }, argparse_commands = {} })
-		assert.are.same(parser:get_completion_list("sub2"), { flags = {}, argparse_commands = {} })
-	end)
-end)
+-- describe("get_completion_list", function()
+-- 	local parser = nil
+-- 	before_each(function()
+-- 		parser = Parser()
+-- 		parser:add_argument("a", { type = "number" })
+-- 		parser:add_argument("--flag", { nargs = 2 })
+-- 		parser:add_subparser("sub2")
+-- 		local sub_parser = parser:add_subparser("sub")
+-- 		sub_parser:add_argument("sub_a", { type = "number" })
+-- 		sub_parser:add_argument("--sub_flag", { nargs = 2 })
+-- 	end)
+--
+-- 	it("Returns top flag and subcommands", function()
+-- 		assert.are.same(parser:get_completion_list("PROG"), {
+-- 			flags = { "--flag" },
+-- 			argparse_commands = { "sub", "sub2" },
+-- 		})
+-- 	end)
+--
+-- 	it("Returns sub-flags", function()
+-- 		assert.are.same(parser:get_completion_list("sub"), { flags = { "--sub_flag" }, argparse_commands = {} })
+-- 		assert.are.same(parser:get_completion_list("sub2"), { flags = {}, argparse_commands = {} })
+-- 	end)
+-- end)
