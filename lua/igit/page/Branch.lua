@@ -1,142 +1,150 @@
-local M = require 'igit.page.Page':EXTEND()
-local git = require('igit.git')
-local vimfn = require('igit.libp.vimfn')
-local term_utils = require('igit.libp.terminal_utils')
-local job = require('igit.libp.job')
-local Iterator = require('igit.libp.datatype.Iterator')
-local Set = require('igit.libp.datatype.Set')
-local log = require 'igit.log'
+local M = require("igit.page.Page"):EXTEND()
+local git = require("igit.git")
+local vimfn = require("igit.libp.vimfn")
+local term_utils = require("igit.libp.terminal_utils")
+local job = require("igit.libp.job")
+local Iterator = require("igit.libp.datatype.Iterator")
+local Set = require("igit.libp.datatype.Set")
+local log = require("igit.log")
 
 function M:init(options)
-    self.options = vim.tbl_deep_extend('force', {
-        mapping = {
-            n = {
-                ['<cr>'] = self:BIND(self.switch),
-                ['i'] = self:BIND(self.rename),
-                ['m'] = {callback = self:BIND(self.mark), modify_buffer = false},
-                ['r'] = self:BIND(self.rebase),
-                ['o'] = self:BIND(self.new_branch),
-                ['X'] = self:BIND(self.force_delete_branch),
-                ['s'] = self:BIND(self.show)
-            },
-            v = {
-                ['r'] = self:BIND(self.rebase),
-                ['X'] = self:BIND(self.force_delete_branch)
-            }
-        },
-        args = {'-v'}
-    }, options.branch or {})
+	self.options = vim.tbl_deep_extend("force", {
+		mapping = {
+			n = {
+				["<cr>"] = self:BIND(self.switch),
+				["i"] = self:BIND(self.rename),
+				["m"] = { callback = self:BIND(self.mark), modify_buffer = false },
+				["r"] = self:BIND(self.rebase),
+				["o"] = self:BIND(self.new_branch),
+				["X"] = self:BIND(self.force_delete_branch),
+				["s"] = self:BIND(self.show),
+			},
+			v = {
+				["r"] = self:BIND(self.rebase),
+				["X"] = self:BIND(self.force_delete_branch),
+			},
+		},
+		args = { "-v" },
+	}, options.branch or {})
 end
 
 function M:rename()
-    self:current_buf():edit({
-        get_items = function()
-            return self:get_branches_in_rows(1, vim.fn.line('$'))
-        end,
-        update = function(ori_items, new_items)
-            if #ori_items ~= #new_items then
-                vim.notify("Can't remove or add items!")
-                return
-            end
-            for i = 1, #ori_items do
-                local intermediate = ('%s-igitrename'):format(ori_items[i])
-                job.start(('git branch -m %s %s'):format(ori_items[i],
-                                                         intermediate))
-            end
-            for i = 1, #ori_items do
-                local intermediate = ('%s-igitrename'):format(ori_items[i])
-                job.start(('git branch -m %s %s'):format(intermediate,
-                                                         new_items[i]))
-            end
-        end
-    })
+	self:current_buf():edit({
+		get_items = function()
+			return self:get_branches_in_rows(1, vim.fn.line("$"))
+		end,
+		update = function(ori_items, new_items)
+			if #ori_items ~= #new_items then
+				vim.notify("Can't remove or add items!")
+				return
+			end
+			for i = 1, #ori_items do
+				local intermediate = ("%s-igitrename"):format(ori_items[i])
+				job.start(("git branch -m %s %s"):format(ori_items[i], intermediate))
+			end
+			for i = 1, #ori_items do
+				local intermediate = ("%s-igitrename"):format(ori_items[i])
+				job.start(("git branch -m %s %s"):format(intermediate, new_items[i]))
+			end
+		end,
+	})
 end
 
-function M:mark() self:current_buf()
-    :mark({branch = self:parse_line().branch}, 2) end
+function M:mark()
+	self:current_buf():mark({ branch = self:parse_line().branch }, 2)
+end
 
-function M:show() self:SUPER():show(self:parse_line().branch) end
+function M:show()
+	self:SUPER():show(self:parse_line().branch)
+end
 
 function M:rebase()
-    self:rebase_branches({
-        current_buf = self:current_buf(),
-        ori_reference = job.check_output(git.branch('--show-current')),
-        branches = self:get_branches_in_rows(vimfn.visual_rows()),
-        base_reference = self:get_primary_mark_or_current_branch(),
-        grafted_ancestor = self:get_secondary_mark_branch() or ''
-    })
+	self:rebase_branches({
+		current_buf = self:current_buf(),
+		ori_reference = job.check_output(git.branch("--show-current")),
+		branches = self:get_branches_in_rows(vimfn.visual_rows()),
+		base_reference = self:get_primary_mark_or_current_branch(),
+		grafted_ancestor = self:get_secondary_mark_branch() or "",
+	})
 end
 
 function M:parse_line(linenr)
-    linenr = linenr or '.'
-    local line = term_utils.remove_ansi_escape(vim.fn.getline(linenr))
-    local res = {is_current = false, branch = nil}
-    res.is_current = line:find_str('%s*(%*?)') ~= ''
-    res.branch = line:find_str('%s?([^%s%*]+)%s?')
-    return res
+	linenr = linenr or "."
+	local line = term_utils.remove_ansi_escape(vim.fn.getline(linenr))
+	local res = { is_current = false, branch = nil }
+	res.is_current = line:find_str("%s*(%*?)") ~= ""
+	res.branch = line:find_str("%s?([^%s%*]+)%s?")
+	return res
 end
 
 function M:switch()
-    self:runasync_and_reload(git.checkout(self:parse_line().branch))
+	self:runasync_and_reload(git.checkout(self:parse_line().branch))
 end
 
 function M:get_primary_mark_or_current_branch()
-    local mark = self:current_buf().ctx.mark
-    job.check_output(git.branch('--show-current'))
-    return mark and mark[1].branch or
-               job.check_output(git.branch('--show-current'))
+	local mark = self:current_buf().ctx.mark
+	job.check_output(git.branch("--show-current"))
+	return mark and mark[1].branch or job.check_output(git.branch("--show-current"))
 end
 
 function M:get_secondary_mark_branch()
-    local mark = self:current_buf().ctx.mark
-    return mark and mark[2] and mark[2].branch
+	local mark = self:current_buf().ctx.mark
+	return mark and mark[2] and mark[2].branch
 end
 
 function M:get_anchor()
-    local mark = self:current_buf().ctx.mark
-    return {
-        base = mark and mark[1].branch or
-            job.check_output(git.branch('--show-current')),
-        grafted_ancestor = mark and mark[2] and mark[2].branch
-    }
+	local mark = self:current_buf().ctx.mark
+	return {
+		base = mark and mark[1].branch or job.check_output(git.branch("--show-current")),
+		grafted_ancestor = mark and mark[2] and mark[2].branch,
+	}
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
-    return Iterator.range(row_beg, row_end):map(
-               function(e) return self:parse_line(e).branch end):collect()
+	return Iterator.range(row_beg, row_end)
+		:map(function(e)
+			return self:parse_line(e).branch
+		end)
+		:collect()
 end
 
 function M:new_branch()
-    local base_branch = self:get_primary_mark_or_current_branch()
-    self:current_buf():edit({
-        get_items = function()
-            return Set(self:get_branches_in_rows(vimfn.all_rows()))
-        end,
-        update = function(ori_branches, new_branches)
-            for new_branch in (new_branches - ori_branches):values() do
-                job.start(git.branch(('%s %s'):format(new_branch, base_branch)))
-            end
-        end
-    })
-    vim.cmd('normal! o')
-    vim.cmd('startinsert')
+	local base_branch = self:get_primary_mark_or_current_branch()
+	self:current_buf():edit({
+		get_items = function()
+			return Set(self:get_branches_in_rows(vimfn.all_rows()))
+		end,
+		update = function(ori_branches, new_branches)
+			for new_branch in (new_branches - ori_branches):values() do
+				job.start(git.branch(("%s %s"):format(new_branch, base_branch)))
+			end
+		end,
+	})
+	vim.cmd("normal! o")
+	vim.cmd("startinsert")
 end
 
 function M:force_delete_branch()
-    local cmds = self:get_branches_in_rows(vimfn.visual_rows()):map(
-                     function(b) return git.branch('-D ' .. b) end):collect()
-    self:runasync_all_and_reload(cmds)
+	local cmds = self
+		:get_branches_in_rows(vimfn.visual_rows())
+		:map(function(b)
+			return git.branch("-D " .. b)
+		end)
+		:collect()
+	self:runasync_all_and_reload(cmds)
 end
 
 function M:open(args)
-    args = args or self.options.args
-    self:open_or_new_buffer(args, {
-        vcs_root = git.find_root(),
-        type = 'branch',
-        mappings = self.options.mapping,
-        buf_enter_reload = true,
-        content = function() return git.branch(args) end
-    })
+	args = args or self.options.args
+	self:open_or_new_buffer(args, {
+		vcs_root = git.find_root(),
+		type = "branch",
+		mappings = self.options.mapping,
+		buf_enter_reload = true,
+		content = function()
+			return git.branch(args)
+		end,
+	})
 end
 
 return M

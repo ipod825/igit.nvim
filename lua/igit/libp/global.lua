@@ -7,13 +7,11 @@
 local M = {}
 
 setmetatable(M, {
-    __call = function(_, name)
-        name = '__' .. name
-        _G[name] = _G[name] or
-                       setmetatable({},
-                                    {__index = _G[name], __newindex = _G[name]})
-        return _G[name]
-    end
+	__call = function(_, name)
+		name = "__" .. name
+		_G[name] = _G[name] or setmetatable({}, { __index = _G[name], __newindex = _G[name] })
+		return _G[name]
+	end,
 })
 
 return M
