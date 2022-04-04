@@ -9,7 +9,7 @@ local path = require("igit.libp.path")
 local Set = require("igit.libp.datatype.Set")
 local log = require("igit.log")
 
-require'igit'.register_vcs_module(igit, {})
+require("igit").register_vcs_module(igit, {})
 local reload_done
 local setup = function()
 	local root = test_dir:refresh()
