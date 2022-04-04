@@ -1,5 +1,5 @@
-local M = require("igit.page.Page"):EXTEND()
-local git = require("igit.git")
+local M = require("igit.vcs.git.page.Page"):EXTEND()
+local git = require("igit.vcs.git.git")
 local job = require("igit.libp.job")
 local Iterator = require("igit.libp.datatype.Iterator")
 local term_utils = require("igit.libp.terminal_utils")
@@ -20,7 +20,7 @@ function M:init(options)
 		},
 		args = { "--oneline", "--branches", "--graph", "--decorate=short" },
 		buf_enter_reload = false,
-	}, options.log or {})
+	}, options or {})
 end
 
 function M:switch()
@@ -133,7 +133,7 @@ end
 function M:open(args)
 	args = args or self.options.args
 	self:open_or_new_buffer(args, {
-		vcs_root = git.find_root(),
+		git_root = git.find_root(),
 		type = "log",
 		mappings = self.options.mapping,
 		buf_enter_reload = self.options.buf_enter_reload,

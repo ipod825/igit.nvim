@@ -1,7 +1,7 @@
 local a = require("plenary.async")
 local describe = a.tests.describe
 local it = a.tests.it
-local igit = require("igit")
+local igit = require("igit.vcs.git")
 local util = require("igit.test_util")
 local git = util.git
 local test_dir = require("igit.test_util.TestDir")()
@@ -9,7 +9,7 @@ local path = require("igit.libp.path")
 local Set = require("igit.libp.datatype.Set")
 local log = require("igit.log")
 
-igit.setup()
+require'igit'.register_vcs_module(igit, {})
 local reload_done
 local setup = function()
 	local root = test_dir:refresh()

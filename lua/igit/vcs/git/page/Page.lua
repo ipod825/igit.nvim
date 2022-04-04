@@ -3,12 +3,12 @@ local path = require("igit.libp.path")
 local Set = require("igit.libp.datatype.Set")
 local job = require("igit.libp.job")
 local a = require("plenary.async")
-local git = require("igit.git")
+local git = require("igit.vcs.git.git")
 local log = require("igit.log")
 local ui = require("igit.libp.ui")
 
 function M:open_or_new_buffer(key, opts)
-	if opts.vcs_root == nil or opts.vcs_root == "" then
+	if opts.git_root == nil or opts.git_root == "" then
 		vim.notify("No git project found!")
 		return
 	end
@@ -19,7 +19,7 @@ function M:open_or_new_buffer(key, opts)
 
 	vim.validate({
 		key = { key, "string" },
-		vcs_root = { opts.vcs_root, "string" },
+		git_root = { opts.git_root, "string" },
 		type = { opts.type, "string" },
 	})
 
@@ -29,8 +29,8 @@ function M:open_or_new_buffer(key, opts)
 
 	opts = vim.tbl_deep_extend("force", {
 		open_cmd = "tab drop",
-		filename = ("igit://%s-%s%s"):format(path.basename(opts.vcs_root), opts.type, self.buffer_index[key]),
-		b = { vcs_root = opts.vcs_root },
+		filename = ("igit://%s-%s%s"):format(path.basename(opts.git_root), opts.type, self.buffer_index[key]),
+		b = { git_root = opts.git_root },
 		bo = vim.tbl_extend("keep", opts.bo or {}, {
 			filetype = "igit-" .. opts.type,
 			bufhidden = "hide",
@@ -40,7 +40,7 @@ function M:open_or_new_buffer(key, opts)
 	}, opts)
 
 	local buffer = ui.Buffer.open_or_new(opts)
-	vim.cmd("lcd " .. opts.vcs_root)
+	vim.cmd("lcd " .. opts.git_root)
 	return buffer
 end
 

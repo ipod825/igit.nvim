@@ -31,13 +31,13 @@ local cmd_with_default_args = function(cmd, opts)
 		git_dir = { opts.git_dir, "string", true },
 		no_color = { opts.no_color, "boolean", true },
 	})
-	local git_dir = opts.git_dir or vim.b.vcs_root or M.find_root()
+	local git_dir = opts.git_dir or vim.b.git_root or M.find_root()
 	local color_str = opts.no_color and "" or "-c color.ui=always"
 	return git_dir and ("git --no-pager %s -C %s %s"):format(color_str, git_dir, cmd) or nil
 end
 
 function M.find_root()
-	local res = vim.b.vcs_root or path.find_directory(".git")
+	local res = vim.b.git_root or path.find_directory(".git")
 	return res
 end
 

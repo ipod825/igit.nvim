@@ -1,5 +1,5 @@
-local M = require("igit.page.Page"):EXTEND()
-local git = require("igit.git")
+local M = require("igit.vcs.git.page.Page"):EXTEND()
+local git = require("igit.vcs.git.git")
 local job = require("igit.libp.job")
 local global = require("igit.global")
 local vimfn = require("igit.libp.vimfn")
@@ -31,7 +31,7 @@ function M:init(options)
 			},
 		},
 		args = { "-s" },
-	}, options.status or {})
+	}, options or {})
 end
 
 function M:open_file(open_cmd)
@@ -166,7 +166,7 @@ end
 function M:open(args)
 	args = args or self.options.args
 	self:open_or_new_buffer(args, {
-		vcs_root = git.find_root(),
+		git_root = git.find_root(),
 		type = "status",
 		mappings = self.options.mapping,
 		buf_enter_reload = true,
