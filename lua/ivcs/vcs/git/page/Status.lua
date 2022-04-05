@@ -56,7 +56,7 @@ function M:commit_submit(git_dir, opts)
 	local gita = git.with_default_args({ git_dir = git_dir })
 	if opts.backup_branch then
 		local base_branch = job.check_output(gita.branch("--show-current"))
-		local backup_branch = ("%s_original_created_by_igit"):format(base_branch)
+		local backup_branch = ("%s_original_created_by_ivcs"):format(base_branch)
 		job.start(gita.branch(("%s %s"):format(backup_branch, base_branch)))
 	end
 	job.start(gita.commit(('%s -m "%s"'):format(opts.amend and "--amend" or "", table.concat(lines, "\n")), git_dir))
@@ -105,7 +105,7 @@ function M:side_diff()
 
 	local grid = ui.Grid()
 	local index_buf = ui.Buffer({
-		filename = ("igit://HEAD:%s"):format(cline_info.filepath),
+		filename = ("ivcs://HEAD:%s"):format(cline_info.filepath),
 		content = function()
 			return git.show(":%s"):format(cline_info.filepath)
 		end,

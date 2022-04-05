@@ -39,11 +39,11 @@ function M:rename()
 				return
 			end
 			for i = 1, #ori_items do
-				local intermediate = ("%s-igitrename"):format(ori_items[i])
+				local intermediate = ("%s-ivcsrename"):format(ori_items[i])
 				job.start(("git branch -m %s %s"):format(ori_items[i], intermediate))
 			end
 			for i = 1, #ori_items do
-				local intermediate = ("%s-igitrename"):format(ori_items[i])
+				local intermediate = ("%s-ivcsrename"):format(ori_items[i])
 				job.start(("git branch -m %s %s"):format(intermediate, new_items[i]))
 			end
 		end,

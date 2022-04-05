@@ -29,10 +29,10 @@ function M:open_or_new_buffer(key, opts)
 
 	opts = vim.tbl_deep_extend("force", {
 		open_cmd = "tab drop",
-		filename = ("igit://%s-%s%s"):format(path.basename(opts.git_root), opts.type, self.buffer_index[key]),
+		filename = ("ivcs://%s-%s%s"):format(path.basename(opts.git_root), opts.type, self.buffer_index[key]),
 		b = { git_root = opts.git_root },
 		bo = vim.tbl_extend("keep", opts.bo or {}, {
-			filetype = "igit-" .. opts.type,
+			filetype = "ivcs-" .. opts.type,
 			bufhidden = "hide",
 			buftype = "nofile",
 			modifiable = false,
@@ -67,7 +67,7 @@ function M:show(reference)
 	grid:add_row({ focusable = true }):fill_window(ui.Window(
 		ui.Buffer({
 			-- todo: with filetype equal to git, the floating window somehow
-			-- shrink the height. Forking the syntax file to the igit folders
+			-- shrink the height. Forking the syntax file to the ivcs folders
 			-- does not have the same problem. Might be a neovim bug.
 			bo = { filetype = "git_fork" },
 			content = function()
@@ -92,7 +92,7 @@ function M:rebase_branches(opts)
 	local base_branch = opts.base_reference
 	a.void(function()
 		for _, new_branch in ipairs(opts.branches) do
-			local next_grafted_ancestor = ("%s_original_conflicted_with_%s_created_by_igit"):format(
+			local next_grafted_ancestor = ("%s_original_conflicted_with_%s_created_by_ivcs"):format(
 				new_branch,
 				base_branch
 			)
@@ -100,7 +100,7 @@ function M:rebase_branches(opts)
 			if grafted_ancestor ~= "" then
 				local succ = 0
 					== job.start(git.rebase(("--onto %s %s %s"):format(base_branch, grafted_ancestor, new_branch)))
-				if grafted_ancestor:endswith("created_by_igit") then
+				if grafted_ancestor:endswith("created_by_ivcs") then
 					job.start(git.branch("-D " .. grafted_ancestor))
 				end
 				if not succ then
