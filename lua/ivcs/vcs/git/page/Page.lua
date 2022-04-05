@@ -32,7 +32,7 @@ function M:open_or_new_buffer(key, opts)
 		filename = ("ivcs://%s-%s%s"):format(path.basename(opts.git_root), opts.type, self.buffer_index[key]),
 		b = { git_root = opts.git_root },
 		bo = vim.tbl_extend("keep", opts.bo or {}, {
-			filetype = "ivcs-" .. opts.type,
+			filetype = "ivcs",
 			bufhidden = "hide",
 			buftype = "nofile",
 			modifiable = false,
