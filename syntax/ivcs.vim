@@ -3,43 +3,66 @@ if exists("b:current_syntax")
 endif
 
 let b:current_syntax = "ivcs"
-
-syn match IvcsTermConceal conceal '\e\[[0-9;]*m'
-hi default link IvcsTermConceal Conceal
 setlocal conceallevel=3
-setlocal concealcursor=nvci
+" setlocal concealcursor=nvci
+setlocal concealcursor=nci
 setlocal nowrap
 
-exec 'syntax match Ivcs30 "\e\[33m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs31 "\e\[31m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs32 "\e\[32m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs33 "\e\[33m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs34 "\e\[34m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs35 "\e\[35m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs36 "\e\[36m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs37 "\e\[37m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'hi Ivcs30 ctermfg=30 guifg=#000000'
-exec 'hi Ivcs31 ctermfg=31 guifg=#cd0000'
-exec 'hi Ivcs32 ctermfg=32 guifg=#00cd00'
-exec 'hi Ivcs33 ctermfg=33 guifg=#cdcd00'
-exec 'hi Ivcs34 ctermfg=34 guifg=#000080'
-exec 'hi Ivcs35 ctermfg=35 guifg=#800080'
-exec 'hi Ivcs36 ctermfg=36 guifg=#008080'
-exec 'hi Ivcs37 ctermfg=37 guifg=#808080'
+syn match ansiConceal contained conceal "\e\[\(\d*;\)*\d*m\|\e\[K"
+hi def link ansiConceal	Ignore
 
-exec 'syntax match Ivcs30d "\e\[1;33m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs31d "\e\[1;31m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs32d "\e\[1;32m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs33d "\e\[1;33m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs34d "\e\[1;34m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs35d "\e\[1;35m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs36d "\e\[1;36m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'syntax match Ivcs37d "\e\[1;37m[^\e]*\e\[m"  contains=IvcsTermConceal'
-exec 'hi Ivcs30d ctermfg=30 guifg=#000000 gui=bold'
-exec 'hi Ivcs31d ctermfg=31 guifg=#ff0000 gui=bold'
-exec 'hi Ivcs32d ctermfg=32 guifg=#00ff00 gui=bold'
-exec 'hi Ivcs33d ctermfg=33 guifg=#ffff00 gui=bold'
-exec 'hi Ivcs34d ctermfg=34 guifg=#5c5cff gui=bold'
-exec 'hi Ivcs35d ctermfg=35 guifg=#ff00ff gui=bold'
-exec 'hi Ivcs36d ctermfg=36 guifg=#00ffff gui=bold'
-exec 'hi Ivcs37d ctermfg=37 guifg=#ffffff gui=bold'
+syn region ansiNone		start="\e\[[01;]m"           skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiNone		start="\e\[m"                skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiNone		start="\e\[\%(0;\)\=39;49m"  skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiNone		start="\e\[\%(0;\)\=49;39m"  skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiNone		start="\e\[\%(0;\)\=39m"     skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiNone		start="\e\[\%(0;\)\=49m"     skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiNone		start="\e\[\%(0;\)\=22m"     skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+	
+syn region ansiBlack		start="\e\[;\=0\{0,2};\=30m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiRed		start="\e\[;\=0\{0,2};\=31m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiGreen		start="\e\[;\=0\{0,2};\=32m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiYellow		start="\e\[;\=0\{0,2};\=33m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiBlue		start="\e\[;\=0\{0,2};\=34m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiMagenta	        start="\e\[;\=0\{0,2};\=35m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiCyan		start="\e\[;\=0\{0,2};\=36m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiWhite		start="\e\[;\=0\{0,2};\=37m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiGray		start="\e\[;\=0\{0,2};\=90m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+
+syn region ansiRed		start="\e\[;\=0\{0,2};\=91m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiGreen		start="\e\[;\=0\{0,2};\=92m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiYellow		start="\e\[;\=0\{0,2};\=93m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiBlue		start="\e\[;\=0\{0,2};\=94m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiMagenta	        start="\e\[;\=0\{0,2};\=95m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiCyan		start="\e\[;\=0\{0,2};\=96m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+syn region ansiWhite		start="\e\[;\=0\{0,2};\=97m" skip='\e\[K' end="\ze\e\[" contains=ansiConceal
+
+
+syntax match ansiBoldBlack   "\e\[1;33m[^\e]*\e\[m" contains=ansiConceal
+syntax match ansiBoldRed     "\e\[1;31m[^\e]*\e\[m" contains=ansiConceal
+syntax match ansiBoldGreen   "\e\[1;32m[^\e]*\e\[m" contains=ansiConceal
+syntax match ansiBoldYellow  "\e\[1;33m[^\e]*\e\[m" contains=ansiConceal
+syntax match ansiBoldBlue    "\e\[1;34m[^\e]*\e\[m" contains=ansiConceal
+syntax match ansiBoldMagenta "\e\[1;35m[^\e]*\e\[m" contains=ansiConceal
+syntax match ansiBoldCyan    "\e\[1;36m[^\e]*\e\[m" contains=ansiConceal
+syntax match ansiBoldWhite   "\e\[1;37m[^\e]*\e\[m" contains=ansiConceal
+
+hi ansiNone	cterm=NONE gui=NONE
+
+hi ansiBlack   ctermfg=black   guifg=#000000
+hi ansiRed     ctermfg=red     guifg=#cd0000
+hi ansiGreen   ctermfg=green   guifg=#00cd00
+hi ansiYellow  ctermfg=yellow  guifg=#cdcd00
+hi ansiBlue    ctermfg=blue    guifg=#000080
+hi ansiMagenta ctermfg=magenta guifg=#800080
+hi ansiCyan    ctermfg=cyan    guifg=#008080
+hi ansiWhite   ctermfg=white   guifg=#808080
+
+hi ansiBoldBlack   ctermfg=black   guifg=#000000 gui=bold
+hi ansiBoldRed     ctermfg=red     guifg=#ff0000 gui=bold
+hi ansiBoldGreen   ctermfg=green   guifg=#00ff00 gui=bold
+hi ansiBoldYellow  ctermfg=yellow  guifg=#ffff00 gui=bold
+hi ansiBoldBlue    ctermfg=blue    guifg=#5c5cff gui=bold
+hi ansiBoldMagenta ctermfg=magenta guifg=#ff00ff gui=bold
+hi ansiBoldCyan    ctermfg=cyan    guifg=#00ffff gui=bold
+hi ansiBoldWhite   ctermfg=white   guifg=#ffffff gui=bold
