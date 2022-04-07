@@ -21,6 +21,7 @@ function M:init(options)
 				["ca"] = self:BIND(self.commit, { amend = true }),
 				["cA"] = self:BIND(self.commit, { amend = true, backup_branch = true }),
 				["dd"] = self:BIND(self.side_diff),
+				["ds"] = self:BIND(self.side_stage_diff),
 				["<cr>"] = self:BIND(self.open_file),
 				["t"] = self:BIND(self.open_file, "tab drop"),
 			},
@@ -59,7 +60,7 @@ function M:commit_submit(git_dir, opts)
 		local backup_branch = ("%s_original_created_by_ivcs"):format(base_branch)
 		job.start(gita.branch(("%s %s"):format(backup_branch, base_branch)))
 	end
-	job.start(gita.commit(('%s -m "%s"'):format(opts.amend and "--amend" or "", table.concat(lines, "\n")), git_dir))
+	job.start(gita.commit(('%s -m "%s"'):format(opts.amend and "--amend" or "", table.concat(lines, "\n"))))
 end
 
 function M:commit(opts)
@@ -100,6 +101,47 @@ function M:change_action(action)
 	return #filepaths == 1
 end
 
+function M:side_stage_diff()
+	local cline_info = self:parse_line()
+
+	local grid = ui.Grid()
+	local stage_buf = ui.Buffer({
+		filename = ("ivcs://STAGE:%s"):format(cline_info.filepath),
+		bo = { modifiable = true, undolevels = vim.o.undolevels },
+		content = function()
+			return git.show(":%s"):format(cline_info.filepath)
+		end,
+	})
+
+	log.warn(stage_buf.id, vim.api.nvim_buf_get_name(stage_buf.id), "==========")
+	vim.api.nvim_create_autocmd("BufWipeout", {
+		buffer = stage_buf.id,
+		callback = function()
+			log.warn("in out wipe")
+			-- local content = vim.api.nvim_buf_get_lines(stage_buf.id, 0, -1, true)
+			-- local tempname = vim.fn.tempname()
+			-- local fd = a.uv.fs_open(tempname, "w", 448)
+			-- log.warn("writing to", tempname, fd)
+			-- a.uv.fs_write(fd, content)
+		end,
+	})
+
+	local worktree_buf = ui.FileBuffer(cline_info.abs_path)
+	vim.filetype.match(cline_info.abs_path, stage_buf.id)
+	vim.filetype.match(cline_info.abs_path, worktree_buf.id)
+
+	grid:add_row({ height = 1 }):fill_window(ui.Window(ui.Buffer({ content = { cline_info.filepath } })))
+	grid:add_row({ height = 1 }):vfill_windows({
+		ui.Window(ui.Buffer({ content = { "                 STAGE" } })),
+		ui.Window(ui.Buffer({ content = { "           Worktree" } })),
+	})
+	grid:add_row({ focusable = true, height = -1 }):vfill_windows({
+		ui.DiffWindow(stage_buf),
+		ui.DiffWindow(worktree_buf, { focus_on_open = true }),
+	}, true)
+	grid:show()
+end
+
 function M:side_diff()
 	local cline_info = self:parse_line()
 
@@ -127,28 +169,28 @@ function M:side_diff()
 end
 
 function M:clean_files()
-	self:change_action(function(path)
-		return git.clean("-ffd", path)
+	self:change_action(function(filepath)
+		return git.clean("-ffd", filepath)
 	end)
 end
 
 function M:discard_change()
-	self:change_action(function(path)
-		return git.restore(path)
+	self:change_action(function(filepath)
+		return git.restore(filepath)
 	end)
 end
 
 function M:stage_change()
-	if self:change_action(function(path)
-		return git.add(path)
+	if self:change_action(function(filepath)
+		return git.add(filepath)
 	end) then
 		vim.cmd("normal! j")
 	end
 end
 
 function M:unstage_change()
-	if self:change_action(function(path)
-		return git.restore("--staged", path)
+	if self:change_action(function(filepath)
+		return git.restore("--staged", filepath)
 	end) then
 		vim.cmd("normal! j")
 	end

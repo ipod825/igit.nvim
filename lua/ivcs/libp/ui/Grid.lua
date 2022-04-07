@@ -106,6 +106,9 @@ function M:show()
 		vim.api.nvim_create_autocmd("WinClosed", {
 			pattern = tostring(win_id),
 			once = true,
+			-- On floating window close, we would also like to handle events
+			-- such as BufDelete, BufEnter for the other buffers.
+			nested = true,
 			callback = function()
 				self.root:close()
 			end,
