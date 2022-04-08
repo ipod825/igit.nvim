@@ -12,6 +12,23 @@ describe("find_str", function()
 	end)
 end)
 
+describe("split_trim", function()
+	it("Defaults to use space as delimiter", function()
+		local a = "abc def ghi"
+		assert.are.same(a:split_trim(), { "abc", "def", "ghi" })
+	end)
+
+	it("Returns array with splited string", function()
+		local a = "abc def ghi"
+		assert.are.same(a:split_trim(" "), { "abc", "def", "ghi" })
+	end)
+
+	it("Trims each element", function()
+		local a = "abc, def, ghi"
+		assert.are.same(a:split_trim(","), { "abc", "def", "ghi" })
+	end)
+end)
+
 describe("split", function()
 	it("Defaults to use space as delimiter", function()
 		local a = "abc def ghi"
@@ -21,11 +38,6 @@ describe("split", function()
 	it("Returns array with splited string", function()
 		local a = "abc def ghi"
 		assert.are.same(a:split(" "), { "abc", "def", "ghi" })
-	end)
-
-	it("Trims each element", function()
-		local a = "abc, def, ghi"
-		assert.are.same(a:split(","), { "abc", "def", "ghi" })
 	end)
 end)
 

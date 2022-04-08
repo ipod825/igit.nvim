@@ -4,11 +4,20 @@ function String:trim()
 	return (self:gsub("^%s*(.-)%s*$", "%1"))
 end
 
-function String:split(sep)
+function String:split_trim(sep)
 	sep = sep or "%s"
 	local res = {}
 	for s in string.gmatch(self, "([^" .. sep .. "]+)") do
 		table.insert(res, s:trim())
+	end
+	return res
+end
+
+function String:split(sep)
+	sep = sep or "%s"
+	local res = {}
+	for s in string.gmatch(self, "([^" .. sep .. "]+)") do
+		table.insert(res, s)
 	end
 	return res
 end

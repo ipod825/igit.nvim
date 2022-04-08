@@ -122,7 +122,7 @@ function M:parse_line(linenr)
 	res.branches = branch_candidates
 			and vim.tbl_filter(function(e)
 				return e ~= "->" and e ~= "HEAD"
-			end, branch_candidates:split("%s,"))
+			end, branch_candidates:split_trim("%s,"))
 		or {}
 	res.references = vim.deepcopy(res.branches)
 	table.insert(res.references, res.sha)

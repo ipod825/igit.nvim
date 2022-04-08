@@ -120,7 +120,7 @@ function M:side_stage_diff()
 				staged_lines = vim.api.nvim_buf_get_lines(stage_buf.id, 0, -1, true)
 			end
 		end,
-		on_detach = a.void(function()
+		on_detach = vim.schedule_wrap(a.void(function()
 			if staged_lines == nil then
 				return
 			end
@@ -137,7 +137,7 @@ function M:side_stage_diff()
 			job.start(git.add(cline_info.filepath))
 			a.uv.fs_write(fd, ori_content, 0)
 			a.uv.fs_close(fd)
-		end),
+		end)),
 	})
 
 	local worktree_buf = ui.FileBuffer(cline_info.abs_path)

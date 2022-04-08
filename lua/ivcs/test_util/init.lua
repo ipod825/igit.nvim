@@ -7,7 +7,7 @@ function M.jobrun(cmd, opts)
 end
 
 function M.check_output(cmd)
-	return vim.fn.trim(vim.fn.system(cmd)):split("\n")
+	return vim.fn.trim(vim.fn.system(cmd)):split_trim("\n")
 end
 
 function M.setrow(nr)

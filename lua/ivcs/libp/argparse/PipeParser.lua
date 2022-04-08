@@ -2,7 +2,7 @@ local M = require("ivcs.libp.argparse.Parser")()
 
 function M:parse(str, return_hierarchical_result)
 	vim.validate({ str = { str, "string" } })
-	return self:parse_internal(str:split(), return_hierarchical_result)
+	return self:parse_internal(str:split_trim(), return_hierarchical_result)
 end
 
 function M:parse_internal(args, return_hierarchical_result)
