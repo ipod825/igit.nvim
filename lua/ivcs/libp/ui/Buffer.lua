@@ -68,8 +68,7 @@ function M:init(opts)
 	for k, v in pairs(bo) do
 		vim.api.nvim_buf_set_option(self.id, k, v)
 	end
-	self.undolevels = bo.undolevels
-	self.filetype = bo.filetype
+	self.bo = bo
 
 	-- The following autocmds might not be triggered due to nested autocmds. The
 	-- handlers are invoked manually in other places when necessary.
@@ -194,8 +193,8 @@ function M:save_edit()
 	self.ctx.edit.update(self.ctx.edit.ori_items, self.ctx.edit.get_items())
 	self.ctx.edit = nil
 	vim.bo.buftype = "nofile"
-	vim.bo.modifiable = false
-	vim.bo.undolevels = self.undolevels
+	vim.bo.modifiable = self.bo.modifiable
+	vim.bo.undolevels = self.bo.undolevels
 	self:mapfn(self.mappings)
 	self:reload()
 end
@@ -218,7 +217,7 @@ function M:edit(opts)
 	vim.bo.undolevels = -1
 	vim.bo.modifiable = true
 	vim.cmd("substitute/\\e\\[[0-9;]*m//g")
-	vim.bo.undolevels = (self.undolevels > 0) and self.undolevels or vim.api.nvim_get_option("undolevels")
+	vim.bo.undolevels = (self.bo.undolevels > 0) and self.bo.undolevels or vim.api.nvim_get_option("undolevels")
 end
 
 function M:unmapfn(mappings)
@@ -234,12 +233,15 @@ function M:unmapfn(mappings)
 end
 
 function M:clear()
+	vim.api.nvim_buf_set_option(self.id, "undolevels", -1)
 	vim.api.nvim_buf_set_option(self.id, "modifiable", true)
 	vim.api.nvim_buf_set_lines(self.id, 0, -1, false, {})
-	vim.api.nvim_buf_set_option(self.id, "modifiable", false)
+	vim.api.nvim_buf_set_option(self.id, "modifiable", self.bo.modifiable)
+	vim.api.nvim_buf_set_option(self.id, "undolevels", self.bo.undolevels)
 end
 
 function M:append(lines)
+	vim.api.nvim_buf_set_option(self.id, "undolevels", -1)
 	vim.api.nvim_buf_set_option(self.id, "modifiable", true)
 	-- Note that we assume the last element in lines is always '' which will be
 	-- overwriten by the next append call as the start index is -2. The reason
@@ -247,7 +249,8 @@ function M:append(lines)
 	-- empty buffer, the first line is always non-empty, insertion starting from
 	-- -1 will insert from the second line.
 	vim.api.nvim_buf_set_lines(self.id, -2, -1, false, lines)
-	vim.api.nvim_buf_set_option(self.id, "modifiable", false)
+	vim.api.nvim_buf_set_option(self.id, "modifiable", self.bo.modifiable)
+	vim.api.nvim_buf_set_option(self.id, "undolevels", self.bo.undolevels)
 end
 
 function M:save_view()
@@ -275,13 +278,13 @@ function M:register_reload_notification()
 end
 
 function M:reload()
-	if self.filetype then
-		vim.api.nvim_buf_set_option(self.id, "filetype", self.filetype)
+	if self.bo.filetype then
+		vim.api.nvim_buf_set_option(self.id, "filetype", self.bo.filetype)
 	end
 	if type(self.content) == "table" then
 		vim.api.nvim_buf_set_option(self.id, "modifiable", true)
 		vim.api.nvim_buf_set_lines(self.id, 0, -1, false, self.content)
-		vim.api.nvim_buf_set_option(self.id, "modifiable", false)
+		vim.api.nvim_buf_set_option(self.id, "modifiable", self.bo.modifiable)
 		return
 	end
 

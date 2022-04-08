@@ -113,17 +113,31 @@ function M:side_stage_diff()
 		end,
 	})
 
-	log.warn(stage_buf.id, vim.api.nvim_buf_get_name(stage_buf.id), "==========")
-	vim.api.nvim_create_autocmd("BufWipeout", {
-		buffer = stage_buf.id,
-		callback = function()
-			log.warn("in out wipe")
-			-- local content = vim.api.nvim_buf_get_lines(stage_buf.id, 0, -1, true)
-			-- local tempname = vim.fn.tempname()
-			-- local fd = a.uv.fs_open(tempname, "w", 448)
-			-- log.warn("writing to", tempname, fd)
-			-- a.uv.fs_write(fd, content)
+	local staged_lines = nil
+	vim.api.nvim_buf_attach(stage_buf.id, false, {
+		on_lines = function(...)
+			if not stage_buf.is_reloading then
+				staged_lines = vim.api.nvim_buf_get_lines(stage_buf.id, 0, -1, true)
+			end
 		end,
+		on_detach = a.void(function()
+			if staged_lines == nil then
+				return
+			end
+			local _, fd = a.uv.fs_open(cline_info.abs_path, "w", 448)
+			local err, stat = a.uv.fs_fstat(fd)
+			if err then
+				log.want(err)
+				vim.notify(err)
+				return
+			end
+			local _, ori_content = a.uv.fs_read(fd, stat.size, 0)
+			log.warn(table.concat(staged_lines, "\n"))
+			a.uv.fs_write(fd, table.concat(staged_lines, "\n"), 0)
+			job.start(git.add(cline_info.filepath))
+			a.uv.fs_write(fd, ori_content, 0)
+			a.uv.fs_close(fd)
+		end),
 	})
 
 	local worktree_buf = ui.FileBuffer(cline_info.abs_path)
