@@ -60,15 +60,14 @@ function M:commit_submit(git_dir, opts)
 		local backup_branch = ("%s_original_created_by_ivcs"):format(base_branch)
 		job.start(gita.branch(("%s %s"):format(backup_branch, base_branch)))
 	end
-	job.start(gita.commit(('%s -m "%s"'):format(opts.amend and "--amend" or "", table.concat(lines, "\n"))))
+	job.start(gita.commit({ opts.amend and "--amend", "-m", table.concat(lines, "\n") }))
 end
 
 function M:commit(opts)
 	opts = opts or {}
 	local git_dir = git.find_root()
-	local amend = opts.amend and "--amend" or ""
-	local prepare_commit_file_cmd = "GIT_EDITOR=false git commit " .. amend
-	job.start(prepare_commit_file_cmd, { silent = true })
+	local amend = opts.amend and "--amend"
+	job.start(git.commit(amend), { silent = true, env = { GIT_EDITOR = "false" } })
 	local commit_message_file_path = git.commit_message_file_path(git_dir)
 	vim.cmd("edit " .. commit_message_file_path)
 	vim.bo.bufhidden = "wipe"
@@ -120,7 +119,7 @@ function M:side_stage_diff()
 				staged_lines = vim.api.nvim_buf_get_lines(stage_buf.id, 0, -1, true)
 			end
 		end,
-		on_detach = vim.schedule_wrap(a.void(function()
+		on_detach = a.void(function()
 			if staged_lines == nil then
 				return
 			end
@@ -132,12 +131,11 @@ function M:side_stage_diff()
 				return
 			end
 			local _, ori_content = a.uv.fs_read(fd, stat.size, 0)
-			log.warn(table.concat(staged_lines, "\n"))
 			a.uv.fs_write(fd, table.concat(staged_lines, "\n"), 0)
 			job.start(git.add(cline_info.filepath))
 			a.uv.fs_write(fd, ori_content, 0)
 			a.uv.fs_close(fd)
-		end)),
+		end),
 	})
 
 	local worktree_buf = ui.FileBuffer(cline_info.abs_path)

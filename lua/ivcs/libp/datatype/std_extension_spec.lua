@@ -12,6 +12,35 @@ describe("find_str", function()
 	end)
 end)
 
+describe("split white space", function()
+	it("Defaults to use space as delimiter", function()
+		local a = "abc def ghi"
+		assert.are.same(a:split(), { "abc", "def", "ghi" })
+	end)
+
+	it("Removes leading white space", function()
+		local a = "     abc def ghi"
+		assert.are.same(a:split(" "), { "abc", "def", "ghi" })
+	end)
+
+	it("Removes multiple white space", function()
+		local a = "     abc        def ghi"
+		assert.are.same(a:split(" "), { "abc", "def", "ghi" })
+	end)
+end)
+
+describe("split non-white space", function()
+	it("Does not remove leading/tailing delimiter", function()
+		local a = "\nabc\ndef\nghi\n"
+		assert.are.same(a:split("\n"), { "", "abc", "def", "ghi", "" })
+	end)
+
+	it("Does not remove multiple delimiter", function()
+		local a = "abc\n\ndef\nghi"
+		assert.are.same(a:split("\n"), { "abc", "", "def", "ghi" })
+	end)
+end)
+
 describe("split_trim", function()
 	it("Defaults to use space as delimiter", function()
 		local a = "abc def ghi"
@@ -26,18 +55,6 @@ describe("split_trim", function()
 	it("Trims each element", function()
 		local a = "abc, def, ghi"
 		assert.are.same(a:split_trim(","), { "abc", "def", "ghi" })
-	end)
-end)
-
-describe("split", function()
-	it("Defaults to use space as delimiter", function()
-		local a = "abc def ghi"
-		assert.are.same(a:split(), { "abc", "def", "ghi" })
-	end)
-
-	it("Returns array with splited string", function()
-		local a = "abc def ghi"
-		assert.are.same(a:split(" "), { "abc", "def", "ghi" })
 	end)
 end)
 
@@ -61,5 +78,17 @@ describe("endsswith", function()
 		local a = "abc def"
 		assert.is_truthy(a:endswith("def"))
 		assert.is_falsy(a:endswith("abc"))
+	end)
+end)
+
+describe("unquote", function()
+	it("Returns empty string for empty string", function()
+		assert.are.equal((""):unquote(), "")
+	end)
+	it("Unquotes single quotation", function()
+		assert.are.equal(("'a'"):unquote(), "a")
+	end)
+	it("Unquotes double quotation", function()
+		assert.are.equal(('"a"'):unquote(), "a")
 	end)
 end)

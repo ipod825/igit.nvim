@@ -2,6 +2,7 @@ local M = require("ivcs.libp.datatype.Class"):EXTEND()
 local test_util = require("ivcs.test_util")
 local git = test_util.git
 local uv = vim.loop
+local log = require("ivcs.log")
 
 function M:init()
 	self.files = { "f1", "f2" }

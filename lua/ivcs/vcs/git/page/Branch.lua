@@ -40,11 +40,11 @@ function M:rename()
 			end
 			for i = 1, #ori_items do
 				local intermediate = ("%s-ivcsrename"):format(ori_items[i])
-				job.start(("git branch -m %s %s"):format(ori_items[i], intermediate))
+				job.start(git.branch("-m", ori_items[i], intermediate))
 			end
 			for i = 1, #ori_items do
 				local intermediate = ("%s-ivcsrename"):format(ori_items[i])
-				job.start(("git branch -m %s %s"):format(intermediate, new_items[i]))
+				job.start(git.branch("-m", intermediate, new_items[i]))
 			end
 		end,
 	})
@@ -116,7 +116,7 @@ function M:new_branch()
 		end,
 		update = function(ori_branches, new_branches)
 			for new_branch in (new_branches - ori_branches):values() do
-				job.start(git.branch(("%s %s"):format(new_branch, base_branch)))
+				job.start(git.branch(new_branch, base_branch))
 			end
 		end,
 	})
@@ -128,7 +128,7 @@ function M:force_delete_branch()
 	local cmds = self
 		:get_branches_in_rows(vimfn.visual_rows())
 		:map(function(b)
-			return git.branch("-D " .. b)
+			return git.branch("-D", b)
 		end)
 		:collect()
 	self:runasync_all_and_reload(cmds)

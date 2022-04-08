@@ -92,7 +92,7 @@ end
 
 function M:parse(str, return_hierarchical_result)
 	vim.validate({ str = { str, "string" } })
-	local res, err_msg = self:parse_internal(str:split_trim(), return_hierarchical_result)
+	local res, err_msg = self:parse_internal(str:split(), return_hierarchical_result)
 	err_msg = err_msg or self:_is_parsed_args_invalid(res)
 
 	if err_msg then
@@ -104,7 +104,7 @@ function M:parse(str, return_hierarchical_result)
 end
 
 function M:get_completion_list(str, hint)
-	return self:get_completion_list_internal(str:split_trim(), hint)
+	return self:get_completion_list_internal(str:split(), hint)
 end
 
 function M:get_completion_list_internal(args, hint)

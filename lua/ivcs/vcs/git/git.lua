@@ -1,21 +1,20 @@
 local M = {}
 local path = require("ivcs.libp.path")
 local job = require("ivcs.libp.job")
-local List = require("ivcs.libp.datatype.List")
 local log = require("ivcs.log")
 
 local arg_strcat_factory = function(git_cmd)
 	if git_cmd then
 		return function(...)
-			local args = List()
-			for e in List({ ... }):values() do
+			local args = git_cmd
+			for _, e in ipairs({ ... }) do
 				if vim.tbl_islist(e) then
-					args:extend(e)
+					vim.list_extend(args, e)
 				else
-					args:append(e)
+					table.insert(args, e)
 				end
 			end
-			return ("%s %s"):format(git_cmd, table.concat(args, " "))
+			return args
 		end
 	end
 
@@ -32,8 +31,11 @@ local cmd_with_default_args = function(cmd, opts)
 		no_color = { opts.no_color, "boolean", true },
 	})
 	local git_dir = opts.git_dir or vim.b.git_root or M.find_root()
-	local color_str = opts.no_color and "" or "-c color.ui=always"
-	return git_dir and ("git --no-pager %s -C %s %s"):format(color_str, git_dir, cmd) or nil
+	if opts.no_color then
+		return git_dir and { "git", "--no-pager", "-C", git_dir, cmd } or nil
+	else
+		return git_dir and { "git", "--no-pager", "-c", "color.ui=always", "-C", git_dir, cmd } or nil
+	end
 end
 
 function M.find_root()
@@ -47,8 +49,8 @@ end
 
 function M.status_porcelain()
 	local res = {}
-	for line in job.check_output(M.status("--porcelain"), true):values() do
-		local state, old_filename, _, new_filename = unpack(line:split_trim())
+	for line in job.check_output(M.status("--porcelain"), { return_list = true }):values() do
+		local state, old_filename, _, new_filename = unpack(line:split())
 		res[old_filename] = {
 			index = state:sub(1, 1),
 			worktree = state:sub(2, 2),

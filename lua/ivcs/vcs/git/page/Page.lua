@@ -96,20 +96,19 @@ function M:rebase_branches(opts)
 				new_branch,
 				base_branch
 			)
-			job.start(git.branch(("%s %s"):format(next_grafted_ancestor, new_branch)))
+			job.start(git.branch(next_grafted_ancestor, new_branch))
 			if grafted_ancestor ~= "" then
-				local succ = 0
-					== job.start(git.rebase(("--onto %s %s %s"):format(base_branch, grafted_ancestor, new_branch)))
+				local succ = 0 == job.start(git.rebase("--onto", base_branch, grafted_ancestor, new_branch))
 				if grafted_ancestor:endswith("created_by_ivcs") then
-					job.start(git.branch("-D " .. grafted_ancestor))
+					job.start(git.branch("-D", grafted_ancestor))
 				end
 				if not succ then
 					opts.current_buf:reload()
 					return
 				end
 			else
-				if 0 ~= job.start(git.rebase(("%s %s"):format(base_branch, new_branch))) then
-					job.start(git.branch("-D " .. next_grafted_ancestor))
+				if 0 ~= job.start(git.rebase(base_branch, new_branch)) then
+					job.start(git.branch("-D", next_grafted_ancestor))
 					opts.current_buf:reload()
 					return
 				end
@@ -117,7 +116,7 @@ function M:rebase_branches(opts)
 			grafted_ancestor = next_grafted_ancestor
 			base_branch = new_branch
 		end
-		job.start(git.branch("-D " .. grafted_ancestor))
+		job.start(git.branch("-D", grafted_ancestor))
 		job.start(git.checkout(opts.ori_reference))
 		opts.current_buf:reload()
 	end)()

@@ -5,20 +5,37 @@ function String:trim()
 end
 
 function String:split_trim(sep)
-	sep = sep or "%s"
 	local res = {}
-	for s in string.gmatch(self, "([^" .. sep .. "]+)") do
+	for _, s in ipairs(self:split(sep)) do
 		table.insert(res, s:trim())
 	end
 	return res
 end
 
 function String:split(sep)
-	sep = sep or "%s"
+	sep = sep or " "
 	local res = {}
-	for s in string.gmatch(self, "([^" .. sep .. "]+)") do
-		table.insert(res, s)
+	local beg = #self > 0 and 1 or nil
+	if sep == " " then
+		beg = self:find("[^ ]")
+		sep = " +"
 	end
+
+	while true do
+		local sep_beg, sep_end = self:find(sep, beg)
+		if sep_beg then
+			table.insert(res, self:sub(beg, sep_beg - 1))
+			beg = sep_end + 1
+		else
+			table.insert(res, self:sub(beg, #self))
+			return res
+		end
+	end
+end
+
+function String:unquote()
+	local res = self:gsub('^"(.+)"$', "%1")
+	res = res:gsub("^'(.+)'$", "%1")
 	return res
 end
 
