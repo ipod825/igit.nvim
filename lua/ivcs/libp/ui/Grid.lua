@@ -1,4 +1,6 @@
 local M = require("ivcs.libp.datatype.Class"):EXTEND()
+local Buffer = require("ivcs.libp.ui.Buffer")
+local a = require("plenary.async")
 local log = require("ivcs.log")
 
 function M:init(opts, root)
@@ -92,7 +94,7 @@ end
 
 function M:close()
 	if self.window then
-		self.window:close()
+		self.window:on_close()
 	else
 		for _, child in ipairs(self.children) do
 			child:close()
@@ -106,11 +108,13 @@ function M:show()
 		vim.api.nvim_create_autocmd("WinClosed", {
 			pattern = tostring(win_id),
 			once = true,
-			-- On floating window close, we would also like to handle events
-			-- such as BufDelete, BufEnter for the other buffers.
-			nested = true,
 			callback = function()
 				self.root:close()
+				-- autocmd doesn't nested. Invoke BufEnter handlers by ourselves.
+				local cur_buf = Buffer.get_current_buffer()
+				if cur_buf then
+					cur_buf:on_enter()
+				end
 			end,
 		})
 	else
