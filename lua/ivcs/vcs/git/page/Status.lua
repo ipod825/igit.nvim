@@ -108,7 +108,7 @@ function M:side_stage_diff()
 		filename = ("ivcs://STAGE:%s"):format(cline_info.filepath),
 		bo = { modifiable = true, undolevels = vim.o.undolevels },
 		content = function()
-			return git.show(":%s"):format(cline_info.filepath)
+			return git.show((":%s"):format(cline_info.filepath))
 		end,
 	})
 
@@ -123,7 +123,7 @@ function M:side_stage_diff()
 			if staged_lines == nil then
 				return
 			end
-			local _, fd = a.uv.fs_open(cline_info.abs_path, "w", 448)
+			local _, fd = a.uv.fs_open(cline_info.abs_path, "r+", 448)
 			local err, stat = a.uv.fs_fstat(fd)
 			if err then
 				log.want(err)
@@ -161,7 +161,7 @@ function M:side_diff()
 	local index_buf = ui.Buffer({
 		filename = ("ivcs://HEAD:%s"):format(cline_info.filepath),
 		content = function()
-			return git.show(":%s"):format(cline_info.filepath)
+			return git.show((":%s"):format(cline_info.filepath))
 		end,
 	})
 	local worktree_buf = ui.FileBuffer(cline_info.abs_path)

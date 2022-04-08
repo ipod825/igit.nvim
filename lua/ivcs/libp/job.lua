@@ -72,7 +72,7 @@ M.start = a.wrap(function(cmd, opts, callback)
 		end
 	end
 
-	local on_exit = function(exit_code, sig)
+	local on_exit = function(exit_code, _)
 		stdout:read_stop()
 		stderr:read_stop()
 
@@ -158,75 +158,6 @@ M.check_output = function(cmd, opts)
 	end
 	return table.concat(stdout_lines, "\n")
 end
-
-M.old_start = a.wrap(function(cmd, opts, callback)
-	vim.validate(
-		{ cmd = { cmd, "string" }, opts = { opts, "table", true } },
-		{ callback = { callback, "function", true } }
-	)
-	opts = opts or {}
-
-	vim.validate({
-		on_stdout = { opts.on_stdout, "function", true },
-		stdout_buffer_size = { opts.stdout_buffer_size, "number", true },
-		buffer_stdout = { opts.buffer_stdout, "boolean", true },
-		silent = { opts.silent, "boolean", true },
-	})
-
-	opts.stdout_buffer_size = opts.stdout_buffer_size or 5000
-
-	local stdout_lines = { "" }
-	local stderr_lines = { ("Error message from\n%s\n"):format(cmd) }
-	local terminated_by_client = false
-	local jid
-
-	jid = vim.fn.jobstart(cmd, {
-		cwd = opts.cwd,
-		on_stdout = function(_, data)
-			if opts.on_stdout then
-				-- The last line might be partial
-				stdout_lines[#stdout_lines] = stdout_lines[#stdout_lines] .. data[1]
-				vim.list_extend(stdout_lines, data, 2)
-
-				if #stdout_lines > opts.stdout_buffer_size then
-					-- Though the document said foobar may arrive as ['fo'],
-					-- ['obar'], indicating that we should probably not flush
-					-- the last line. However, in practice, the last line seems
-					-- to be always ''. For efficiency and consistency with
-					-- Buffer's append function, which assumes that the last
-					-- line is '', we don't do slice here.
-					local should_terminate = opts.on_stdout(stdout_lines)
-					stdout_lines = { "" }
-
-					if should_terminate then
-						terminated_by_client = true
-						vim.fn.jobstop(jid)
-					end
-				end
-			end
-			if opts.buffer_stdout then
-				vim.list_extend(stdout_lines, data)
-			end
-		end,
-		on_stderr = function(_, data)
-			vim.list_extend(stderr_lines, data)
-		end,
-		on_exit = function(_, exit_code)
-			if exit_code ~= 0 then
-				if not opts.silent and not terminated_by_client then
-					vim.notify(table.concat(stderr_lines, "\n"))
-				end
-			elseif opts.on_stdout then
-				-- trim the eof
-				opts.on_stdout(vim.list_slice(stdout_lines, 1, #stdout_lines - 1))
-			end
-			if callback then
-				callback(exit_code)
-			end
-		end,
-	})
-	return jid
-end, 3)
 
 M.start_all = a.wrap(function(cmds, opts, callback)
 	a.util.run_all(
