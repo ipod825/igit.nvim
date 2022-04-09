@@ -14,13 +14,13 @@ function M:init(options)
 				["<cr>"] = self:BIND(self.switch),
 				["i"] = self:BIND(self.rename),
 				["m"] = { callback = self:BIND(self.mark), modify_buffer = false },
-				["r"] = self:BIND(self.rebase),
+				["r"] = self:BIND(self.rebase_chain),
 				["o"] = self:BIND(self.new_branch),
 				["X"] = self:BIND(self.force_delete_branch),
 				["s"] = self:BIND(self.show),
 			},
 			v = {
-				["r"] = self:BIND(self.rebase),
+				["r"] = self:BIND(self.rebase_chain),
 				["X"] = self:BIND(self.force_delete_branch),
 			},
 		},
@@ -58,7 +58,7 @@ function M:show()
 	self:SUPER():show(self:parse_line().branch)
 end
 
-function M:rebase()
+function M:rebase_chain()
 	self:rebase_branches({
 		current_buf = self:current_buf(),
 		ori_reference = job.check_output(git.branch("--show-current")),

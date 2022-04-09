@@ -14,10 +14,10 @@ function M:init(options)
 			n = {
 				["<cr>"] = self:BIND(self.switch),
 				["m"] = { callback = self:BIND(self.mark), modify_buffer = false },
-				["r"] = self:BIND(self.rebase),
+				["r"] = self:BIND(self.rebase_chain),
 				["s"] = self:BIND(self.show),
 			},
-			v = { ["r"] = self:BIND(self.rebase) },
+			v = { ["r"] = self:BIND(self.rebase_chain) },
 		},
 		args = { "--oneline", "--branches", "--graph", "--decorate=short" },
 		buf_enter_reload = false,
@@ -73,7 +73,7 @@ function M:show()
 	self:SUPER():show(self:parse_line().sha)
 end
 
-function M:rebase()
+function M:rebase_chain()
 	local row_beg, row_end = vimfn.visual_rows()
 	local branches = {}
 
