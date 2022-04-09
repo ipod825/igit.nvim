@@ -73,7 +73,7 @@ function M:parse_line(linenr)
 	local line = term_utils.remove_ansi_escape(vim.fn.getline(linenr))
 	local res = { is_current = false, branch = nil }
 	res.is_current = line:find_str("%s*(%*?)") ~= ""
-	res.branch = line:find_str("%s?([^%s%*]+)%s?")
+	res.branch = line:find_str("(HEAD) detached") or line:find_str("%s?([^%s%*]+)%s?")
 	return res
 end
 
@@ -83,8 +83,9 @@ end
 
 function M:get_primary_mark_or_current_branch()
 	local mark = self:current_buf().ctx.mark
-	job.check_output(git.branch("--show-current"))
-	return mark and mark[1].branch or job.check_output(git.branch("--show-current"))
+	local res = mark and mark[1].branch or job.check_output(git.branch("--show-current"))
+	res = #res > 0 and res or "HEAD"
+	return res
 end
 
 function M:get_secondary_mark_branch()
@@ -104,6 +105,9 @@ function M:get_branches_in_rows(row_beg, row_end)
 	return Iterator.range(row_beg, row_end)
 		:map(function(e)
 			return self:parse_line(e).branch
+		end)
+		:filter(function(e)
+			return e ~= "HEAD"
 		end)
 		:collect()
 end
