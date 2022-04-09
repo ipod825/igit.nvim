@@ -20,8 +20,8 @@ function M:init(options)
 				["cc"] = self:BIND(self.commit),
 				["ca"] = self:BIND(self.commit, { amend = true }),
 				["cA"] = self:BIND(self.commit, { amend = true, backup_branch = true }),
-				["dd"] = self:BIND(self.side_diff),
-				["ds"] = self:BIND(self.side_stage_diff),
+				["dh"] = self:BIND(self.diff_index),
+				["dd"] = self:BIND(self.diff_cached),
 				["<cr>"] = self:BIND(self.open_file),
 				["t"] = self:BIND(self.open_file, "tab drop"),
 			},
@@ -100,7 +100,7 @@ function M:change_action(action)
 	return #filepaths == 1
 end
 
-function M:side_stage_diff()
+function M:diff_cached()
 	local cline_info = self:parse_line()
 
 	local grid = ui.Grid()
@@ -123,17 +123,25 @@ function M:side_stage_diff()
 			if staged_lines == nil then
 				return
 			end
-			local _, fd = a.uv.fs_open(cline_info.abs_path, "r+", 448)
+			local _, fd = a.uv.fs_open(cline_info.abs_path, "r", 448)
 			local err, stat = a.uv.fs_fstat(fd)
 			if err then
 				log.want(err)
 				vim.notify(err)
 				return
 			end
-			local _, ori_content = a.uv.fs_read(fd, stat.size, 0)
-			a.uv.fs_write(fd, table.concat(staged_lines, "\n"), 0)
+			local _, ori_content = a.uv.fs_read(fd, stat.size)
+			a.uv.fs_close(fd)
+
+			_, fd = a.uv.fs_open(cline_info.abs_path, "w", 448)
+			-- File needs to be ended with a new line.
+			a.uv.fs_write(fd, table.concat(staged_lines, "\n") .. "\n")
+			a.uv.fs_close(fd)
+
 			job.start(git.add(cline_info.filepath))
-			a.uv.fs_write(fd, ori_content, 0)
+
+			_, fd = a.uv.fs_open(cline_info.abs_path, "w", 448)
+			a.uv.fs_write(fd, ori_content)
 			a.uv.fs_close(fd)
 		end),
 	})
@@ -154,14 +162,14 @@ function M:side_stage_diff()
 	grid:show()
 end
 
-function M:side_diff()
+function M:diff_index()
 	local cline_info = self:parse_line()
 
 	local grid = ui.Grid()
 	local index_buf = ui.Buffer({
 		filename = ("ivcs://HEAD:%s"):format(cline_info.filepath),
 		content = function()
-			return git.show((":%s"):format(cline_info.filepath))
+			return git.show(("HEAD:%s"):format(cline_info.filepath))
 		end,
 	})
 	local worktree_buf = ui.FileBuffer(cline_info.abs_path)
