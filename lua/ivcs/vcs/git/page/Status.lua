@@ -104,10 +104,11 @@ function M:diff_cached()
 	local cline_info = self:parse_line()
 
 	local grid = ui.Grid()
+	local not_indexed = git.status_porcelain(cline_info.filepath)[cline_info.filepath].index == "?"
 	local stage_buf = ui.Buffer({
 		filename = ("ivcs://STAGE:%s"):format(cline_info.filepath),
 		bo = { modifiable = true, undolevels = vim.o.undolevels },
-		content = function()
+		content = not_indexed and {} or function()
 			return git.show((":%s"):format(cline_info.filepath))
 		end,
 	})
@@ -167,9 +168,10 @@ function M:diff_index()
 	local cline_info = self:parse_line()
 
 	local grid = ui.Grid()
+	local not_indexed = git.status_porcelain(cline_info.filepath)[cline_info.filepath].index == "?"
 	local index_buf = ui.Buffer({
 		filename = ("ivcs://HEAD:%s"):format(cline_info.filepath),
-		content = function()
+		content = not_indexed and {} or function()
 			return git.show(("HEAD:%s"):format(cline_info.filepath))
 		end,
 	})

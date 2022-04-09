@@ -48,9 +48,9 @@ function M.commit_message_file_path(git_dir)
 	return ("%s/.git/COMMIT_EDITMSG"):format(git_dir)
 end
 
-function M.status_porcelain()
+function M.status_porcelain(file)
 	local res = {}
-	for line in job.check_output(M.status("--porcelain"), { return_list = true }):values() do
+	for line in job.check_output(M.status("--porcelain", file), { return_list = true }):values() do
 		local state, old_filename, _, new_filename = unpack(line:split())
 		res[old_filename] = {
 			index = state:sub(1, 1),
