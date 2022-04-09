@@ -6,8 +6,14 @@ local log = require("ivcs.log")
 
 function M:init()
 	self.files = { "f1", "f2" }
+	self.non_existing_files = { "nf1", "nf2" }
 	self.path1 = { "b1", "b2" }
 	self.path2 = { "b3", "b4" }
+end
+
+function M:touch_non_existing_file(ind)
+	test_util.jobrun(("touch " .. self.non_existing_files[ind]))
+	return self.non_existing_files[ind]
 end
 
 function M:refresh()
