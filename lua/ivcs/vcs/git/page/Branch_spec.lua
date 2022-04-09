@@ -24,19 +24,19 @@ describe("switch", function()
 		setup()
 		util.setrow(2)
 		igit.branch:switch()
-		assert.are.same(test_dir:current_branch(), test_dir.path1[2])
+		assert.are.same(test_dir.path1[2], test_dir:current_branch())
 		util.setrow(1)
 		igit.branch:switch()
-		assert.are.same(test_dir:current_branch(), test_dir.path1[1])
+		assert.are.same(test_dir.path1[1], test_dir:current_branch())
 	end)
 end)
 
 describe("parse_line", function()
 	it("Parses the information of the lines", function()
 		setup()
-		assert.are.same(igit.branch:parse_line(), igit.branch.parse_line(1))
-		assert.are.same(igit.branch:parse_line(), { branch = test_dir.path1[1], is_current = true })
-		assert.are.same(igit.branch:parse_line(2), { branch = test_dir.path1[2], is_current = false })
+		assert.are.same(igit.branch.parse_line(1), igit.branch:parse_line())
+		assert.are.same({ branch = test_dir.path1[1], is_current = true }, igit.branch:parse_line())
+		assert.are.same({ branch = test_dir.path1[2], is_current = false }, igit.branch:parse_line(2))
 	end)
 end)
 
@@ -48,15 +48,15 @@ describe("rename", function()
 		vim.api.nvim_buf_set_lines(0, 1, 2, true, { util.new_name(test_dir.path1[2]) })
 		vim.cmd("write")
 		buffer_reload_waiter:wait()
-		assert.are.same(test_dir:current_branch(), util.new_name(test_dir.path1[1]))
-		assert.are.same(igit.branch:parse_line(1), {
+		assert.are.same(util.new_name(test_dir.path1[1]), test_dir:current_branch())
+		assert.are.same({
 			branch = util.new_name(test_dir.path1[1]),
 			is_current = true,
-		})
-		assert.are.same(igit.branch:parse_line(2), {
+		}, igit.branch:parse_line(1))
+		assert.are.same({
 			branch = util.new_name(test_dir.path1[2]),
 			is_current = false,
-		})
+		}, igit.branch:parse_line(2))
 	end)
 end)
 
@@ -72,19 +72,19 @@ describe("new_branch", function()
 		vim.api.nvim_buf_set_lines(0, linenr, linenr, true, { new_branch1, new_branch2 })
 		vim.cmd("write")
 		buffer_reload_waiter:wait()
-		assert.are.same(current_branch, test_dir.path1[1])
+		assert.are.same(test_dir.path1[1], current_branch)
 		local new_branches = Set(test_dir:branches())
-		assert.are.same(Set.size(new_branches), Set.size(ori_branches) + 2)
+		assert.are.same(Set.size(ori_branches) + 2, Set.size(new_branches))
 		assert.is_truthy(Set.has(new_branches, new_branch1))
 		assert.is_truthy(Set.has(new_branches, new_branch2))
 
 		assert.are.same(
-			util.check_output(git["rev-parse"](current_branch)),
-			util.check_output(git["rev-parse"](new_branch1))
+			util.check_output(git["rev-parse"](new_branch1)),
+			util.check_output(git["rev-parse"](current_branch))
 		)
 		assert.are.same(
-			util.check_output(git["rev-parse"](current_branch)),
-			util.check_output(git["rev-parse"](new_branch2))
+			util.check_output(git["rev-parse"](new_branch2)),
+			util.check_output(git["rev-parse"](current_branch))
 		)
 	end)
 
@@ -109,11 +109,11 @@ describe("force_delete_branch", function()
 		setup()
 		local ori_branches = Set(test_dir:branches())
 		igit.branch:force_delete_branch()
-		assert.are.equal(ori_branches, Set(test_dir:branches()))
+		assert.are.same(ori_branches, Set(test_dir:branches()))
 		util.setrow(2)
 		igit.branch:force_delete_branch()
 		local new_branches = Set(test_dir:branches())
-		assert.are.equal(Set.size(new_branches), Set.size(ori_branches) - 1)
+		assert.are.same(Set.size(ori_branches) - 1, Set.size(new_branches))
 		assert.is_falsy(Set.has(new_branches, test_dir.path1[2]))
 	end)
 
@@ -123,7 +123,7 @@ describe("force_delete_branch", function()
 		vim.cmd("normal! Vj")
 		igit.branch:force_delete_branch()
 		local new_branches = Set(test_dir:branches())
-		assert.are.equal(Set.size(new_branches), Set.size(ori_branches) - 1)
+		assert.are.same(Set.size(ori_branches) - 1, Set.size(new_branches))
 		assert.is_falsy(Set.has(new_branches, test_dir.path1[2]))
 	end)
 end)

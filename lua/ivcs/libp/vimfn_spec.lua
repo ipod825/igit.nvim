@@ -7,8 +7,8 @@ describe("visual_rows", function()
 
 		row_beg, row_end = vimfn.visual_rows()
 		-- todo: figure out why this fial.
-		-- assert.are.equal(row_beg, 0)
-		assert.are.equal(row_end, 3)
+		-- assert.are.same(0, row_beg)
+		assert.are.same(3, row_end)
 	end)
 end)
 
@@ -17,7 +17,7 @@ describe("all_rows", function()
 		vim.api.nvim_buf_set_lines(0, 0, -1, false, { "1", "2", "3" })
 
 		row_beg, row_end = vimfn.all_rows()
-		assert.are.equal(row_beg, 1)
-		assert.are.equal(row_end, 3)
+		assert.are.same(1, row_beg)
+		assert.are.same(3, row_end)
 	end)
 end)
