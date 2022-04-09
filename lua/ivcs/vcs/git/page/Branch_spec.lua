@@ -9,22 +9,14 @@ local path = require("ivcs.libp.path")
 local Set = require("ivcs.libp.datatype.Set")
 local log = require("ivcs.log")
 
-require("ivcs").setup(igit, {})
-local reload_done
+igit.setup()
+local buffer_reload_waiter = util.BufReloadWaiter()
 local setup = function()
 	local root = test_dir:refresh()
 	vim.cmd(("edit %s"):format(path.path_join(root, test_dir.files[1])))
 	igit.branch:open()
-	if reload_done == nil then
-		reload_done = igit.branch:current_buf():register_reload_notification()
-	else
-		reload_done:wait()
-	end
+	buffer_reload_waiter:wait()
 	util.setrow(1)
-end
-
-local function new_name(ori)
-	return ori .. "new"
 end
 
 describe("switch", function()
@@ -52,17 +44,17 @@ describe("rename", function()
 	it("Renames branches", function()
 		setup()
 		igit.branch:rename()
-		vim.api.nvim_buf_set_lines(0, 0, 1, true, { new_name(test_dir.path1[1]) })
-		vim.api.nvim_buf_set_lines(0, 1, 2, true, { new_name(test_dir.path1[2]) })
+		vim.api.nvim_buf_set_lines(0, 0, 1, true, { util.new_name(test_dir.path1[1]) })
+		vim.api.nvim_buf_set_lines(0, 1, 2, true, { util.new_name(test_dir.path1[2]) })
 		vim.cmd("write")
-		reload_done:wait()
-		assert.are.same(test_dir:current_branch(), new_name(test_dir.path1[1]))
+		buffer_reload_waiter:wait()
+		assert.are.same(test_dir:current_branch(), util.new_name(test_dir.path1[1]))
 		assert.are.same(igit.branch:parse_line(1), {
-			branch = new_name(test_dir.path1[1]),
+			branch = util.new_name(test_dir.path1[1]),
 			is_current = true,
 		})
 		assert.are.same(igit.branch:parse_line(2), {
-			branch = new_name(test_dir.path1[2]),
+			branch = util.new_name(test_dir.path1[2]),
 			is_current = false,
 		})
 	end)
@@ -74,26 +66,26 @@ describe("new_branch", function()
 		local ori_branches = Set(test_dir:branches())
 		igit.branch:new_branch()
 		local linenr = vim.fn.line(".") - 1
-		local new_branch1 = new_name(test_dir.path1[1])
-		local new_branch2 = new_name(test_dir.path1[2])
+		local new_branch1 = util.new_name(test_dir.path1[1])
+		local new_branch2 = util.new_name(test_dir.path1[2])
 		local current_branch = test_dir:current_branch()
 		vim.api.nvim_buf_set_lines(0, linenr, linenr, true, { new_branch1, new_branch2 })
 		vim.cmd("write")
-		reload_done:wait()
+		buffer_reload_waiter:wait()
 		assert.are.same(current_branch, test_dir.path1[1])
 		local new_branches = Set(test_dir:branches())
 		assert.are.same(Set.size(new_branches), Set.size(ori_branches) + 2)
 		assert.is_truthy(Set.has(new_branches, new_branch1))
 		assert.is_truthy(Set.has(new_branches, new_branch2))
 
-		-- assert.are.same(
-		-- 	util.check_output(git["rev-parse"](current_branch)),
-		-- 	util.check_output(git["rev-parse"](new_branch1))
-		-- )
-		-- assert.are.same(
-		-- 	util.check_output(git["rev-parse"](current_branch)),
-		-- 	util.check_output(git["rev-parse"](new_branch2))
-		-- )
+		assert.are.same(
+			util.check_output(git["rev-parse"](current_branch)),
+			util.check_output(git["rev-parse"](new_branch1))
+		)
+		assert.are.same(
+			util.check_output(git["rev-parse"](current_branch)),
+			util.check_output(git["rev-parse"](new_branch2))
+		)
 	end)
 
 	it("Hononrs mark", function()
@@ -101,10 +93,10 @@ describe("new_branch", function()
 		igit.branch:mark()
 		igit.branch:new_branch()
 		local linenr = vim.fn.line(".") - 1
-		local new_branch2 = new_name(test_dir.path1[2])
+		local new_branch2 = util.new_name(test_dir.path1[2])
 		vim.api.nvim_buf_set_lines(0, linenr, linenr, true, { new_branch2 })
 		vim.cmd("write")
-		reload_done:wait()
+		buffer_reload_waiter:wait()
 		assert.are.same(
 			util.check_output(git["rev-parse"](new_branch2)),
 			util.check_output(git["rev-parse"](new_branch2))

@@ -6,3 +6,5 @@ local util = require("ivcs.test_util")
 local git = util.git
 local test_dir = require("ivcs.vcs.git.TestDir")()
 local path = require("ivcs.libp.path")
+
+igit.setup()

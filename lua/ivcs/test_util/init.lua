@@ -1,5 +1,7 @@
 require("ivcs.libp.datatype.string_extension")
 local M = {}
+local Class = require("ivcs.libp.datatype.Class")
+local ui = require("ivcs.libp.ui")
 local a = require("plenary.async")
 local log = require("ivcs.log")
 
@@ -15,42 +17,19 @@ function M.setrow(nr)
 	vim.api.nvim_win_set_cursor(0, { nr, 0 })
 end
 
-M.counter = function()
-	local counter = 0
-	local condvar = a.control.Condvar.new()
-
-	local Sender = {}
-
-	function Sender:send()
-		log.warn("send beg", counter)
-		counter = counter + 1
-		condvar:notify_all()
-		log.warn("send end", counter)
+M.BufReloadWaiter = Class:EXTEND()
+function M.BufReloadWaiter:wait()
+	-- The first reload is triggered by Buffer init but not autocmd. Hence
+	-- no wait on first time.
+	if self.reload_done == nil then
+		self.reload_done = ui.Buffer.get_current_buffer():register_reload_notification()
+	else
+		self.reload_done:wait()
 	end
+end
 
-	local Receiver = {}
-
-	function Receiver:recv()
-		log.warn("recv beg", counter)
-		if counter == 0 then
-			condvar:wait()
-		end
-		counter = counter - 1
-		log.warn("recv end", counter)
-	end
-
-	function Receiver:last()
-		if counter == 0 then
-			condvar:wait()
-		end
-		counter = 0
-	end
-
-	function Receiver:clear()
-		counter = 0
-	end
-
-	return Sender, Receiver
+function M.new_name(ori)
+	return ori .. "new"
 end
 
 M.git = setmetatable({}, {

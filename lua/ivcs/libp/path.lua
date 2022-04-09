@@ -8,19 +8,34 @@ function M.path_join(...)
 end
 
 function M.find_directory(anchor, dir)
-	dir = dir or vim.api.nvim_buf_get_name(0)
-	local res = nil
-	while #dir > 1 do
-		if vim.fn.glob(M.path_join(dir, anchor)) ~= "" then
-			return dir
+	vim.validate({ anchor = { anchor, "string" }, dir = { dir, { "string", "table" }, true } })
+	if type(dir) == "string" then
+		dir = { dir }
+	end
+	dir = dir or { vim.api.nvim_buf_get_name(0), vim.fn.getcwd() }
+
+	local function search(d)
+		local res = nil
+		while #d > 1 do
+			if vim.fn.glob(M.path_join(d, anchor)) ~= "" then
+				return d
+			end
+			local ori_len
+			ori_len, d = #d, M.dirname(d)
+			if #d == ori_len then
+				break
+			end
 		end
-		local ori_len
-		ori_len, dir = #dir, M.dirname(dir)
-		if #dir == ori_len then
-			break
+		return res
+	end
+
+	local res
+	for _, d in ipairs(dir) do
+		res = search(d)
+		if res then
+			return res
 		end
 	end
-	return res
 end
 
 function M.dirname(str)
