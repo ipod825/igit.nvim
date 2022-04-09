@@ -6,7 +6,8 @@ describe("visual_rows", function()
 		vim.cmd("normal! ggVG")
 
 		row_beg, row_end = vimfn.visual_rows()
-		-- todo: figure out why this fial.
+		-- todo: This doesn't work. Seems like neovim has a bug: After setting
+		-- the buffer content, vim.fn.getpos("'>") would return {0,0,0,0}.
 		-- assert.are.same(0, row_beg)
 		assert.are.same(3, row_end)
 	end)

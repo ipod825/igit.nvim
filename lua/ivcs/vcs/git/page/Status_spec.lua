@@ -26,7 +26,25 @@ describe("stage_change", function()
 		util.setrow(1)
 		igit.status:stage_change()
 
-		log.warn(fname)
 		assert.are.same(fname, util.check_output("git diff --name-only --cached")[1])
+	end)
+	it("Stages worktree file in visual mode", function()
+		setup()
+		local fname1 = test_dir:touch_non_existing_file(1)
+		local fname2 = test_dir:touch_non_existing_file(2)
+		igit.status.current_buf():reload()
+		a.util.scheduler()
+
+		-- todo: This doesn't work. Seems like neovim has a bug: After setting
+		-- the buffer content, vim.fn.getpos("'>") would return {0,0,0,0}.
+		-- util.setrow(1)
+		-- vim.cmd("normal! Vj")
+		-- igit.status:stage_change()
+
+		util.setrow(1)
+		igit.status:stage_change()
+		util.setrow(2)
+		igit.status:stage_change()
+		assert.are.same({ fname1, fname2 }, util.check_output("git diff --name-only --cached"))
 	end)
 end)
