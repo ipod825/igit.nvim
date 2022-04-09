@@ -4,8 +4,7 @@ endif
 
 let b:current_syntax = "ivcs"
 setlocal conceallevel=3
-" setlocal concealcursor=nvci
-setlocal concealcursor=nci
+setlocal concealcursor=nvci
 setlocal nowrap
 
 syn match ansiConceal contained conceal "\e\[\(\d*;\)*\d*m\|\e\[K"
