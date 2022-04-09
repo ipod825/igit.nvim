@@ -3,7 +3,7 @@ local M = require("ivcs.libp.ui.Window"):EXTEND()
 function M:init(buffer, opts)
 	opts = opts or {}
 	opts.wo = vim.tbl_extend("force", opts.wo or {}, {
-		winhighlight = "Normal:Title",
+		winhighlight = "Normal:LibpTitle",
 	})
 
 	assert(type(buffer.content) == "table")

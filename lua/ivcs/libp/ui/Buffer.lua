@@ -179,13 +179,7 @@ function M:mark(data, max_num_data)
 
 	vim.api.nvim_buf_clear_namespace(self.id, self.namespace, 1, -1)
 	for i, d in ipairs(self.ctx.mark) do
-		local hi_group
-		if i == 1 then
-			hi_group = "RedrawDebugRecompose"
-		elseif i == 2 then
-			hi_group = "DiffAdd"
-		end
-		vim.api.nvim_buf_add_highlight(self.id, self.namespace, hi_group, d.linenr, 1, -1)
+		vim.api.nvim_buf_add_highlight(self.id, self.namespace, "LibpBufferMark" .. i, d.linenr, 1, -1)
 	end
 end
 
