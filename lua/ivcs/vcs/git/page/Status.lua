@@ -153,14 +153,10 @@ function M:diff_cached()
 	vim.filetype.match(cline_info.abs_path, stage_buf.id)
 	vim.filetype.match(cline_info.abs_path, worktree_buf.id)
 
-	grid:add_row({ height = 1 }):fill_window(ui.Window(ui.Buffer({
-		content = { ui.center_align_text({ "Stage", cline_info.filepath, "Worktree" }, vim.o.columns) },
+	grid:add_row({ height = 1 }):fill_window(ui.TitleWindow(ui.Buffer({
+		content = { "Stage", cline_info.filepath, "Worktree" },
 	})))
-	-- grid:add_row({ height = 1 }):vfill_windows({
-	-- 	ui.Window(ui.Buffer({ content = { "                 STAGE" } })),
-	-- 	ui.Window(ui.Buffer({ content = { "           Worktree" } })),
-	-- })
-	grid:add_row({ focusable = true, height = -1 }):vfill_windows({
+	grid:add_row({ focusable = true }):vfill_windows({
 		ui.DiffWindow(stage_buf),
 		ui.DiffWindow(worktree_buf, { focus_on_open = true }),
 	}, true)
@@ -181,10 +177,10 @@ function M:diff_index()
 	vim.filetype.match(cline_info.abs_path, index_buf.id)
 	vim.filetype.match(cline_info.abs_path, worktree_buf.id)
 
-	grid:add_row({ height = 1 }):fill_window(ui.Window(ui.Buffer({
-		content = { ui.center_align_text({ "HEAD", cline_info.filepath, "Worktree" }, vim.o.columns) },
+	grid:add_row({ height = 1 }):fill_window(ui.TitleWindow(ui.Buffer({
+		content = { "HEAD", cline_info.filepath, "Worktree" },
 	})))
-	grid:add_row({ focusable = true, height = -1 }):vfill_windows({
+	grid:add_row({ focusable = true }):vfill_windows({
 		ui.DiffWindow(index_buf),
 		ui.DiffWindow(worktree_buf, { focus_on_open = true }),
 	}, true)

@@ -1,6 +1,7 @@
 local M = {
 	Buffer = require("ivcs.libp.ui.Buffer"),
 	DiffWindow = require("ivcs.libp.ui.DiffWindow"),
+	TitleWindow = require("ivcs.libp.ui.TitleWindow"),
 	FileBuffer = require("ivcs.libp.ui.FileBuffer"),
 	Grid = require("ivcs.libp.ui.Grid"),
 	InfoBox = require("ivcs.libp.ui.InfoBox"),

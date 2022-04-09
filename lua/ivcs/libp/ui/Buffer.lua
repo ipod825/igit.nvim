@@ -279,6 +279,12 @@ function M:delay_reload()
 	end
 end
 
+function M:set_content(content)
+	vim.validate({ content = { content, { "function", "table" } } })
+	self.content = content
+	self:reload()
+end
+
 function M:register_reload_notification()
 	-- This functoin is mainly for testing purpose. When the reload function is
 	-- not invoked by the main testing coroutine (a.void) but by a (autocmd)
