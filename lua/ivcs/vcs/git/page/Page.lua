@@ -71,7 +71,7 @@ function M:show(reference)
 			-- does not have the same problem. Might be a neovim bug.
 			bo = { filetype = "git_fork" },
 			content = function()
-				return git.with_default_args({ no_color = true }).show("%s"):format(reference)
+				return git.with_default_args({ no_color = true }).show(reference)
 			end,
 		}),
 		{ focus_on_open = true }
