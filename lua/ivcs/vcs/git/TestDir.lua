@@ -4,7 +4,9 @@ local git = test_util.git
 local uv = vim.loop
 local log = require("ivcs.log")
 
-function M:init()
+function M:init(persist_dir)
+	vim.validate({ persist_dir = { persist_dir, "boolean", true } })
+	self.persist_dir = persist_dir
 	self.files = { "f1", "f2" }
 	self.non_existing_files = { "nf1", "nf2" }
 	self.path1 = { "b1", "b2" }
@@ -36,7 +38,12 @@ function M:branches()
 end
 
 function M:create_dir()
-	local root = "/tmp/ivcs-test"
+	local root
+	if self.persist_dir then
+		root = "/tmp/ivcs-test"
+	else
+		root = vim.fn.tempname()
+	end
 	test_util.jobrun(("rm -rf %s %s_bak"):format(root, root))
 	local succ = uv.fs_mkdir(root, 448)
 	assert(succ, succ)
