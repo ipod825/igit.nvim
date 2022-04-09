@@ -4,12 +4,12 @@ local it = a.tests.it
 local igit = require("ivcs.vcs.git")
 local util = require("ivcs.test_util")
 local git = util.git
-local test_dir = require("ivcs.test_util.TestDir")()
+local test_dir = require("ivcs.vcs.git.TestDir")()
 local path = require("ivcs.libp.path")
 local Set = require("ivcs.libp.datatype.Set")
 local log = require("ivcs.log")
 
-require("ivcs").register_vcs_module(igit, {})
+require("ivcs").setup(igit, {})
 local reload_done
 local setup = function()
 	local root = test_dir:refresh()

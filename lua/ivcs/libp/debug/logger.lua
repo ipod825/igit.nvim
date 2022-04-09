@@ -23,8 +23,8 @@ function M:init(opts)
 end
 
 function M:config(opts)
-	opts = vim.tbl_extend("keep", opts or {}, { log_level = vim.log.levels.WARN })
-	self.current_log_level = opts.log_level
+	opts = vim.tbl_extend("keep", opts or {}, { level = vim.log.levels.WARN })
+	self.current_level = opts.level
 end
 
 function M:get_filename()
@@ -32,11 +32,11 @@ function M:get_filename()
 end
 
 function M:set_level(level)
-	self.current_log_level = level
+	self.current_level = level
 end
 
 function M:get_level()
-	return self.current_log_level
+	return self.current_level
 end
 
 function M:set_format_func(handle)
@@ -45,7 +45,7 @@ function M:set_format_func(handle)
 end
 
 function M:log(level, ...)
-	if level < self.current_log_level then
+	if level < self.current_level then
 		return false
 	end
 	local argc = select("#", ...)
