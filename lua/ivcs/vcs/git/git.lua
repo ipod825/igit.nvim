@@ -1,3 +1,4 @@
+require("ivcs.libp.datatype.string_extension")
 local M = {}
 local path = require("ivcs.libp.path")
 local job = require("ivcs.libp.job")

@@ -1,4 +1,4 @@
-require("ivcs.libp.datatype.std_extension")
+require("ivcs.libp.datatype.string_extension")
 
 describe("find_str", function()
 	it("Returns nil if no match", function()

@@ -1,3 +1,4 @@
+require("ivcs.libp.datatype.string_extension")
 local M = {}
 local a = require("plenary.async")
 local List = require("ivcs.libp.datatype.List")

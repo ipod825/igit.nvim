@@ -1,3 +1,4 @@
+require("ivcs.libp.datatype.string_extension")
 local M = require("ivcs.libp.argparse.Parser")()
 
 function M:parse(str, return_hierarchical_result)

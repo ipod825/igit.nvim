@@ -1,5 +1,5 @@
 local M = {}
-require("ivcs.libp.datatype.std_extension")
+require("ivcs.libp.datatype.string_extension")
 
 function M.setup(opts)
 	opts = opts or {}

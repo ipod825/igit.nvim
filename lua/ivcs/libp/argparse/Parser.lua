@@ -1,5 +1,6 @@
+require("ivcs.libp.datatype.string_extension")
 local M = require("ivcs.libp.datatype.Class"):EXTEND()
-require("ivcs.libp.datatype.std_extension")
+require("ivcs.libp.datatype.string_extension")
 local List = require("ivcs.libp.datatype.List")
 local Dict = require("ivcs.libp.datatype.Dict")
 local functional = require("ivcs.libp.functional")

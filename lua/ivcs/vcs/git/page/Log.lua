@@ -1,3 +1,4 @@
+require("ivcs.libp.datatype.string_extension")
 local M = require("ivcs.vcs.git.page.Page"):EXTEND()
 local git = require("ivcs.vcs.git.git")
 local job = require("ivcs.libp.job")

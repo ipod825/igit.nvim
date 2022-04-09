@@ -1,4 +1,3 @@
-require("ivcs.libp.datatype.std_extension")
 local job = require("ivcs.libp.job")
 local a = require("plenary.async")
 local describe = a.tests.describe
