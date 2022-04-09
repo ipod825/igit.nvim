@@ -38,7 +38,8 @@ end
 function M:create_dir()
 	local root = "/tmp/ivcs-test"
 	test_util.jobrun(("rm -rf %s %s_bak"):format(root, root))
-	assert(uv.fs_mkdir(root, 448), "Faile to create directory")
+	local succ = uv.fs_mkdir(root, 448)
+	assert(succ, succ)
 	local run = function(cmd)
 		test_util.jobrun(cmd, { cwd = root })
 	end
