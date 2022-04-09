@@ -112,9 +112,10 @@ function M:diff_cached()
 		end,
 	})
 
+	local delay_reload = self:current_buf():delay_reload()
 	local staged_lines = nil
 	vim.api.nvim_buf_attach(stage_buf.id, false, {
-		on_lines = function(...)
+		on_lines = function()
 			if not stage_buf.is_reloading then
 				staged_lines = vim.api.nvim_buf_get_lines(stage_buf.id, 0, -1, true)
 			end
@@ -143,6 +144,8 @@ function M:diff_cached()
 			_, fd = a.uv.fs_open(cline_info.abs_path, "w", 448)
 			a.uv.fs_write(fd, ori_content)
 			a.uv.fs_close(fd)
+
+			delay_reload()
 		end),
 	})
 

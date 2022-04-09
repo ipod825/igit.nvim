@@ -266,6 +266,19 @@ function M:restore_view()
 	end
 end
 
+function M:delay_reload()
+	local job_done = a.control.Condvar.new()
+	a.void(function()
+		job_done:wait()
+		a.util.scheduler()
+		self:reload()
+	end)()
+
+	return function()
+		job_done:notify_one()
+	end
+end
+
 function M:register_reload_notification()
 	-- This functoin is mainly for testing purpose. When the reload function is
 	-- not invoked by the main testing coroutine (a.void) but by a (autocmd)
