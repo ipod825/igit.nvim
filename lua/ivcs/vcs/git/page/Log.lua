@@ -74,7 +74,13 @@ function M:show()
 end
 
 function M:rebase_interactive()
+	local delay_reload = self.buf_enter_reload and nil or self:current_buf():delay_reload()
+
 	job.start(git.rebase("-i", self:parse_line(row_beg).sha))
+
+	if delay_reload then
+		delay_reload()
+	end
 end
 
 function M:rebase_chain()
