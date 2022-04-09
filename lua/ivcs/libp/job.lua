@@ -35,11 +35,14 @@ M.start = a.wrap(function(cmd, opts, callback)
 	local stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
 
+	local eof_has_new_line = false
 	local on_stdout = function(_, data)
 		if opts.on_stdout then
 			if data == nil then
 				return
 			end
+
+			eof_has_new_line = data:find("\n$")
 
 			-- The last line in stdout_lines is always a "partial line":
 			-- 1. At initialization, we initialized it to "".
@@ -88,8 +91,11 @@ M.start = a.wrap(function(cmd, opts, callback)
 				vim.notify(stderr_lines)
 			end
 		elseif opts.on_stdout then
-			-- Trim the added empty lines as its unnecessary for the last call.
-			opts.on_stdout(vim.list_slice(stdout_lines, 1, #stdout_lines - 1))
+			if eof_has_new_line then
+				opts.on_stdout(vim.list_slice(stdout_lines, 1, #stdout_lines - 1))
+			else
+				opts.on_stdout(stdout_lines)
+			end
 		end
 		if callback then
 			callback(exit_code)
