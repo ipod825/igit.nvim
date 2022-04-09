@@ -14,7 +14,7 @@ function M:init(options)
 			n = {
 				["<cr>"] = self:BIND(self.switch),
 				["m"] = { callback = self:BIND(self.mark), modify_buffer = false },
-				["r"] = self:BIND(self.rebase_chain),
+				["r"] = self:BIND(self.rebase_interactive),
 				["s"] = self:BIND(self.show),
 			},
 			v = { ["r"] = self:BIND(self.rebase_chain) },
@@ -71,6 +71,10 @@ end
 
 function M:show()
 	self:SUPER():show(self:parse_line().sha)
+end
+
+function M:rebase_interactive()
+	job.start(git.rebase("-i", self:parse_line(row_beg).sha))
 end
 
 function M:rebase_chain()

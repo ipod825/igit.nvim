@@ -5,6 +5,7 @@ local job = require("ivcs.libp.job")
 
 function M:setup(opts)
 	opts = opts or {}
+
 	vim.validate({
 		command = { opts.command, "string", true },
 		log = { opts.log, "table", true },
