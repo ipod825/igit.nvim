@@ -26,6 +26,7 @@ function M:init(options)
 			},
 		},
 		args = { "-v" },
+		confirm_rebase = true,
 	}, options or {})
 end
 

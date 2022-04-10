@@ -39,6 +39,30 @@ function M:reset(current, target)
 	end
 end
 
+function M:confirm_rebase(opts)
+	if not self.options.confirm_rebase then
+		return true
+	end
+
+	local excluded_base = opts.grafted_ancestor ~= "" and opts.grafted_ancestor
+		or job.check_output(git["merge-base"](opts.base_reference, opts.branches[1]))
+	excluded_base = job.check_output(git["name-rev"](excluded_base)):split()[2]
+
+	return "Yes"
+		== ui.Menu({
+			title = {
+				("Rebasing onto %s"):format(opts.base_reference),
+				("(%s)->%s"):format(excluded_base, table.concat(opts.branches, "->")),
+				"Tip: Check help page for skipping this confirmation.",
+			},
+			content = {
+				"Yes",
+				"No",
+			},
+			cursor_offset = { 0, math.floor(vim.o.columns / 3) },
+		}):select()
+end
+
 function M:rebase_branches(opts)
 	vim.validate({
 		branches = { opts.branches, "table" },
@@ -47,6 +71,10 @@ function M:rebase_branches(opts)
 		base_reference = { opts.base_reference, "string" },
 		ori_reference = { opts.ori_reference, "string" },
 	})
+
+	if not self:confirm_rebase(opts) then
+		return
+	end
 
 	local grafted_ancestor = opts.grafted_ancestor
 	local base_branch = opts.base_reference

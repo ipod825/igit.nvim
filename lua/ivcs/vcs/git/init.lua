@@ -3,7 +3,7 @@ local a = require("plenary.async")
 local git = require("ivcs.vcs.git.git")
 local job = require("ivcs.libp.job")
 
-function M:setup(opts)
+function M.setup(opts)
 	opts = opts or {}
 
 	vim.validate({

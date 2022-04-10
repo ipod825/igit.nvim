@@ -22,6 +22,7 @@ function M:init(options)
 		},
 		args = { "--oneline", "--branches", "--graph", "--decorate=short" },
 		buf_enter_reload = false,
+		confirm_rebase = true,
 	}, options or {})
 end
 
