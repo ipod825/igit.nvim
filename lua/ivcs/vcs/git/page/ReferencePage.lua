@@ -23,6 +23,22 @@ function M:show(reference)
 	grid:show()
 end
 
+function M:reset(current, target)
+	local mode = ui.Menu({
+		title = "Reset",
+		content = {
+			("--soft:  HEAD -> %s, Commit %s will be staged"):format(target, current),
+			("--mixed: HEAD -> %s, Commit %s will be in worktree"):format(target, current),
+			("--hard:  HEAD -> %s, Commit %s will be discarded"):format(target, current),
+		},
+	}):select()
+
+	mode = mode:split(":")[1]
+	if mode then
+		self:runasync_and_reload(git.reset(mode, target))
+	end
+end
+
 function M:rebase_branches(opts)
 	vim.validate({
 		branches = { opts.branches, "table" },

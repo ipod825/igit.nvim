@@ -18,6 +18,7 @@ function M:init(options)
 				["o"] = self:BIND(self.new_branch),
 				["X"] = self:BIND(self.force_delete_branch),
 				["s"] = self:BIND(self.show),
+				["R"] = self:BIND(self.reset),
 			},
 			v = {
 				["r"] = self:BIND(self.rebase_chain),
@@ -79,6 +80,10 @@ end
 
 function M:switch()
 	self:runasync_and_reload(git.checkout(self:parse_line().branch))
+end
+
+function M:reset()
+	self:SUPER():reset(job.check_output(git.branch("--show-current")), self:parse_line().branch)
 end
 
 function M:get_primary_mark_or_current_branch()

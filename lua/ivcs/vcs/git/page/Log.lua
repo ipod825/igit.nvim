@@ -16,6 +16,7 @@ function M:init(options)
 				["m"] = { callback = self:BIND(self.mark), modify_buffer = false },
 				["r"] = self:BIND(self.rebase_interactive),
 				["s"] = self:BIND(self.show),
+				["R"] = self:BIND(self.reset),
 			},
 			v = { ["r"] = self:BIND(self.rebase_chain) },
 		},
@@ -27,6 +28,12 @@ end
 function M:switch()
 	local reference = self:select_reference(self:parse_line().references, "Checkout")
 	self:runasync_and_reload(git.checkout(reference))
+end
+
+function M:reset()
+	self
+		:SUPER()
+		:reset(self:get_current_branch_or_sha(), self:select_reference(self:parse_line().references, "Checkout"))
 end
 
 function M:mark()
