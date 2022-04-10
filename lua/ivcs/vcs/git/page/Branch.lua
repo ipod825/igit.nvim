@@ -1,4 +1,4 @@
-local M = require("ivcs.vcs.git.page.Page"):EXTEND()
+local M = require("ivcs.vcs.git.page.ReferencePage"):EXTEND()
 local git = require("ivcs.vcs.git.git")
 local vimfn = require("ivcs.libp.vimfn")
 local term_utils = require("ivcs.libp.terminal_utils")
