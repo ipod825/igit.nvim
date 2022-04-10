@@ -6,13 +6,14 @@ local join = function(...)
 end
 
 function M:init(opts)
+	vim.validate({ log_file = { opts.log_file, "string" } })
 	self:config(opts)
 	self.log_date_format = "%F %H:%M:%S"
 	self.format_func = function(arg)
 		return vim.inspect(arg, { newline = "" })
 	end
 
-	self.logfilename = join(vim.fn.stdpath("cache"), "ivcs.log")
+	self.logfilename = join(vim.fn.stdpath("cache"), opts.log_file)
 
 	vim.fn.mkdir(vim.fn.stdpath("cache"), "p")
 	self.logfile = assert(io.open(self.logfilename, "a+"))

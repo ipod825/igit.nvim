@@ -4,6 +4,7 @@ require("ivcs.libp.datatype.string_extension")
 local List = require("ivcs.libp.datatype.List")
 local Dict = require("ivcs.libp.datatype.Dict")
 local functional = require("ivcs.libp.functional")
+local log = require("ivcs.libp.log")
 
 local ArgType = { POSITION = 1, FLAG = 2, LONG_FLAG = 3 }
 

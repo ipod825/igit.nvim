@@ -18,8 +18,8 @@ describe("split white space", function()
 		assert.are.same({ "abc", "def", "ghi" }, a:split())
 	end)
 
-	it("Removes leading white space", function()
-		local a = "     abc def ghi"
+	it("Removes leading/trailing white space", function()
+		local a = "     abc def ghi   "
 		assert.are.same({ "abc", "def", "ghi" }, a:split(" "))
 	end)
 

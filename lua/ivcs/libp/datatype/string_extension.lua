@@ -1,4 +1,5 @@
 local String = getmetatable("").__index
+local log = require("ivcs.libp.log")
 
 function String:trim()
 	return (self:gsub("^%s*(.-)%s*$", "%1"))
@@ -19,7 +20,8 @@ function String:split(sep)
 	sep = sep or " "
 	local res = {}
 	local beg = 1
-	if sep == " " then
+	local sep_is_space = sep == " "
+	if sep_is_space then
 		beg = self:find("[^ ]")
 		sep = " +"
 	end
@@ -30,7 +32,9 @@ function String:split(sep)
 			table.insert(res, self:sub(beg, sep_beg - 1))
 			beg = sep_end + 1
 		else
-			table.insert(res, self:sub(beg, #self))
+			if not sep_is_space or beg <= #self then
+				table.insert(res, self:sub(beg, #self))
+			end
 			return res
 		end
 	end
