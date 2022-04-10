@@ -2,6 +2,7 @@ local M = require("ivcs.libp.datatype.Class"):EXTEND()
 local test_util = require("ivcs.test_util")
 local git = test_util.git
 local uv = vim.loop
+local a = require("plenary.async")
 local log = require("ivcs.log")
 
 function M:init(persist_dir)
@@ -16,6 +17,26 @@ end
 function M:touch_non_existing_file(ind)
 	test_util.jobrun(("touch " .. self.non_existing_files[ind]))
 	return self.non_existing_files[ind]
+end
+
+function M:commit_message_file_path()
+	return ("%s/.git/COMMIT_EDITMSG"):format(self.root)
+end
+
+function M:wait_commit()
+	local tx, rx = a.control.channel.oneshot()
+	local w = vim.loop.new_fs_event()
+
+	w:start(("%s/.git/objects"):format(self.root), {}, function()
+		tx()
+		w:stop()
+	end)
+
+	a.util.scheduler()
+	return function()
+		rx()
+		a.util.scheduler()
+	end
 end
 
 function M:refresh()

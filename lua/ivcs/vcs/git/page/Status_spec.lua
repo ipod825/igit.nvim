@@ -99,4 +99,52 @@ describe("Status", function()
 			stub:revert()
 		end)
 	end)
+
+	describe("clean_files", function()
+		it("Clean untracked file", function()
+			local fname = test_dir:touch_non_existing_file(1)
+			igit.status.current_buf():reload()
+			util.setrow(1)
+			assert.are.same(fname, util.check_output("git ls-files --others")[1])
+
+			igit.status:clean_files()
+			assert.are.same(0, #util.check_output("git ls-files --others"))
+		end)
+
+		it("Clean untracked file in visual mode", function()
+			test_dir:touch_non_existing_file(1)
+			test_dir:touch_non_existing_file(2)
+			igit.status.current_buf():reload()
+			util.setrow(1)
+			assert.are.same(2, #util.check_output("git ls-files --others"))
+
+			local stub = util.VisualRowStub(1, 2)
+
+			igit.status:clean_files()
+			assert.are.same(0, #util.check_output("git ls-files --others"))
+
+			stub:revert()
+		end)
+	end)
+
+	describe("commit", function()
+		it("commits change", function()
+			local fname = test_dir:touch_non_existing_file(1)
+			util.jobrun(git.add(fname))
+			igit.status.current_buf():reload()
+			util.setrow(1)
+
+			igit.status:commit()
+			assert.are.same(test_dir:commit_message_file_path(), vim.api.nvim_buf_get_name(0))
+			local commit_messages = { "test commit line1", "test commit line2" }
+			vim.api.nvim_buf_set_lines(0, 0, 2, true, commit_messages)
+
+			local wait_commit = test_dir:wait_commit()
+			vim.cmd("wq")
+			wait_commit()
+
+			local out_message = util.check_output(git.log("-n 1"))
+			assert.are.same(commit_messages, vim.list_slice(out_message, #out_message - 1, #out_message))
+		end)
+	end)
 end)
