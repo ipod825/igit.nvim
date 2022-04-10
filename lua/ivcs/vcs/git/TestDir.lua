@@ -9,14 +9,35 @@ function M:init(persist_dir)
 	vim.validate({ persist_dir = { persist_dir, "boolean", true } })
 	self.persist_dir = persist_dir
 	self.files = { "f1", "f2" }
-	self.non_existing_files = { "nf1", "nf2" }
+	self.untracked_files = { "nf1", "nf2" }
 	self.path1 = { "b1", "b2" }
 	self.path2 = { "b3", "b4" }
 end
 
-function M:touch_non_existing_file(ind)
-	test_util.jobrun(("touch " .. self.non_existing_files[ind]))
-	return self.non_existing_files[ind]
+M.current = {}
+function M.current:branch()
+	return vim.fn.trim(vim.fn.system(git.branch("--show-current")))
+end
+
+function M.current:branches()
+	return test_util.check_output(git.branch())
+end
+
+function M.current.staged_files()
+	return test_util.check_output("git diff --name-only --cached")
+end
+
+function M.current.worktree_dirty_files()
+	return test_util.check_output("git diff --name-only")
+end
+
+function M.current.worktree_untracked_files()
+	return test_util.check_output("git ls-files --others")
+end
+
+function M:touch_untracked_file(ind)
+	test_util.jobrun(("touch " .. self.untracked_files[ind]))
+	return self.untracked_files[ind]
 end
 
 function M:commit_message_file_path()
@@ -48,14 +69,6 @@ function M:refresh()
 	self.root = self:create_dir()
 	test_util.jobrun(("cp -r %s %s_bak"):format(self.root, self.root))
 	return self.root
-end
-
-function M:current_branch()
-	return vim.fn.trim(vim.fn.system(git.branch("--show-current")))
-end
-
-function M:branches()
-	return test_util.check_output(git.branch())
 end
 
 function M:create_dir()
