@@ -34,36 +34,32 @@ function M:rebase_branches(opts)
 
 	local grafted_ancestor = opts.grafted_ancestor
 	local base_branch = opts.base_reference
-	a.void(function()
-		for _, new_branch in ipairs(opts.branches) do
-			local next_grafted_ancestor = ("%s_original_conflicted_with_%s_created_by_ivcs"):format(
-				new_branch,
-				base_branch
-			)
-			job.start(git.branch(next_grafted_ancestor, new_branch))
-			if grafted_ancestor ~= "" then
-				local succ = 0 == job.start(git.rebase("--onto", base_branch, grafted_ancestor, new_branch))
-				if grafted_ancestor:endswith("created_by_ivcs") then
-					job.start(git.branch("-D", grafted_ancestor))
-				end
-				if not succ then
-					opts.current_buf:reload()
-					return
-				end
-			else
-				if 0 ~= job.start(git.rebase(base_branch, new_branch)) then
-					job.start(git.branch("-D", next_grafted_ancestor))
-					opts.current_buf:reload()
-					return
-				end
+
+	for _, new_branch in ipairs(opts.branches) do
+		local next_grafted_ancestor = ("%s_original_conflicted_with_%s_created_by_ivcs"):format(new_branch, base_branch)
+		job.start(git.branch(next_grafted_ancestor, new_branch))
+		if grafted_ancestor ~= "" then
+			local succ = 0 == job.start(git.rebase("--onto", base_branch, grafted_ancestor, new_branch))
+			if grafted_ancestor:endswith("created_by_ivcs") then
+				job.start(git.branch("-D", grafted_ancestor))
 			end
-			grafted_ancestor = next_grafted_ancestor
-			base_branch = new_branch
+			if not succ then
+				opts.current_buf:reload()
+				return
+			end
+		else
+			if 0 ~= job.start(git.rebase(base_branch, new_branch)) then
+				job.start(git.branch("-D", next_grafted_ancestor))
+				opts.current_buf:reload()
+				return
+			end
 		end
-		job.start(git.branch("-D", grafted_ancestor))
-		job.start(git.checkout(opts.ori_reference))
-		opts.current_buf:reload()
-	end)()
+		grafted_ancestor = next_grafted_ancestor
+		base_branch = new_branch
+	end
+	job.start(git.branch("-D", grafted_ancestor))
+	job.start(git.checkout(opts.ori_reference))
+	opts.current_buf:reload()
 end
 
 return M
