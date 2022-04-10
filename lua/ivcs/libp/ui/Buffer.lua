@@ -197,6 +197,7 @@ function M:edit(opts)
 	vim.validate({
 		get_items = { opts.get_items, "function" },
 		update = { opts.update, "function" },
+		fill_lines = { opts.fill_lines, "function", true },
 	})
 	self.ctx.edit = vim.tbl_extend("error", opts, { ori_items = opts.get_items() })
 	vim.bo.buftype = "acwrite"
@@ -210,7 +211,9 @@ function M:edit(opts)
 	self:unmapfn(self.mappings)
 	vim.bo.undolevels = -1
 	vim.bo.modifiable = true
-	vim.cmd("substitute/\\e\\[[0-9;]*m//g")
+	if opts.fill_lines then
+		opts.fill_lines()
+	end
 	vim.bo.undolevels = (self.bo.undolevels > 0) and self.bo.undolevels or vim.api.nvim_get_option("undolevels")
 end
 

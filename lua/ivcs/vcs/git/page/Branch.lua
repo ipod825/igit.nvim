@@ -34,6 +34,9 @@ function M:rename()
 		get_items = function()
 			return self:get_branches_in_rows(1, vim.fn.line("$"))
 		end,
+		fill_lines = function()
+			vim.cmd("substitute/\\e\\[[0-9;]*m//g")
+		end,
 		update = function(ori_items, new_items)
 			if #ori_items ~= #new_items then
 				vim.notify("Can't remove or add items!")
@@ -122,6 +125,9 @@ function M:new_branch()
 	self:current_buf():edit({
 		get_items = function()
 			return Set(self:get_branches_in_rows(vimfn.all_rows()))
+		end,
+		fill_lines = function()
+			vim.cmd("substitute/\\e\\[[0-9;]*m//g")
 		end,
 		update = function(ori_branches, new_branches)
 			for new_branch in (new_branches - ori_branches):values() do
