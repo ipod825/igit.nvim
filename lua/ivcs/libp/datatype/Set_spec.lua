@@ -79,7 +79,7 @@ describe("size", function()
 end)
 
 describe("iter", function()
-	it("Iteratrates through its values", function()
+	it("Iterates through its values", function()
 		local s = Set({ 1, 2, 3 })
 		local i = 1
 		for e in Set.values(s) do

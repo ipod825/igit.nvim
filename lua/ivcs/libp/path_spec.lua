@@ -21,7 +21,7 @@ describe("basename", function()
 end)
 
 describe("path_join", function()
-	it("joins the paths", function()
+	it("Joins the paths", function()
 		assert.are.same("a/b", path.path_join("a", "b"))
 	end)
 end)

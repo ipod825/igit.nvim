@@ -27,7 +27,7 @@ describe("extend", function()
 end)
 
 describe("Concat(_add)", function()
-	it("Returns coancated list ", function()
+	it("Returns concatenated list ", function()
 		local l = List({ 1, 2 })
 		local l1 = l + { 3, 4 }
 		local l2 = l1 + { 5, 6 }
