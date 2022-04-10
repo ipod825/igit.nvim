@@ -90,15 +90,32 @@ function M:commit(opts)
 end
 
 function M:change_action(action)
+	local current_buf = self:current_buf()
 	local status = git.status_porcelain()
-	local filepaths = Iterator.range(vimfn.visual_rows())
-		:map(function(e)
-			local filepath = self:parse_line(e).filepath
-			return status[filepath] and filepath or ""
-		end)
-		:collect()
-	self:runasync_and_reload(action(filepaths))
-	return #filepaths == 1
+	local filepaths = {}
+	local file_count = 0
+	local b, e = vimfn.visual_rows()
+
+	-- Run the command once for each different status as some might fail (for
+	-- e.g., we can't unstage untracked files). If we run a single command. No
+	-- progress is made and the user is forced to do it in multi-steps.
+	for i = b, e do
+		local filepath = self:parse_line(i).filepath
+		local s = status[filepath].state
+		if s then
+			filepaths[s] = filepaths[s] or {}
+			table.insert(filepaths[s], filepath)
+			file_count = file_count + 1
+		end
+	end
+
+	-- Note that using start_all here might lead to git index lock issue. Hence
+	-- we run the commands sequentially here.
+	for _, files in pairs(filepaths) do
+		job.start(action(files))
+	end
+	current_buf:reload()
+	return file_count == 1
 end
 
 function M:diff_cached()

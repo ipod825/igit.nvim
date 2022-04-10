@@ -53,11 +53,13 @@ function M.status_porcelain(file)
 	for line in job.check_output(M.status("--porcelain", file), { return_list = true }):values() do
 		local state, old_filename, _, new_filename = unpack(line:split())
 		res[old_filename] = {
+			state = state,
 			index = state:sub(1, 1),
 			worktree = state:sub(2, 2),
 		}
 		if new_filename then
 			res[new_filename] = {
+				state = state,
 				index = state:sub(1, 1),
 				worktree = state:sub(2, 2),
 			}
