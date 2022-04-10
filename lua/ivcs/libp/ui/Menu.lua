@@ -2,6 +2,7 @@ local M = require("ivcs.libp.datatype.Class"):EXTEND()
 local Buffer = require("ivcs.libp.ui.Buffer")
 local Window = require("ivcs.libp.ui.Window")
 local functional = require("ivcs.libp.functional")
+local a = require("plenary.async")
 
 function M:init(opts)
 	vim.validate({
@@ -72,5 +73,10 @@ function M:show()
 		})
 	end
 end
+
+M.select = a.wrap(function(self, callback)
+	self.on_select = callback
+	self:show()
+end, 2)
 
 return M

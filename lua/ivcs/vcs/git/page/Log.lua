@@ -111,18 +111,15 @@ function M:rebase_chain()
 	})
 end
 
-M.select_reference = a.wrap(function(_, references, op_title, callback)
+function M:select_reference(references, op_title)
 	if #references < 2 then
-		return callback(references[1])
+		return references[1]
 	end
-	ui.Menu({
+	return ui.Menu({
 		title = ("%s Commit"):format(op_title),
 		content = references,
-		on_select = function(item)
-			callback(item)
-		end,
-	}):show()
-end, 4)
+	}):select()
+end
 
 function M:parse_line(linenr)
 	linenr = linenr or "."

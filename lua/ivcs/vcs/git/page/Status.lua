@@ -26,9 +26,10 @@ function M:init(options)
 				["t"] = self:BIND(self.open_file, "tab drop"),
 			},
 			v = {
-				["X"] = self:BIND(self.discard_change),
 				["H"] = self:BIND(self.stage_change),
 				["L"] = self:BIND(self.unstage_change),
+				["X"] = self:BIND(self.discard_change),
+				["C"] = self:BIND(self.clean_files),
 			},
 		},
 		args = { "-s" },
