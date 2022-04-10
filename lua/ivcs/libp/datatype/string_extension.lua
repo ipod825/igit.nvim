@@ -13,9 +13,12 @@ function String:split_trim(sep)
 end
 
 function String:split(sep)
+	if #self == 0 then
+		return {}
+	end
 	sep = sep or " "
 	local res = {}
-	local beg = #self > 0 and 1 or nil
+	local beg = 1
 	if sep == " " then
 		beg = self:find("[^ ]")
 		sep = " +"

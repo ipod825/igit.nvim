@@ -17,6 +17,20 @@ function M.setrow(nr)
 	vim.api.nvim_win_set_cursor(0, { nr, 0 })
 end
 
+M.VisualRowStub = function(...)
+	-- todo: Seems like neovim has a bug: After setting the buffer content,
+	-- vim.fn.getpos("'>") would return {0,0,0,0}.
+	local stub = visual_rows_stub or require("luassert.stub")(require("ivcs.libp.vimfn"), "visual_rows")
+	stub.by_default.returns(...)
+	return stub
+end
+
+function M.stub_visual_rows(...)
+	M.visual_rows_stub = M.visual_rows_stub or require("luassert.stub")(require("ivcs.libp.vimfn"), "visual_rows")
+	M.visual_rows_stub.by_default.returns(...)
+	return M.visual_rows_stub
+end
+
 M.BufReloadWaiter = Class:EXTEND()
 function M.BufReloadWaiter:wait()
 	-- The first reload is triggered by Buffer init but not autocmd. Hence

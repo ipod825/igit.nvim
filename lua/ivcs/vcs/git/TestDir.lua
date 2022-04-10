@@ -51,28 +51,30 @@ function M:create_dir()
 		test_util.jobrun(cmd, { cwd = root })
 	end
 	run(("git init --initial-branch %s ."):format(self.path1[1]))
-	run(('echo "line 1" > %s'):format(self.files[1]))
+	run(('echo "path 1 file 1 line 1" > %s'):format(self.files[1]))
+	run(git.checkout("-b " .. self.path1[1]))
+	run(('echo "path 1 file 2 line 1" >> %s'):format(self.files[2]))
 	run(git.add("."))
-	run(git.commit('-m "first"'))
+	run(git.commit('-m "path 1 first"'))
 
 	run(git.checkout("-b " .. self.path1[2]))
 	run(('echo "line 2" >> %s'):format(self.files[1]))
 	run(git.add("."))
-	run(git.commit('-m "second"'))
+	run(git.commit('-m "path 2 second"'))
 
 	run(git.checkout(self.path1[1]))
 
 	run(git.checkout("-b " .. self.path2[1]))
-	run(('echo "line 1" >> %s'):format(self.files[2]))
+	run(('echo "path 2 file 3 line 1" >> %s'):format(self.files[3]))
 	run(git.add("."))
 	run(git.commit('-m "path2 first"'))
 
 	run(git.checkout("-b " .. self.path2[2]))
-	run(('echo "line 2" >> %s'):format(self.files[2]))
+	run(('echo "path 2 file 3 line 2" >> %s'):format(self.files[3]))
 	run(git.add("."))
 	run(git.commit('-m "path2 second"'))
 
-	run(('echo "line 2" >> %s'):format(self.files[2]))
+	run(('echo "path 2 file 3 line 3" >> %s'):format(self.files[3]))
 	run(git.add("."))
 	run(git.commit('-m "path2 third"'))
 
