@@ -78,14 +78,8 @@ describe("Branch", function()
 			assert.is_truthy(Set.has(new_branches, new_branch1))
 			assert.is_truthy(Set.has(new_branches, new_branch2))
 
-			assert.are.same(
-				util.check_output(git["rev-parse"](new_branch1)),
-				util.check_output(git["rev-parse"](current_branch))
-			)
-			assert.are.same(
-				util.check_output(git["rev-parse"](new_branch2)),
-				util.check_output(git["rev-parse"](current_branch))
-			)
+			assert.are.same(test_dir:get_sha(new_branch1), test_dir:get_sha(current_branch))
+			assert.are.same(test_dir:get_sha(new_branch2), test_dir:get_sha(current_branch))
 		end)
 
 		it("Hononrs mark", function()
@@ -97,10 +91,7 @@ describe("Branch", function()
 			vim.api.nvim_buf_set_lines(0, linenr, linenr, true, { new_branch2 })
 			vim.cmd("write")
 			buffer_reload_waiter:wait()
-			assert.are.same(
-				util.check_output(git["rev-parse"](new_branch2)),
-				util.check_output(git["rev-parse"](new_branch2))
-			)
+			assert.are.same(test_dir:get_sha(new_branch2), test_dir:get_sha(new_branch2))
 		end)
 	end)
 

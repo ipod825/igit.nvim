@@ -59,7 +59,7 @@ function M:commit_submit(git_dir, opts)
 	if opts.backup_branch then
 		local base_branch = job.check_output(gita.branch("--show-current"))
 		local backup_branch = ("%s_original_created_by_ivcs"):format(base_branch)
-		job.start(gita.branch(("%s %s"):format(backup_branch, base_branch)))
+		job.start(gita.branch(backup_branch, base_branch))
 	end
 	job.start(gita.commit({ opts.amend and "--amend", "-m", table.concat(lines, "\n") }))
 end
