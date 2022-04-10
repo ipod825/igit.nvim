@@ -16,7 +16,7 @@ describe("Branch", function()
 	-- todo: Use a.before_each after plenary#350
 	before_each(a.util.will_block(function()
 		local root = test_dir:refresh()
-		vim.cmd(("edit %s"):format(path.path_join(root, test_dir.files[1])))
+		vim.cmd(("edit %s"):format(path.join(root, test_dir.files[1])))
 		igit.setup()
 		igit.branch:open()
 		buffer_reload_waiter:wait()

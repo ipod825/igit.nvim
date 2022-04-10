@@ -3,7 +3,7 @@ local log = require("ivcs.libp.log")
 
 local path_sep = vim.loop.os_uname().version:match("Windows") and "\\" or "/"
 
-function M.path_join(...)
+function M.join(...)
 	return table.concat({ ... }, path_sep)
 end
 
@@ -17,7 +17,7 @@ function M.find_directory(anchor, dir)
 	local function search(d)
 		local res = nil
 		while #d > 1 do
-			if vim.fn.glob(M.path_join(d, anchor)) ~= "" then
+			if vim.fn.glob(M.join(d, anchor)) ~= "" then
 				return d
 			end
 			local ori_len

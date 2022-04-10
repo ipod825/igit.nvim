@@ -1,7 +1,7 @@
 local M = require("ivcs.libp.datatype.Class"):EXTEND()
 
 local path_sep = vim.loop.os_uname().version:match("Windows") and "\\" or "/"
-local path_join = function(...)
+local join = function(...)
 	return table.concat({ ... }, path_sep)
 end
 
@@ -12,7 +12,7 @@ function M:init(opts)
 		return vim.inspect(arg, { newline = "" })
 	end
 
-	self.logfilename = path_join(vim.fn.stdpath("cache"), "ivcs.log")
+	self.logfilename = join(vim.fn.stdpath("cache"), "ivcs.log")
 
 	vim.fn.mkdir(vim.fn.stdpath("cache"), "p")
 	self.logfile = assert(io.open(self.logfilename, "a+"))

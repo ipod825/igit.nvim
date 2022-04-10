@@ -240,7 +240,7 @@ function M:parse_line(line_nr)
 	local res = {}
 	local line = vim.fn.getline(line_nr)
 	res.filepath = line:find_str("[^%s]+%s+([^%s]+)$")
-	res.abs_path = path.path_join(git.find_root(), res.filepath)
+	res.abs_path = path.join(git.find_root(), res.filepath)
 	return res
 end
 
