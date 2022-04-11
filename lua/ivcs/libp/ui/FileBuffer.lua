@@ -1,6 +1,7 @@
 local M = require("ivcs.libp.datatype.Class"):EXTEND()
 local a = require("plenary.async")
 local job = require("ivcs.libp.job")
+local log = require("ivcs.libp.log")
 
 function M:init(filename)
 	vim.validate({ filename = { filename, "string" } })
@@ -16,17 +17,19 @@ function M:init(filename)
 	vim.api.nvim_buf_set_option(self.id, "undolevels", -1)
 	vim.api.nvim_buf_set_option(self.id, "undofile", false)
 
-	job.start("cat " .. filename, {
-		on_stdout = function(lines)
-			if not vim.api.nvim_buf_is_valid(self.id) then
-				return true
-			end
+	local _, fd = a.uv.fs_open(filename, "r", 448)
+	local err, stat = a.uv.fs_fstat(fd)
+	assert(not err)
+	-- Remove last newline
+	local _, content = a.uv.fs_read(fd, stat.size - 1)
+	log.warn(stat.size)
+	a.util.scheduler()
+	vim.api.nvim_buf_set_option(self.id, "modifiable", true)
+	vim.api.nvim_buf_set_lines(self.id, -2, -1, false, content:split("\n"))
+	vim.api.nvim_buf_set_option(self.id, "modifiable", false)
+	a.uv.fs_close(fd)
+	a.util.scheduler()
 
-			vim.api.nvim_buf_set_option(self.id, "modifiable", true)
-			vim.api.nvim_buf_set_lines(self.id, -2, -1, false, lines)
-			vim.api.nvim_buf_set_option(self.id, "modifiable", false)
-		end,
-	})
 	vim.api.nvim_buf_set_name(self.id, filename)
 	vim.api.nvim_buf_set_option(self.id, "undolevels", vim.api.nvim_get_option("undolevels"))
 	vim.api.nvim_buf_set_option(self.id, "modified", false)

@@ -7,7 +7,7 @@ local log = require("ivcs.log")
 
 M.start = a.wrap(function(cmd, opts, callback)
 	vim.validate(
-		{ cmd = { cmd, { "string", "table" } }, opts = { opts, "table", true } },
+		{ cmd = { cmd, { "table" } }, opts = { opts, "table", true } },
 		{ callback = { callback, "function", true } }
 	)
 	opts = opts or {}
