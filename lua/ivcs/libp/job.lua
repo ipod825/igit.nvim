@@ -3,7 +3,7 @@ local M = {}
 local a = require("plenary.async")
 local List = require("ivcs.libp.datatype.List")
 local term_util = require("ivcs.libp.terminal_utils")
-local log = require("ivcs.log")
+local log = require("ivcs.libp.log")
 
 M.start = a.wrap(function(cmd, opts, callback)
 	vim.validate(
@@ -113,6 +113,12 @@ M.start = a.wrap(function(cmd, opts, callback)
 		args = vim.list_slice(cmd, 2, #cmd)
 		cmd = cmd[1]
 	end
+
+	-- Unquoted the args (begin/end/after equal) as it will be quoted by spawn.
+	for i, arg in ipairs(args) do
+		args[i] = arg:gsub("^[\"']", ""):gsub("[\"']$", ""):gsub("= *[\"']", "=")
+	end
+
 	process, pid = vim.loop.spawn(
 		cmd,
 		{ stdio = { nil, stdout, stderr }, args = args, cwd = opts.cwd, detached = opts.detached, env = opts.env },

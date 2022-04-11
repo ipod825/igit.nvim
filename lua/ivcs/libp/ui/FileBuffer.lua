@@ -22,7 +22,6 @@ function M:init(filename)
 	assert(not err)
 	-- Remove last newline
 	local _, content = a.uv.fs_read(fd, stat.size - 1)
-	log.warn(stat.size)
 	a.util.scheduler()
 	vim.api.nvim_buf_set_option(self.id, "modifiable", true)
 	vim.api.nvim_buf_set_lines(self.id, -2, -1, false, content:split("\n"))
