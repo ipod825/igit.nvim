@@ -4,6 +4,7 @@ require("ivcs.libp.datatype.string_extension")
 local List = require("ivcs.libp.datatype.List")
 local Dict = require("ivcs.libp.datatype.Dict")
 local functional = require("ivcs.libp.functional")
+local term_util = require("ivcs.libp.terminal_utils")
 local log = require("ivcs.libp.log")
 
 local ArgType = { POSITION = 1, FLAG = 2, LONG_FLAG = 3 }
@@ -94,7 +95,11 @@ end
 
 function M:parse(str, return_hierarchical_result)
 	vim.validate({ str = { str, "string" } })
-	local res, err_msg = self:parse_internal(str:split(), return_hierarchical_result)
+	local tokens = term_util.tokenize_command(str)
+	if not tokens then
+		return nil
+	end
+	local res, err_msg = self:parse_internal(tokens, return_hierarchical_result)
 	err_msg = err_msg or self:_is_parsed_args_invalid(res)
 
 	if err_msg then

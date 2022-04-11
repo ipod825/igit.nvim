@@ -2,6 +2,7 @@ require("ivcs.libp.datatype.string_extension")
 local M = {}
 local a = require("plenary.async")
 local List = require("ivcs.libp.datatype.List")
+local term_util = require("ivcs.libp.terminal_utils")
 local log = require("ivcs.log")
 
 M.start = a.wrap(function(cmd, opts, callback)
@@ -105,13 +106,9 @@ M.start = a.wrap(function(cmd, opts, callback)
 
 	local args
 	if type(cmd) == "string" then
-		args = cmd:split()
+		args = term_util.tokenize_command(cmd)
 		cmd = args[1]
 		args = vim.list_slice(args, 2, #args)
-		-- Unquoted the args as it will be quoted by spawn.
-		for i, arg in ipairs(args) do
-			args[i] = arg:unquote()
-		end
 	else
 		args = vim.list_slice(cmd, 2, #cmd)
 		cmd = cmd[1]
