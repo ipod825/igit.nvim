@@ -1,7 +1,7 @@
 local M = require("ivcs.libp.datatype.Class"):EXTEND()
 local Buffer = require("ivcs.libp.ui.Buffer")
 local a = require("plenary.async")
-local log = require("ivcs.log")
+local log = require("ivcs.libp.log")
 
 function M:init(opts, root)
 	opts = opts or {}

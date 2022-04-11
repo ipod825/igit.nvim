@@ -3,7 +3,7 @@ local global = require("ivcs.libp.global")("libp")
 local functional = require("ivcs.libp.functional")
 local a = require("plenary.async")
 local job = require("ivcs.libp.job")
-local log = require("ivcs.log")
+local log = require("ivcs.libp.log")
 
 function M.get_current_buffer()
 	return global.buffers[vim.api.nvim_get_current_buf()]
