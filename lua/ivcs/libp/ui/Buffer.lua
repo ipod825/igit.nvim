@@ -73,11 +73,11 @@ function M:init(opts)
 	-- The following autocmds might not be triggered due to nested autocmds. The
 	-- handlers are invoked manually in other places when necessary.
 
-	-- free memory on wipe
-	vim.api.nvim_create_autocmd("BufDelete", {
+	-- free memory on BufUnload
+	vim.api.nvim_create_autocmd("BufUnload", {
 		buffer = self.id,
 		once = true,
-		callback = self:BIND(self.on_close),
+		callback = self:BIND(self.on_unload),
 	})
 
 	-- reload on :edit
@@ -92,21 +92,17 @@ function M:init(opts)
 	if opts.buf_enter_reload then
 		vim.api.nvim_create_autocmd("BufEnter", {
 			buffer = self.id,
-			callback = self:BIND(self.on_enter),
+			callback = a.void(function()
+				self:reload()
+			end),
 		})
 	end
 
 	self:reload()
 end
 
-function M:on_close()
+function M:on_unload()
 	global.buffers[self.id] = nil
-end
-
-function M:on_enter()
-	a.void(function()
-		self:reload()
-	end)()
 end
 
 function M:mapfn(mappings)

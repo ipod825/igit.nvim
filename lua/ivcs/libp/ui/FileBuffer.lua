@@ -54,4 +54,6 @@ function M:init(filename)
 	end
 end
 
+function M:on_unload() end
+
 return M

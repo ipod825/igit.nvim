@@ -110,11 +110,8 @@ function M:show()
 			once = true,
 			callback = function()
 				self.root:close()
-				-- autocmd doesn't nest. Invoke BufEnter handlers by ourselves.
-				local cur_buf = Buffer.get_current_buffer()
-				if cur_buf then
-					cur_buf:on_enter()
-				end
+				-- autocmd doesn't nest. Invoke BufEnter by ourselves.
+				vim.api.nvim_exec_autocmds("BufEnter", { pattern = "*" })
 			end,
 		})
 	else
