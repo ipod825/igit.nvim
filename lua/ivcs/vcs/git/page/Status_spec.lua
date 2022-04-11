@@ -138,7 +138,7 @@ describe("Status", function()
 			igit.status:commit()
 			assert.are.same(test_dir:commit_message_file_path(), vim.api.nvim_buf_get_name(0))
 			local commit_messages = { "test commit line1", "test commit line2" }
-			vim.api.nvim_buf_set_lines(0, 0, 2, true, commit_messages)
+			vim.api.nvim_buf_set_lines(0, 0, -1, true, commit_messages)
 
 			local ori_sha = test_dir:get_sha("HEAD")
 			vim.cmd("bwipeout!")
@@ -157,7 +157,7 @@ describe("Status", function()
 			igit.status:commit()
 			assert.are.same(test_dir:commit_message_file_path(), vim.api.nvim_buf_get_name(0))
 			local commit_messages = { "test commit line1", "test commit line2" }
-			vim.api.nvim_buf_set_lines(0, 0, 2, true, commit_messages)
+			vim.api.nvim_buf_set_lines(0, 0, -1, true, commit_messages)
 
 			local ori_sha = test_dir:get_sha("HEAD")
 			local wait_commit = test_dir:wait_commit()
@@ -178,7 +178,7 @@ describe("Status", function()
 			igit.status:commit({ backup_branch = true })
 			assert.are.same(test_dir:commit_message_file_path(), vim.api.nvim_buf_get_name(0))
 			local commit_messages = { "test commit line1", "test commit line2" }
-			vim.api.nvim_buf_set_lines(0, 0, 2, true, commit_messages)
+			vim.api.nvim_buf_set_lines(0, 0, -1, true, commit_messages)
 
 			local ori_branches = Set(test_dir.current.branches())
 
@@ -205,7 +205,7 @@ describe("Status", function()
 			igit.status:commit({ amend = true })
 			assert.are.same(test_dir:commit_message_file_path(), vim.api.nvim_buf_get_name(0))
 			local commit_messages = { "test commit line1", "test commit line2" }
-			vim.api.nvim_buf_set_lines(0, 0, 2, true, commit_messages)
+			vim.api.nvim_buf_set_lines(0, 0, -1, true, commit_messages)
 
 			local ori_sha = test_dir:get_sha("HEAD")
 			local ori_parent_sha = test_dir:get_sha("HEAD^1")
