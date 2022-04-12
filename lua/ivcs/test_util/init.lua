@@ -17,6 +17,15 @@ function M.setrow(nr)
 	vim.api.nvim_win_set_cursor(0, { nr, 0 })
 end
 
+function M.set_current_line(str)
+	local ori_modifiable = vim.bo.modifiable
+	local ori_line = vim.api.nvim_get_current_line()
+	local linenr = vim.fn.line(".")
+	vim.api.nvim_buf_set_lines(0, linenr, linenr + 1, true, { str })
+	vim.bo.modifiable = ori_modifiable
+	return ori_line
+end
+
 function M.assert_diff_window_compaitability()
 	assert.are.same(true, vim.wo.diff)
 	assert.are.same(true, vim.wo.scrollbind)
