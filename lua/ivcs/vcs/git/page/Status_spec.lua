@@ -272,7 +272,7 @@ describe("Status", function()
 			assert.is_truthy(#vim.api.nvim_tabpage_list_wins(0) >= 3)
 			util.assert_diff_window_compaitability()
 
-			vim.cmd(vim.api.nvim_buf_line_count(0) .. " diffput")
+			vim.cmd("1,$ diffput")
 			vim.cmd("bwipeout")
 			-- Wait on reload caused by BufEnter and Staging changes
 			buffer_reload_waiter:wait(2)
