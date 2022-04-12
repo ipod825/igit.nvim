@@ -1,6 +1,5 @@
 local M = require("ivcs.libp.datatype.Class"):EXTEND()
 local a = require("plenary.async")
-local job = require("ivcs.libp.job")
 local log = require("ivcs.libp.log")
 
 function M:init(filename)

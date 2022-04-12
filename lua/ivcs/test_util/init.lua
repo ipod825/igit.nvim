@@ -17,6 +17,14 @@ function M.setrow(nr)
 	vim.api.nvim_win_set_cursor(0, { nr, 0 })
 end
 
+function M.assert_diff_window_compaitability()
+	assert.are.same(true, vim.wo.diff)
+	assert.are.same(true, vim.wo.scrollbind)
+	assert.are.same(true, vim.wo.cursorbind)
+	assert.are.same(vim.o.diffopt:find("followwrap") ~= nil, vim.wo.wrap)
+	assert.are.same("diff", vim.wo.foldmethod)
+end
+
 M.VisualRowStub = function(...)
 	-- todo: Seems like neovim has a bug: After setting the buffer content,
 	-- vim.fn.getpos("'>") would return {0,0,0,0}.
@@ -32,13 +40,16 @@ function M.stub_visual_rows(...)
 end
 
 M.BufReloadWaiter = Class:EXTEND()
-function M.BufReloadWaiter:wait()
+function M.BufReloadWaiter:wait(times)
 	-- The first reload is triggered by Buffer init but not autocmd. Hence
 	-- no wait on first time.
 	if self.reload_done == nil then
 		self.reload_done = ui.Buffer.get_current_buffer():register_reload_notification()
 	else
-		self.reload_done:wait()
+		times = times or 1
+		for _ = 1, times do
+			self.reload_done:wait()
+		end
 	end
 end
 

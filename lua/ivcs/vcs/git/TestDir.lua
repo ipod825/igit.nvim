@@ -1,6 +1,7 @@
 local M = require("ivcs.libp.datatype.Class"):EXTEND()
 local util = require("ivcs.test_util")
 local git = util.git
+local path = require("ivcs.libp.path")
 local uv = vim.loop
 local a = require("plenary.async")
 local log = require("ivcs.log")
@@ -46,6 +47,10 @@ end
 
 function M:commit_message_file_path()
 	return ("%s/.git/COMMIT_EDITMSG"):format(self.root)
+end
+
+function M:abs_path(fname)
+	return path.join(self.root, fname)
 end
 
 function M:wait_commit()

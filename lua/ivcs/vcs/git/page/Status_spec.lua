@@ -15,8 +15,8 @@ describe("Status", function()
 
 	-- todo: Use a.before_each after plenary#350
 	before_each(a.util.will_block(function()
-		local root = test_dir:refresh()
-		vim.cmd(("edit %s"):format(path.join(root, test_dir.files[1])))
+		test_dir:refresh()
+		vim.cmd(("edit %s"):format(test_dir:abs_path(test_dir.files[1])))
 		igit.status:open()
 		buffer_reload_waiter:wait()
 		util.setrow(1)
@@ -227,7 +227,7 @@ describe("Status", function()
 			igit.status.current_buf():reload()
 			util.setrow(1)
 			igit.status:open_file()
-			assert.are.same(path.join(test_dir.root, fname), vim.api.nvim_buf_get_name(0))
+			assert.are.same(test_dir:abs_path(fname), vim.api.nvim_buf_get_name(0))
 		end)
 
 		it("Opens file with command", function()
@@ -236,8 +236,75 @@ describe("Status", function()
 			igit.status.current_buf():reload()
 			util.setrow(1)
 			igit.status:open_file("vsplit")
-			assert.are.same(path.join(test_dir.root, fname), vim.api.nvim_buf_get_name(0))
+			assert.are.same(test_dir:abs_path(fname), vim.api.nvim_buf_get_name(0))
 			assert.are.same(2, #vim.api.nvim_tabpage_list_wins(0))
+		end)
+	end)
+
+	describe("diff_cached", function()
+		it("Diff against index.", function()
+			local fname = test_dir.files[1]
+			util.jobrun("echo newline >> " .. fname)
+			igit.status.current_buf():reload()
+			util.setrow(1)
+			igit.status:diff_index()
+
+			assert.is_truthy(#vim.api.nvim_tabpage_list_wins(0) >= 3)
+			util.assert_diff_window_compaitability()
+
+			vim.cmd("bwipeout")
+			-- Wait on reload caused by BufEnter
+			buffer_reload_waiter:wait()
+
+			-- All diff windows should be closed together
+			assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))
+		end)
+	end)
+
+	describe("diff_cached", function()
+		it("Diff against stage. Staging all changes.", function()
+			local fname = test_dir.files[1]
+			util.jobrun("echo newline >> " .. fname)
+			igit.status.current_buf():reload()
+			util.setrow(1)
+			igit.status:diff_cached()
+
+			assert.is_truthy(#vim.api.nvim_tabpage_list_wins(0) >= 3)
+			util.assert_diff_window_compaitability()
+
+			vim.cmd(vim.api.nvim_buf_line_count(0) .. " diffput")
+			vim.cmd("bwipeout")
+			-- Wait on reload caused by BufEnter and Staging changes
+			buffer_reload_waiter:wait(2)
+
+			-- All diff windows should be closed together
+			assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))
+
+			assert.are.same(fname, test_dir.current.staged_files()[1])
+			assert.are.same(0, #test_dir.current.worktree_dirty_files())
+		end)
+
+		it("Diff against stage. Staging partial changes.", function()
+			local fname = test_dir.files[1]
+			util.jobrun('echo "newline\nknewline2" >> ' .. fname)
+			igit.status.current_buf():reload()
+			util.setrow(1)
+			igit.status:diff_cached()
+
+			assert.is_truthy(#vim.api.nvim_tabpage_list_wins(0) >= 3)
+			util.assert_diff_window_compaitability()
+
+			vim.cmd(vim.api.nvim_buf_line_count(0) .. " diffput")
+			vim.cmd("bwipeout")
+			-- Wait on reload caused by BufEnter and Staging changes
+			buffer_reload_waiter:wait(2)
+
+			-- All diff windows should be closed together
+			assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))
+
+			assert.are.same(fname, test_dir.current.staged_files()[1])
+			assert.are.same(fname, test_dir.current.staged_files()[1])
+			assert.are.same(fname, test_dir.current.worktree_dirty_files()[1])
 		end)
 	end)
 end)
