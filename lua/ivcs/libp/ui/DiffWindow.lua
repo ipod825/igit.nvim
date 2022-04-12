@@ -1,4 +1,5 @@
 local M = require("ivcs.libp.ui.Window"):EXTEND()
+local log = require("ivcs.libp.log")
 
 function M:init(buffer, opts)
 	opts = opts or {}
@@ -6,7 +7,7 @@ function M:init(buffer, opts)
 		diff = true,
 		scrollbind = true,
 		cursorbind = true,
-		wrap = true,
+		wrap = vim.o.diffopt:find("followwrap") ~= nil,
 		foldmethod = "diff",
 		winhighlight = "Normal:Normal",
 	})
