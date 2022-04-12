@@ -28,8 +28,8 @@ function M:on_close()
 	if vim.api.nvim_win_is_valid(self.id) then
 		vim.api.nvim_win_close(self.id, false)
 		if not vim.api.nvim_buf_is_valid(self.buffer.id) then
-			-- autocmd doesn't nest. Invoke BufUnload by ourselves.
-			self.buffer:on_unload()
+			-- autocmd doesn't nest. Invoke BufWipeout by ourselves.
+			self.buffer:on_wipeout()
 		end
 	end
 end

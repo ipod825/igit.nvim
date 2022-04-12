@@ -53,6 +53,6 @@ function M:init(filename)
 	end
 end
 
-function M:on_unload() end
+function M:on_wipeout() end
 
 return M

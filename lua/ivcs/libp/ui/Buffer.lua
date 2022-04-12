@@ -74,10 +74,10 @@ function M:init(opts)
 	-- handlers are invoked manually in other places when necessary.
 
 	-- free memory on BufUnload
-	vim.api.nvim_create_autocmd("BufUnload", {
+	vim.api.nvim_create_autocmd("BufWipeout", {
 		buffer = self.id,
 		once = true,
-		callback = self:BIND(self.on_unload),
+		callback = self:BIND(self.on_wipeout),
 	})
 
 	-- reload on :edit
@@ -101,7 +101,7 @@ function M:init(opts)
 	self:reload()
 end
 
-function M:on_unload()
+function M:on_wipeout()
 	global.buffers[self.id] = nil
 end
 
