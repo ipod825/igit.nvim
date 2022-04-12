@@ -258,6 +258,7 @@ describe("Status", function()
 
 			-- All diff windows should be closed together
 			assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))
+			util.jobrun(git.restor(fname))
 		end)
 	end)
 
@@ -271,6 +272,10 @@ describe("Status", function()
 
 			assert.is_truthy(#vim.api.nvim_tabpage_list_wins(0) >= 3)
 			util.assert_diff_window_compaitability()
+
+			assert.are.same(2, vim.api.nvim_buf_line_count(0))
+
+			assert.are.same({ "path 1 file 1 line 1", "newline" }, vim.api.nvim_buf_get_lines(0, 0, -1, true))
 
 			vim.cmd("1,$ diffput")
 			vim.cmd("bwipeout")
