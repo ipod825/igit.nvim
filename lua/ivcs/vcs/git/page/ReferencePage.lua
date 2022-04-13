@@ -10,10 +10,7 @@ function M:show(reference)
 	grid:add_row({ height = 1 }):fill_window(ui.Window(ui.Buffer({ content = { reference } })))
 	grid:add_row({ focusable = true }):fill_window(ui.Window(
 		ui.Buffer({
-			-- todo: with filetype equal to git, the floating window somehow
-			-- shrink the height. Forking the syntax file to the ivcs folders
-			-- does not have the same problem. Might be a neovim bug.
-			bo = { filetype = "git_fork" },
+			bo = { filetype = "git" },
 			content = function()
 				return git.with_default_args({ no_color = true }).show(reference)
 			end,
