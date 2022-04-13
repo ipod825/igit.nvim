@@ -1,0 +1,214 @@
+*igit.txt* A git plugin for neovim.
+
+          _          _               _        _       
+         /\ \       /\ \            /\ \     /\ \     
+         \ \ \     /  \ \           \ \ \    \_\ \    
+         /\ \_\   / /\ \_\          /\ \_\   /\__ \   
+        / /\/_/  / / /\/_/         / /\/_/  / /_ \ \  
+       / / /    / / / ______      / / /    / / /\ \ \ 
+      / / /    / / / /\_____\    / / /    / / /  \/_/ 
+     / / /    / / /  \/____ /   / / /    / / /        
+ ___/ / /__  / / /_____/ / /___/ / /__  / / /         
+/\__\/_/___\/ / /______\/ //\__\/_/___\/_/ /          
+\/_________/\/___________/ \/_________/\_\/
+
+CONTENTS                                *igit-help-contents*
+
+Introduction                            |igit-introduction|
+Compatibility                           |igit-compatibility|
+Usage                                   |igit-usage|
+    Command                                 |igit-command|
+    Page                                    |igit-page|
+    Mapping                                 |igit-mapping|
+        Branch                                  |igit-branch|
+        Log                                     |igit-log|
+        Status                                  |igit-status|
+Customization                           |igit-customization|
+
+===============================================================================
+Compatibility                           *igit-compatibility*
+
+Igit requires neovim >= 0.7. Please run `:checkhealth igit` to see if current
+neovim version is supported.
+
+===============================================================================
+USAGE                                   *igit-usage*
+
+-------------------------------------------------------------------------------
+COMMAND                                 *igit-command*
+
+With the git module setup, Igit provides the command |:IGit|. The command name
+is customizable (|igit-customization|). Except for certain special commands
+described in |igit-page|, |IGit| takes arbitrary git commands and run them
+asynchronously in shell. Output/error of the commands will be echoed on
+completion. When executed with a |bang| modifier (|:IGit!|), even the special
+page commands are run in this manner.
+
+-------------------------------------------------------------------------------
+PAGE                                    *igit-page*
+
+The git commands `log`, `status`, `branch` are three special commands. Unlike
+other commands, their output by default are dumped into a vim buffer which I
+call it a page. Another difference to other commands is that with no |cmdline|
+arguments, some default arguments (customizable, see |igit-customization|) are
+applied to give sensible default behavior. Any non-empty |cmdline| argument will
+completely bypass the default arguments so that one could have several different
+page corresponding to different arguments.
+
+The `branch` and `status` pages by default auto reload on |BufEnter|. On the
+other hand, the `log` page does not auto reloads by default (customizable, see
+|igit-customization|). However, running `:edit` will force reload any page.
+
+-------------------------------------------------------------------------------
+MAPPING                                 *igit-page*
+
+Each page comes with some built-in functionality that can be invoked by key
+mapping that are described in the following sections. It's easy to add new key
+mapping with lua callbacks (see igit-customization).
+
+-------------------------------------------------------------------------------
+BRANCH                                 *igit-branch*
+
+Key     Mode    Function
+<cr>    n       Switch to the branch under cursor.
+
+m       n       Mark the current branch under cursor that could be reference in
+                other functions. There can be at most two marks.
+
+
+i       n       Start editing mode such that the buffer becomes modifiable. On
+                |:w|, the branches will be renamed according to the current
+                buffer content.
+
+o       n       Start editing mode such that the buffer becomes modifiable. On
+                |:w|, any new branch names added will be created. If there's no
+                mark, the created branch is based on the current git branch. If
+                there's 1st mark, the marked branch would be the base branch.
+
+X       n, v    Force delete the current (or visually selected) branches.
+
+r       n, v    Rebase the current (or visually selected) branch(es) onto the
+                target commit. If there is no mark, the target commit is the
+                commit pointed by HEAD. If there's 1st mark, the target commit
+                is the branch under the 1st mark. When visually selecting
+                multiple branches, the whole chain of branch would be rebased in
+                top-down order. When rebasing the first branch, by default git
+                finds a merge base between it and the target commit. However, if
+                there's a 2nd mark, it is used as the merge base. This is useful
+                when dealing with rebase conflict. On conflict, the rebase stops
+                and a temporary branch is created pointing to the branch that
+                cause conflict. After fixing the conflict, that temporary branch
+                should be the new merge base and can be marked (2nd mark) to
+                facilitate the rest rebase work.
+
+s       n       Show (`git show`) the commit under cursor.
+
+R       n       Reset to the commit under cursor. A menu will show up for
+                following instruction.
+
+-------------------------------------------------------------------------------
+LOG                                    *igit-log*
+
+<cr>    n       Switch to the commit under cursor. A menu might show up for
+                selecting the branch/sha.
+
+m       n       Mark the current commit under cursor that could be reference in
+                other functions. There can be at most one mark.
+
+s       n       Show (`git show`) the commit under cursor.
+
+R       n       Reset to the commit under cursor. A menu will show up for
+                following instruction.
+
+r       n, v    Rebase the current (or visually selected) commit(s) onto the
+                target commit. If there is no mark, the target commit is the
+                commit pointed by HEAD. If there's 1st mark, the target commit
+                is the branch under the 1st mark. Note that the merge base is
+                always the parent commit of the last selected commit. If in
+                normal mode, this is equivalent to cherry picking the commit
+                under cursor to the target commit.
+
+-------------------------------------------------------------------------------
+STATUS                                 *igit-status*  
+
+<cr>    n       :edit| the current file.
+
+t       n       `:tab drop` the current file.
+
+H       n,v     Stage (`git add`) the current (or visually selected) file(s).
+
+L       n,v     Unstage (`git restore --restored`)  the current (or visually
+                selected) file(s).
+
+X       n,v     Discard (`git restore`) the current (or visually selected)
+                file(s).
+
+C       n,v     Clear (`git clean -ffd`) the current (or visually selected)
+                untracked file(s).
+
+cc      n       Commit change. Opening COMMIT_MESSAGE. If the file is written by
+                |:w|, `git commit` runs when the window is closed. Note that
+                |:x| does not work if you don't modify the commit message. This
+                is because |:x|, unlike |:wq| does not write to the file if the
+                buffer is not modified.
+
+ca      n       Like `cc`, except that the commit is amended (`git commit --amend`).
+
+cA      n       Like `ca`, except that a temporary branch is created pointing to
+                the commit before amend. Useful if you want to rebase the
+                descendent commits onto the amended commit. 
+
+dh      n       Opening |diff| floating windows to show the diff between
+                worktree and the index for the current file. Note that the
+                worktree buffer is modifiable and savable.
+
+dd      n       Opening |diff| floating windows to show the diff between
+                worktree and the stage for the current file. Note that 
+                worktree buffer is modifiable and savable. The stage buffer is
+                modifiable. Any change made to the stage buffer will reflect to
+                the stage area, thus achieving partial stage (`git add -i`).
+
+===============================================================================
+Customization                           *igit-customization*
+
+All customization is done via the `igit.setup` lua function. An example of
+configuration is listed below.
+
+```lua
+local ii = 
+
+require("igit").setup({
+	branch = {
+		-- Mapping takes arbitrary lua function with no argument.
+		mapping = {
+			n = {
+				["a"] = function()
+					print(igit.branch.parse_line())
+				end,
+			},
+			v = {},
+		},
+		-- Default args for the branch command.
+		args = { "-v" },
+		buf_enter_reload = true,
+		-- Whether to show up a confirmation menu for rebase.
+		confirm_rebase = true,
+	},
+	log = {
+		mapping = { n = {}, v = {} },
+		-- Default args for the log command.
+		args = { "--oneline", "--branches", "--graph", "--decorate=short" },
+		-- Whether to reload the buffer on BufEnter. Not recommended since the
+		-- log can be very long.
+		buf_enter_reload = false,
+		-- Whether to show up a confirmation menu for rebase.
+		confirm_rebase = false,
+	},
+	status = {
+		mapping = { n = {}, v = {} },
+		-- Default args for the status command.
+		args = { "-s" },
+		buf_enter_reload = true,
+	},
+})
+```
