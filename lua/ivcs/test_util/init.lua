@@ -18,9 +18,10 @@ function M.setrow(nr)
 end
 
 function M.set_current_line(str)
-	local ori_modifiable = vim.bo.modifiable
 	local ori_line = vim.api.nvim_get_current_line()
-	local linenr = vim.fn.line(".")
+	local linenr = vim.fn.line(".") - 1
+	local ori_modifiable = vim.bo.modifiable
+	vim.bo.modifiable = true
 	vim.api.nvim_buf_set_lines(0, linenr, linenr + 1, true, { str })
 	vim.bo.modifiable = ori_modifiable
 	return ori_line

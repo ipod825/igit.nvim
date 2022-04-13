@@ -7,6 +7,7 @@ local term_utils = require("ivcs.libp.terminal_utils")
 local ui = require("ivcs.libp.ui")
 local vimfn = require("ivcs.libp.vimfn")
 local a = require("plenary.async")
+local log = require("ivcs.log")
 
 function M:init(options)
 	self.options = vim.tbl_deep_extend("force", {

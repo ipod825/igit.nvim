@@ -4,11 +4,14 @@ local it = a.tests.it
 local igit = require("ivcs.vcs.git")
 local util = require("ivcs.test_util")
 local git = util.git
-local test_dir = require("ivcs.vcs.git.TestDir")()
+local test_dir = require("ivcs.vcs.git.TestDir")(true)
 local path = require("ivcs.libp.path")
+local Set = require("ivcs.libp.datatype.Set")
+local Menu = require("ivcs.libp.ui.Menu")
 local log = require("ivcs.log")
 
 describe("Log", function()
+	-- igit.setup({ log = { buf_enter_reload = true } })
 	igit.setup()
 	local buffer_reload_waiter = util.BufReloadWaiter()
 
@@ -18,22 +21,53 @@ describe("Log", function()
 		vim.cmd(("edit %s"):format(path.join(root, test_dir.files[1])))
 		igit.setup()
 		igit.log:open()
-		buffer_reload_waiter:wait()
+		-- Unlike the Branch and Status page,  buffer_reload_waiter:wait is not
+		-- necessary as Log page defaults to wipe on hidden. So every open is a
+		-- fresh open.
 		util.setrow(1)
 	end))
 
 	describe("parse_line", function()
-		it("Parses the information of the lines", function() end)
+		it("Parses the information of the lines", function()
+			local ori_line = util.set_current_line(
+				"* fa032ae (HEAD -> b1, b2, origin/b1) Commit message (with paranthesis)"
+			)
+			local parsed = igit.log:parse_line()
+			local expected = {
+				sha = "fa032ae",
+				branches = { "b1", "b2", "origin/b1" },
+				references = {
+					"b1",
+					"b2",
+					"origin/b1",
+					"fa032ae",
+				},
+			}
+			assert.are.same(expected.sha, parsed.sha)
+			assert.are.equal(Set(expected.branches), Set(parsed.branches))
+			assert.are.equal(Set(expected.references), Set(parsed.references))
+		end)
 	end)
 
-	-- describe("switch", function()
-	-- 	it("Switches the branch", function()
-	-- 		util.setrow(2)
-	-- 		igit.log:switch()
-	-- 		assert.are.same(test_dir.path1[2], test_dir.current.branch())
-	-- 		util.setrow(1)
-	-- 		igit.log:switch()
-	-- 		assert.are.same(test_dir.path1[1], test_dir.current.branch())
-	-- 	end)
-	-- end)
+	describe("switch", function()
+		it("Switches the branch", function()
+			local parsed = igit.log:parse_line()
+
+			Menu.will_select_from_menu(function()
+				assert.are.same(parsed.references, vim.api.nvim_buf_get_lines(0, 1, -1, true))
+				util.setrow(2)
+			end)
+
+			assert.are_not.same(parsed.branches[1], test_dir.current.branch())
+			igit.log:switch()
+			assert.are.same(parsed.branches[1], test_dir.current.branch())
+		end)
+	end)
+
+	describe("show", function()
+		it("Shows a diff window", function()
+			igit.log:show()
+			assert.is_truthy(vim.api.nvim_win_get_config(0))
+		end)
+	end)
 end)
