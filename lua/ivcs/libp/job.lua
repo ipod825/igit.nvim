@@ -114,9 +114,9 @@ M.start = a.wrap(function(cmd, opts, callback)
 		cmd = cmd[1]
 	end
 
-	-- Unquoted the args (begin/end/after equal) as it will be quoted by spawn.
+	-- Remove quotes as spawn will quote each args.
 	for i, arg in ipairs(args) do
-		args[i] = arg:gsub("^[\"']", ""):gsub("[\"']$", ""):gsub("= *[\"']", "=")
+		args[i] = arg:gsub('([^\\])"', "%1"):gsub("([^\\])'", "%1"):gsub('\\"', '"'):gsub("\\'", "'")
 	end
 
 	process, pid = vim.loop.spawn(
