@@ -1,6 +1,7 @@
 local a = require("plenary.async")
 local describe = a.tests.describe
 local it = a.tests.it
+local before_each = a.tests.before_each
 local igit = require("igit")
 local util = require("igit.test_util")
 local git = util.git
@@ -13,7 +14,6 @@ describe("Branch", function()
 	igit.setup()
 	local buffer_reload_waiter = util.BufReloadWaiter()
 
-	-- todo: Use a.before_each after plenary#350
 	before_each(a.util.will_block(function()
 		local root = test_dir:refresh()
 		vim.cmd(("edit %s"):format(path.join(root, test_dir.files[1])))
