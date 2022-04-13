@@ -4,14 +4,13 @@ local it = a.tests.it
 local igit = require("ivcs.vcs.git")
 local util = require("ivcs.test_util")
 local git = util.git
-local test_dir = require("ivcs.vcs.git.TestDir")(true)
+local test_dir = require("ivcs.vcs.git.TestDir")()
 local path = require("ivcs.libp.path")
 local Set = require("ivcs.libp.datatype.Set")
 local Menu = require("ivcs.libp.ui.Menu")
 local log = require("ivcs.log")
 
 describe("Log", function()
-	-- igit.setup({ log = { buf_enter_reload = true } })
 	igit.setup()
 	local buffer_reload_waiter = util.BufReloadWaiter()
 
