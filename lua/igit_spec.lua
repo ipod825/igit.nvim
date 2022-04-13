@@ -1,4 +1,4 @@
-local igit = require("igit.)
+local igit = require("igit")
 
 describe("igit", function()
 	it("Sets up its submodules", function()
