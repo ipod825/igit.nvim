@@ -5,11 +5,14 @@ local term_utils = require("igit.libp.terminal_utils")
 local job = require("igit.libp.job")
 local Iterator = require("igit.libp.datatype.Iterator")
 local Set = require("igit.libp.datatype.Set")
+local default_config = require("igit.default_config")
 local log = require("igit.log")
 
 function M:init(options)
+	vim.validate({ options = { options, "table", true } })
+
 	self.options = vim.tbl_deep_extend("force", {
-		mapping = {
+		mappings = {
 			n = {
 				["<cr>"] = self:BIND(self.switch),
 				["i"] = self:BIND(self.rename),
@@ -25,9 +28,7 @@ function M:init(options)
 				["X"] = self:BIND(self.force_delete_branch),
 			},
 		},
-		args = { "-v" },
-		confirm_rebase = true,
-	}, options or {})
+	}, default_config.branch, options or {})
 end
 
 function M:rename()
@@ -152,15 +153,19 @@ end
 
 function M:open(args)
 	args = args or self.options.args
-	self:open_or_new_buffer(args, {
-		git_root = git.find_root(),
-		type = "branch",
-		mappings = self.options.mapping,
-		buf_enter_reload = true,
-		content = function()
-			return git.branch(args)
-		end,
-	})
+	self:open_or_new_buffer(
+		args,
+		{
+			open_cmd = self.options.open_cmd,
+			git_root = git.find_root(),
+			type = "branch",
+		},
+		vim.tbl_deep_extend("keep", self.options, {
+			content = function()
+				return git.branch(args)
+			end,
+		})
+	)
 end
 
 return M

@@ -7,11 +7,14 @@ local Iterator = require("igit.libp.datatype.Iterator")
 local ui = require("igit.libp.ui")
 local path = require("igit.libp.path")
 local a = require("plenary.async")
+local default_config = require("igit.default_config")
 local log = require("igit.log")
 
 function M:init(options)
+	vim.validate({ options = { options, "table", true } })
+
 	self.options = vim.tbl_deep_extend("force", {
-		mapping = {
+		mappings = {
 			n = {
 				["H"] = self:BIND(self.stage_change),
 				["L"] = self:BIND(self.unstage_change),
@@ -32,8 +35,7 @@ function M:init(options)
 				["C"] = self:BIND(self.clean_files),
 			},
 		},
-		args = { "-s" },
-	}, options or {})
+	}, default_config.status, options or {})
 end
 
 function M:open_file(open_cmd)
@@ -246,15 +248,19 @@ end
 
 function M:open(args)
 	args = args or self.options.args
-	self:open_or_new_buffer(args, {
-		git_root = git.find_root(),
-		type = "status",
-		mappings = self.options.mapping,
-		buf_enter_reload = true,
-		content = function()
-			return git.status(args)
-		end,
-	})
+	self:open_or_new_buffer(
+		args,
+		{
+			open_cmd = self.options.open_cmd,
+			git_root = git.find_root(),
+			type = "status",
+		},
+		vim.tbl_deep_extend("keep", self.options, {
+			content = function()
+				return git.status(args)
+			end,
+		})
+	)
 end
 
 return M

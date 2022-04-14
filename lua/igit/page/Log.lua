@@ -7,11 +7,14 @@ local term_utils = require("igit.libp.terminal_utils")
 local ui = require("igit.libp.ui")
 local vimfn = require("igit.libp.vimfn")
 local a = require("plenary.async")
+local default_config = require("igit.default_config")
 local log = require("igit.log")
 
 function M:init(options)
+	vim.validate({ options = { options, "table", true } })
+
 	self.options = vim.tbl_deep_extend("force", {
-		mapping = {
+		mappings = {
 			n = {
 				["<cr>"] = self:BIND(self.switch),
 				["m"] = { callback = self:BIND(self.mark), modify_buffer = false },
@@ -21,10 +24,7 @@ function M:init(options)
 			},
 			v = { ["r"] = self:BIND(self.rebase_chain) },
 		},
-		args = { "--oneline", "--branches", "--graph", "--decorate=short" },
-		buf_enter_reload = false,
-		confirm_rebase = true,
-	}, options or {})
+	}, default_config.log, options or {})
 end
 
 function M:switch()
@@ -149,17 +149,21 @@ end
 
 function M:open(args)
 	args = args or self.options.args
-	self:open_or_new_buffer(args, {
-		git_root = git.find_root(),
-		type = "log",
-		mappings = self.options.mapping,
-		buf_enter_reload = self.options.buf_enter_reload,
-		content = function()
-			return git.log(args)
-		end,
-		-- Log page can have too many lines, wiping it on hidden saves memory.
-		bo = { bufhidden = "wipe" },
-	})
+	self:open_or_new_buffer(
+		args,
+		{
+			open_cmd = self.options.open_cmd,
+			git_root = git.find_root(),
+			type = "log",
+		},
+		vim.tbl_deep_extend("keep", self.options, {
+			-- Log page can have too many lines, wiping it on hidden saves memory.
+			bo = { bufhidden = "wipe" },
+			content = function()
+				return git.log(args)
+			end,
+		})
+	)
 end
 
 return M

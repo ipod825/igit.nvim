@@ -46,6 +46,7 @@ function M:init(opts)
 
 	self.content = opts.content or functional.nop
 	self.mappings = opts.mappings
+
 	self:mapfn(opts.mappings)
 
 	-- For client to store arbitrary lua object.

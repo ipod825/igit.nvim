@@ -171,44 +171,70 @@ dd      n       Opening |diff| floating windows to show the diff between
 ===============================================================================
 Customization                           *igit-customization*
 
-All customization is done via the `igit.setup` lua function. An example of
-configuration is listed below.
+All customization is done via the `igit.setup` lua function. The default
+configuration (except mapping) is as below.
 
 ```lua
-local ii = 
-
-require("igit").setup({
+require("igit").setup{
 	branch = {
-		-- Mapping takes arbitrary lua function with no argument.
-		mapping = {
-			n = {
-				["a"] = function()
-					print(igit.branch.parse_line())
-				end,
-			},
+		mappings = {
+			n = {},
 			v = {},
 		},
-		-- Default args for the branch command.
-		args = { "-v" },
+		-- Command to open the page.
+		open_cmd = "tab drop",
+		-- Whether to reload the bufer on BufEnter.
 		buf_enter_reload = true,
+		-- Default args for that `git branch` command.
+		args = { "-v" },
 		-- Whether to show up a confirmation menu for rebase.
 		confirm_rebase = true,
 	},
 	log = {
-		mapping = { n = {}, v = {} },
-		-- Default args for the log command.
-		args = { "--oneline", "--branches", "--graph", "--decorate=short" },
-		-- Whether to reload the buffer on BufEnter. Not recommended since the
-		-- log can be very long.
+		mappings = {
+			n = {},
+			v = {},
+		},
+		-- Command to open the page.
+		open_cmd = "tab drop",
+		-- Whether to reload the bufer on BufEnter.
 		buf_enter_reload = false,
+		-- Default args for that `git log` command.
+		args = { "--oneline", "--branches", "--graph", "--decorate=short" },
 		-- Whether to show up a confirmation menu for rebase.
-		confirm_rebase = false,
+		confirm_rebase = true,
 	},
 	status = {
-		mapping = { n = {}, v = {} },
-		-- Default args for the status command.
-		args = { "-s" },
+		mappings = {
+			n = {},
+			v = {},
+		},
+		-- Command to open the page.
+		open_cmd = "tab drop",
+		-- Whether to reload the bufer on BufEnter.
 		buf_enter_reload = true,
+		-- Default args for that `git status` command.
+		args = { "-s" },
 	},
-})
+}
+```
+
+TO customize keymapping, add key and functions to the mapping config:
+
+```lua
+local igit = require("igit")
+require("igit").setup({
+	branch = {
+		mappings = {
+			n = {
+                -- Mapping function takes zero argument and run in plenary async
+                context.
+				["a"] = function()
+					print(vim.inspect(igit.branch.parse_line()))
+				end,
+			},
+			v = {},
+		},
+    }
+}
 ```
