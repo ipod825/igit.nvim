@@ -5,8 +5,19 @@ local a = require("plenary.async")
 local job = require("igit.libp.job")
 local log = require("igit.libp.log")
 
+global.buffers = global.buffers or {}
+
 function M.get_current_buffer()
 	return global.buffers[vim.api.nvim_get_current_buf()]
+end
+
+function M.get_or_new(opts)
+	vim.validate({
+		filename = { opts.filename, "string" },
+	})
+
+	local id = vim.fn.bufnr(opts.filename)
+	return id == -1 and M(opts) or global.buffers[id]
 end
 
 function M.open_or_new(opts)
@@ -16,19 +27,14 @@ function M.open_or_new(opts)
 	})
 
 	vim.cmd(("%s %s"):format(opts.open_cmd, opts.filename))
-	global.buffers = global.buffers or {}
 	opts.id = vim.api.nvim_get_current_buf()
-	if global.buffers[opts.id] == nil then
-		global.buffers[opts.id] = M(opts)
-	elseif not global.buffers[opts.id].buf_enter_reload then
-		global.buffers[opts.id]:reload()
-	end
-	return global.buffers[opts.id]
+	return global.buffers[opts.id] or M(opts)
 end
 
 function M:init(opts)
 	vim.validate({
-		id = { opts.id, "number", true },
+		-- id = { opts.id, "number", true },
+		filename = { opts.filename, "string", true },
 		content = { opts.content, { "function", "table" } },
 		buf_enter_reload = { opts.buf_enter_reload, "boolean", true },
 		mappings = { opts.mappings, "table", true },
@@ -38,12 +44,15 @@ function M:init(opts)
 
 	if opts.id then
 		assert(global.buffers[opts.id] == nil, "Each vim buffer can only maps to one Buffer instance")
+		self.id = opts.id
+	else
+		self.id = vim.api.nvim_create_buf(false, true)
+		if opts.filename then
+			vim.api.nvim_buf_set_name(self.id, opts.filename)
+		end
 	end
 
-	self.id = opts.id or vim.api.nvim_create_buf(false, true)
-	global.buffers = global.buffers or {}
 	global.buffers[self.id] = self
-
 	self.content = opts.content or functional.nop
 	self.mappings = opts.mappings
 
