@@ -6,12 +6,10 @@ local Iterator = require("igit.libp.datatype.Iterator")
 local term_utils = require("igit.libp.terminal_utils")
 local ui = require("igit.libp.ui")
 local vimfn = require("igit.libp.vimfn")
-local a = require("plenary.async")
-local default_config = require("igit.default_config")
 local log = require("igit.log")
 
 function M:setup(options)
-	vim.validate({ options = { options, "table", true } })
+	vim.validate({ options = { options, "table" } })
 
 	self.options = vim.tbl_deep_extend("force", {
 		mappings = {
@@ -24,7 +22,7 @@ function M:setup(options)
 			},
 			v = { ["r"] = self:BIND(self.rebase_chain) },
 		},
-	}, default_config.log, options or {})
+	}, options)
 	return self
 end
 
@@ -148,16 +146,15 @@ function M:parse_line(linenr)
 	return res
 end
 
-function M:open(args)
+function M:open(args, open_cmd)
 	args = args or self.options.args
 	self:open_or_new_buffer(
 		args,
 		{
-			open_cmd = self.options.open_cmd,
 			git_root = git.find_root(),
 			type = "log",
 		},
-		vim.tbl_deep_extend("keep", self.options, {
+		vim.tbl_deep_extend("keep", { open_cmd = open_cmd }, self.options, {
 			-- Log page can have too many lines, wiping it on hidden saves memory.
 			bo = { bufhidden = "wipe" },
 			content = function()

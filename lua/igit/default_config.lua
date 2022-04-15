@@ -1,4 +1,6 @@
 return {
+	-- The command name igit defined.
+	command = "IGit",
 	branch = {
 		mappings = {
 			n = {},

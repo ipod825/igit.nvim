@@ -3,15 +3,13 @@ local git = require("igit.git")
 local job = require("igit.libp.job")
 local global = require("igit.global")
 local vimfn = require("igit.libp.vimfn")
-local Iterator = require("igit.libp.datatype.Iterator")
 local ui = require("igit.libp.ui")
 local path = require("igit.libp.path")
 local a = require("plenary.async")
-local default_config = require("igit.default_config")
 local log = require("igit.log")
 
 function M:setup(options)
-	vim.validate({ options = { options, "table", true } })
+	vim.validate({ options = { options, "table" } })
 
 	self.options = vim.tbl_deep_extend("force", {
 		mappings = {
@@ -35,7 +33,7 @@ function M:setup(options)
 				["C"] = self:BIND(self.clean_files),
 			},
 		},
-	}, default_config.status, options or {})
+	}, options)
 	return self
 end
 
@@ -247,16 +245,15 @@ function M:parse_line(line_nr)
 	return res
 end
 
-function M:open(args)
+function M:open(args, open_cmd)
 	args = args or self.options.args
 	self:open_or_new_buffer(
 		args,
 		{
-			open_cmd = self.options.open_cmd,
 			git_root = git.find_root(),
 			type = "status",
 		},
-		vim.tbl_deep_extend("keep", self.options, {
+		vim.tbl_deep_extend("keep", { open_cmd = open_cmd }, self.options, {
 			content = function()
 				return git.status(args)
 			end,

@@ -2,26 +2,25 @@ local M = {}
 local a = require("plenary.async")
 local git = require("igit.git")
 local job = require("igit.libp.job")
+local default_config = require("igit.default_config")
+local log = require("igit.log")
 
 function M.setup(opts)
-	opts = opts or {}
+	opts = vim.tbl_deep_extend("force", default_config, opts or {})
 
 	vim.validate({
 		command = { opts.command, "string", true },
-		log = { opts.log, "table", true },
-		branch = { opts.branch, "table", true },
-		status = { opts.status, "table", true },
 	})
+
 	M.log = require("igit.page.Log")():setup(opts.log)
 	M.branch = require("igit.page.Branch")():setup(opts.branch)
 	M.status = require("igit.page.Status")():setup(opts.status)
-	M.define_command(opts.command or "IGit")
+	M.define_command(opts.command)
 end
 
 function M.define_command(command)
 	local PipeParser = require("igit.libp.argparse.PipeParser")
 	local parser = require("igit.libp.argparse.Parser")(command)
-	parser:add_argument("--open_cmd")
 	parser:add_subparser(PipeParser("branch"))
 	parser:add_subparser(PipeParser("log"))
 	parser:add_subparser(PipeParser("status"))
@@ -52,7 +51,8 @@ function M.define_command(command)
 				module_args = nil
 			end
 			if M[module] and not opts.bang then
-				M[module]:open(module_args)
+				local open_cmd = #opts.mods > 0 and opts.mods .. " split" or nil
+				M[module]:open(module_args, open_cmd)
 			else
 				local gita = git.with_default_args({ no_color = true })
 				job.start(gita[module](module_args), {

@@ -5,11 +5,10 @@ local term_utils = require("igit.libp.terminal_utils")
 local job = require("igit.libp.job")
 local Iterator = require("igit.libp.datatype.Iterator")
 local Set = require("igit.libp.datatype.Set")
-local default_config = require("igit.default_config")
 local log = require("igit.log")
 
 function M:setup(options)
-	vim.validate({ options = { options, "table", true } })
+	vim.validate({ options = { options, "table" } })
 
 	self.options = vim.tbl_deep_extend("force", {
 		mappings = {
@@ -28,7 +27,7 @@ function M:setup(options)
 				["X"] = self:BIND(self.force_delete_branch),
 			},
 		},
-	}, default_config.branch, options or {})
+	}, options)
 	return self
 end
 
@@ -152,16 +151,15 @@ function M:force_delete_branch()
 	self:runasync_all_and_reload(cmds)
 end
 
-function M:open(args)
+function M:open(args, open_cmd)
 	args = args or self.options.args
 	self:open_or_new_buffer(
 		args,
 		{
-			open_cmd = self.options.open_cmd,
 			git_root = git.find_root(),
 			type = "branch",
 		},
-		vim.tbl_deep_extend("keep", self.options, {
+		vim.tbl_deep_extend("keep", { open_cmd = open_cmd }, self.options, {
 			content = function()
 				return git.branch(args)
 			end,
