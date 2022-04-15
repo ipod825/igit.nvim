@@ -1,10 +1,16 @@
 local igit = require("igit")
+local default_config = require("igit.default_config")
 
 describe("igit", function()
-	it("Sets up its submodules", function()
+	it("Sets up with default args", function()
 		igit.setup()
-		assert.is_truthy(igit.log)
-		assert.is_truthy(igit.branch)
-		assert.is_truthy(igit.status)
+		for _, module in ipairs({ "log", "branch", "status" }) do
+			assert.is_truthy(igit[module])
+			for k, v in pairs(default_config[module]) do
+				if k ~= "mappings" then
+					assert.are.same(igit[module].options[k], v)
+				end
+			end
+		end
 	end)
 end)
