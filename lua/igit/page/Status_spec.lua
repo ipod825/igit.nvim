@@ -6,19 +6,19 @@ local igit = require("igit")
 local util = require("igit.test_util")
 local git = util.git
 local test_dir = require("igit.TestDir")()
-local path = require("igit.libp.path")
+local ui = require("igit.libp.ui")
 local Set = require("igit.libp.datatype.Set")
 local log = require("igit.log")
 
 describe("Status", function()
-	igit.setup()
+	igit.setup({ status = { buf_enter_reload = false } })
 	local buffer_reload_waiter = util.BufReloadWaiter()
 
 	before_each(function()
 		test_dir:refresh()
 		vim.cmd(("edit %s"):format(test_dir:abs_path(test_dir.files[1])))
 		igit.status:open()
-		buffer_reload_waiter:wait()
+		ui.Buffer.get_current_buffer():reload()
 		util.setrow(1)
 	end)
 
@@ -241,7 +241,7 @@ describe("Status", function()
 		end)
 	end)
 
-	describe("diff_cached", function()
+	describe("diff_index", function()
 		it("Diff against index.", function()
 			local fname = test_dir.files[1]
 			util.jobrun("echo newline >> " .. fname)
@@ -253,9 +253,6 @@ describe("Status", function()
 			util.assert_diff_window_compaitability()
 
 			vim.cmd("bwipeout")
-			-- Wait on reload caused by BufEnter
-			buffer_reload_waiter:wait()
-
 			-- All diff windows should be closed together
 			assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))
 			util.jobrun(git.restor(fname))
@@ -280,7 +277,7 @@ describe("Status", function()
 			vim.cmd("1,$ diffput")
 			vim.cmd("bwipeout")
 			-- Wait on reload caused by BufEnter and Staging changes
-			buffer_reload_waiter:wait(2)
+			buffer_reload_waiter:wait()
 
 			-- All diff windows should be closed together
 			assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))
@@ -302,7 +299,7 @@ describe("Status", function()
 			vim.cmd(vim.api.nvim_buf_line_count(0) .. " diffput")
 			vim.cmd("bwipeout")
 			-- Wait on reload caused by BufEnter and Staging changes
-			buffer_reload_waiter:wait(2)
+			buffer_reload_waiter:wait()
 
 			-- All diff windows should be closed together
 			assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))

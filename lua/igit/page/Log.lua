@@ -10,7 +10,7 @@ local a = require("plenary.async")
 local default_config = require("igit.default_config")
 local log = require("igit.log")
 
-function M:init(options)
+function M:setup(options)
 	vim.validate({ options = { options, "table", true } })
 
 	self.options = vim.tbl_deep_extend("force", {
@@ -25,6 +25,7 @@ function M:init(options)
 			v = { ["r"] = self:BIND(self.rebase_chain) },
 		},
 	}, default_config.log, options or {})
+	return self
 end
 
 function M:switch()

@@ -50,17 +50,11 @@ function M.stub_visual_rows(...)
 end
 
 M.BufReloadWaiter = Class:EXTEND()
-function M.BufReloadWaiter:wait(times)
-	-- The first reload is triggered by Buffer init but not autocmd. Hence
-	-- no wait on first time.
+function M.BufReloadWaiter:wait()
 	if self.reload_done == nil then
 		self.reload_done = ui.Buffer.get_current_buffer():register_reload_notification()
-	else
-		times = times or 1
-		for _ = 1, times do
-			self.reload_done:wait()
-		end
 	end
+	self.reload_done:wait()
 end
 
 function M.new_name(ori)

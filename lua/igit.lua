@@ -12,9 +12,9 @@ function M.setup(opts)
 		branch = { opts.branch, "table", true },
 		status = { opts.status, "table", true },
 	})
-	M.log = require("igit.page.Log")(opts.log)
-	M.branch = require("igit.page.Branch")(opts.branch)
-	M.status = require("igit.page.Status")(opts.status)
+	M.log = require("igit.page.Log")():setup(opts.log)
+	M.branch = require("igit.page.Branch")():setup(opts.branch)
+	M.status = require("igit.page.Status")():setup(opts.status)
 	M.define_command(opts.command or "IGit")
 end
 

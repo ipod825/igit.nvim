@@ -4,25 +4,20 @@ local it = a.tests.it
 local before_each = a.tests.before_each
 local igit = require("igit")
 local util = require("igit.test_util")
-local git = util.git
 local test_dir = require("igit.TestDir")()
-local path = require("igit.libp.path")
+local ui = require("igit.libp.ui")
 local Set = require("igit.libp.datatype.Set")
 local Menu = require("igit.libp.ui.Menu")
 local log = require("igit.log")
 
 describe("Log", function()
-	igit.setup()
-	local buffer_reload_waiter = util.BufReloadWaiter()
+	igit.setup({ log = { buf_enter_reload = false } })
 
 	before_each(a.util.will_block(function()
-		local root = test_dir:refresh()
-		vim.cmd(("edit %s"):format(path.join(root, test_dir.files[1])))
-		igit.setup()
+		test_dir:refresh()
+		vim.cmd(("edit %s"):format(test_dir:abs_path(test_dir.files[1])))
 		igit.log:open()
-		-- Unlike the Branch and Status page,  buffer_reload_waiter:wait is not
-		-- necessary as Log page defaults to wipe on hidden. So every open is a
-		-- fresh open.
+		ui.Buffer.get_current_buffer():reload()
 		util.setrow(1)
 	end))
 

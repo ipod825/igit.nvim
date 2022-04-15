@@ -4,22 +4,20 @@ local it = a.tests.it
 local before_each = a.tests.before_each
 local igit = require("igit")
 local util = require("igit.test_util")
-local git = util.git
 local test_dir = require("igit.TestDir")()
-local path = require("igit.libp.path")
+local ui = require("igit.libp.ui")
 local Set = require("igit.libp.datatype.Set")
 local log = require("igit.log")
 
 describe("Branch", function()
-	igit.setup()
+	igit.setup({ branch = { buf_enter_reload = false } })
 	local buffer_reload_waiter = util.BufReloadWaiter()
 
 	before_each(function()
-		local root = test_dir:refresh()
-		vim.cmd(("edit %s"):format(path.join(root, test_dir.files[1])))
-		igit.setup()
+		test_dir:refresh()
+		vim.cmd(("edit %s"):format(test_dir:abs_path(test_dir.files[1])))
 		igit.branch:open()
-		buffer_reload_waiter:wait()
+		ui.Buffer.get_current_buffer():reload()
 		util.setrow(1)
 	end)
 
