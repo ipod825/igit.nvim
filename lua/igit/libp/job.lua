@@ -5,9 +5,9 @@ local List = require("igit.libp.datatype.List")
 local term_util = require("igit.libp.terminal_utils")
 local log = require("igit.libp.log")
 
-M.start = a.wrap(function(cmd, opts, callback)
+M.start = a.wrap(function(cmds, opts, callback)
 	vim.validate(
-		{ cmd = { cmd, { "table" } }, opts = { opts, "table", true } },
+		{ cmds = { cmds, { "table" } }, opts = { opts, "table", true } },
 		{ callback = { callback, "function", true } }
 	)
 	opts = opts or {}
@@ -24,12 +24,7 @@ M.start = a.wrap(function(cmd, opts, callback)
 	opts.stdout_buffer_size = opts.stdout_buffer_size or 5000
 
 	local stdout_lines = { "" }
-	local stderr_lines
-	if type(cmd) == "string" then
-		stderr_lines = ("Error message from\n%s\n\n"):format(cmd)
-	else
-		stderr_lines = ("Error message from\n%s\n\n"):format(table.concat(cmd, " "))
-	end
+	local stderr_lines = ""
 	local terminated_by_client = false
 	local process
 	local pid
@@ -90,7 +85,7 @@ M.start = a.wrap(function(cmd, opts, callback)
 
 		if exit_code ~= 0 then
 			if not opts.silent and not terminated_by_client then
-				vim.notify(stderr_lines)
+				vim.notify(("Error message from\n%s\n\n%s"):format(table.concat(cmds, " "), stderr_lines))
 			end
 		elseif opts.on_stdout then
 			if eof_has_new_line then
@@ -98,22 +93,18 @@ M.start = a.wrap(function(cmd, opts, callback)
 			else
 				opts.on_stdout(stdout_lines)
 			end
+
+			if not opts.silent and #stderr_lines > 0 then
+				vim.notify(stderr_lines)
+			end
 		end
+
 		if callback then
 			callback(exit_code)
 		end
 	end
 
-	local args
-	if type(cmd) == "string" then
-		args = term_util.tokenize_command(cmd)
-		cmd = args[1]
-		args = vim.list_slice(args, 2, #args)
-	else
-		args = vim.list_slice(cmd, 2, #cmd)
-		cmd = cmd[1]
-	end
-
+	local cmd, args = cmds[1], vim.list_slice(cmds, 2, #cmds)
 	-- Remove quotes as spawn will quote each args.
 	for i, arg in ipairs(args) do
 		args[i] = arg:gsub('([^\\])"', "%1"):gsub("([^\\])'", "%1"):gsub('\\"', '"'):gsub("\\'", "'")
