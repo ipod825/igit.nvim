@@ -2,7 +2,6 @@ local M = {}
 local a = require("plenary.async")
 local git = require("igit.git")
 local job = require("igit.libp.job")
-local default = require("igit.default_config")
 
 function M.setup(opts)
 	opts = opts or {}
@@ -14,8 +13,8 @@ function M.setup(opts)
 		status = { opts.status, "table", true },
 	})
 	M.log = require("igit.page.Log")(opts.log)
-	M.branch = require("igit.page.Branch")(opts.log)
-	M.status = require("igit.page.Status")(opts.log)
+	M.branch = require("igit.page.Branch")(opts.branch)
+	M.status = require("igit.page.Status")(opts.status)
 	M.define_command(opts.command or "IGit")
 end
 

@@ -4,7 +4,7 @@ return {
 			n = {},
 			v = {},
 		},
-		-- Command to open the page.
+		-- Command to open the page. If empty "", opens in floatwin.
 		open_cmd = "tab drop",
 		-- Whether to reload the bufer on BufEnter.
 		buf_enter_reload = true,
@@ -18,7 +18,7 @@ return {
 			n = {},
 			v = {},
 		},
-		-- Command to open the page.
+		-- Command to open the page. If empty "", opens in floatwin.
 		open_cmd = "tab drop",
 		-- Whether to reload the bufer on BufEnter.
 		buf_enter_reload = false,
@@ -32,7 +32,7 @@ return {
 			n = {},
 			v = {},
 		},
-		-- Command to open the page.
+		-- Command to open the page. If empty "", opens in floatwin.
 		open_cmd = "tab drop",
 		-- Whether to reload the bufer on BufEnter.
 		buf_enter_reload = true,
