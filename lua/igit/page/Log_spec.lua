@@ -28,9 +28,7 @@ describe("Log", function()
 
 	describe("parse_line", function()
 		it("Parses the information of the lines", function()
-			local ori_line = util.set_current_line(
-				"* fa032ae (HEAD -> b1, b2, origin/b1) Commit message (with paranthesis)"
-			)
+			util.set_current_line("* fa032ae (HEAD -> b1, b2, origin/b1) Commit message (with paranthesis)")
 			local parsed = igit.log:parse_line()
 			local expected = {
 				sha = "fa032ae",
