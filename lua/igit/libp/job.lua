@@ -14,8 +14,35 @@ function M:init(opts)
 		detached = { opts.detached, "boolean", true },
 	})
 
-	opts.stdout_buffer_size = opts.stdout_buffer_size or 5000
+	opts.stdout_buffer_size = opts.stdout_buffer_size or 1
 	self.opts = opts
+end
+
+local function close_pipe(pipe)
+	if not pipe then
+		return
+	end
+
+	if not pipe:is_closing() then
+		pipe:close()
+	end
+end
+
+local function transform_env(env)
+	vim.validate({ env = { env, "table", true } })
+	if not env then
+		return
+	end
+
+	local res = {}
+	for k, v in pairs(env) do
+		if type(k) == "number" then
+			table.insert(res, v)
+		elseif type(k) == "string" then
+			table.insert(res, k .. "=" .. tostring(v))
+		end
+	end
+	return res
 end
 
 M.start = a.wrap(function(self, callback)
@@ -23,7 +50,8 @@ M.start = a.wrap(function(self, callback)
 	local stdout_lines = { "" }
 	local stderr_lines = ""
 
-	local stdout = vim.loop.new_pipe(false)
+	self.stdin = vim.loop.new_pipe(false)
+	self.stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
 
 	local eof_has_new_line = false
@@ -43,7 +71,7 @@ M.start = a.wrap(function(self, callback)
 			stdout_lines[#stdout_lines] = stdout_lines[#stdout_lines] .. lines[1]
 			vim.list_extend(stdout_lines, lines, 2)
 
-			if #stdout_lines > opts.stdout_buffer_size then
+			if #stdout_lines >= opts.stdout_buffer_size then
 				local partial_line = table.remove(stdout_lines)
 				opts.on_stdout(stdout_lines)
 				stdout_lines = { partial_line }
@@ -58,24 +86,21 @@ M.start = a.wrap(function(self, callback)
 	end
 
 	local on_exit = function(exit_code, _)
-		stdout:read_stop()
+		self.stdout:read_stop()
 		stderr:read_stop()
 
-		if not stdout:is_closing() then
-			stdout:close()
-		end
-		if not stderr:is_closing() then
-			stderr:close()
-		end
+		close_pipe(self.stdin)
+		close_pipe(self.stdout)
+		close_pipe(stderr)
 
 		if exit_code ~= 0 then
-			if not opts.silent and not self.terminated_by_client then
+			if not opts.silent and not self.was_killed then
 				vim.notify(("Error message from\n%s\n\n%s"):format(table.concat(opts.cmds, " "), stderr_lines))
 			end
 		elseif opts.on_stdout then
-			if eof_has_new_line then
-				opts.on_stdout(vim.list_slice(stdout_lines, 1, #stdout_lines - 1))
-			else
+			stdout_lines = eof_has_new_line and vim.list_slice(stdout_lines, 1, #stdout_lines - 1) or stdout_lines
+			if #stdout_lines > 0 then
+				log.warn(stdout_lines, exit_code, eof_has_new_line)
 				opts.on_stdout(stdout_lines)
 			end
 
@@ -87,6 +112,7 @@ M.start = a.wrap(function(self, callback)
 		if callback then
 			callback(exit_code)
 		end
+		self.done:notify_all()
 	end
 
 	local cmd, args = opts.cmds[1], vim.list_slice(opts.cmds, 2, #opts.cmds)
@@ -95,26 +121,46 @@ M.start = a.wrap(function(self, callback)
 		args[i] = arg:gsub('([^\\])"', "%1"):gsub("([^\\])'", "%1"):gsub('\\"', '"'):gsub("\\'", "'")
 	end
 
-	self.process, self.pid = vim.loop.spawn(
-		cmd,
-		{ stdio = { nil, stdout, stderr }, args = args, cwd = opts.cwd, detached = opts.detached, env = opts.env },
-		vim.schedule_wrap(on_exit)
-	)
+	self.done = a.control.Condvar.new()
+
+	self.process, self.pid = vim.loop.spawn(cmd, {
+		stdio = { self.stdin, self.stdout, stderr },
+		args = args,
+		cwd = opts.cwd,
+		detached = opts.detached,
+		env = transform_env(opts.env),
+	}, vim.schedule_wrap(on_exit))
 
 	if type(self.pid) == "string" then
 		stderr_lines = stderr_lines .. ("Command not found: %s"):format(cmd)
 		vim.notify(stderr_lines)
 		return -1
 	else
-		stdout:read_start(vim.schedule_wrap(on_stdout))
+		self.stdout:read_start(vim.schedule_wrap(on_stdout))
 		stderr:read_start(vim.schedule_wrap(on_stderr))
 	end
 end, 2)
 
+function M:send(data)
+	self.stdin:write(data)
+end
+
+function M:wait()
+	self.done:wait()
+end
+
 function M:kill(signal)
 	signal = signal or 15
 	self.process:kill(signal)
-	self.terminated_by_client = true
+	self.was_killed = true
+end
+
+function M:shutdown()
+	vim.wait(10, function()
+		return not vim.loop.is_active(self.stdout)
+	end)
+	self.process:kill(15)
+	self:wait()
 end
 
 function M:check_output(return_list)

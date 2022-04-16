@@ -319,6 +319,7 @@ function M:reload()
 	local job
 	job = Job({
 		cmds = self.content(),
+		stdout_buffer_size = 5000,
 		on_stdout = function(lines)
 			if not vim.api.nvim_buf_is_valid(self.id) or self.cancel_reload then
 				job:kill()
