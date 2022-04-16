@@ -6,7 +6,7 @@ local log = require("igit.libp.log")
 
 describe("start", function()
 	local function test_buffer_size(sz)
-		describe("on_stdout", function()
+		describe("with buffer size " .. sz, function()
 			local results
 			local job
 			before_each(function()
@@ -23,14 +23,14 @@ describe("start", function()
 				end)()
 			end)
 
-			a.it("Splits simple stdin" .. sz, function()
+			a.it("Splits simple stdin", function()
 				job:send("hello\n")
 				job:send("world\n")
 				job:shutdown()
 				assert.are.same({ "hello", "world" }, results)
 			end)
 
-			a.it("Allows empty strings" .. sz, function()
+			a.it("Allows empty strings", function()
 				job:send("hello\n")
 				job:send("\n")
 				job:send("world\n")
@@ -39,14 +39,14 @@ describe("start", function()
 				assert.are.same({ "hello", "", "world", "" }, results)
 			end)
 
-			a.it("Splits stdin across newlines" .. sz, function()
+			a.it("Splits stdin across newlines", function()
 				job:send("hello\nwor")
 				job:send("ld\n")
 				job:shutdown()
 				assert.are.same({ "hello", "world" }, results)
 			end)
 
-			pending("Splits stdin across newlines with no ending newline" .. sz, function()
+			a.it("Splits stdin across newlines with no ending newline", function()
 				job:send("hello\nwor")
 				job:send("ld")
 				job:shutdown()
@@ -59,10 +59,10 @@ describe("start", function()
 	test_buffer_size(3)
 	test_buffer_size(4)
 
-	a.describe("env", function()
-		local results
-		local job
-		local function run_with_env(env)
+	local function test_env(env, expect)
+		a.it("with env " .. vim.inspect(env):gsub("\n", ""), function()
+			local results
+			local job
 			results = {}
 			job = Job({
 				cmds = { "env" },
@@ -72,43 +72,17 @@ describe("start", function()
 				end,
 			})
 			job:start()
-		end
-
-		a.it("should be possible to set one env variable with an array", function()
-			run_with_env({ "A=100" })
-			assert.are.same({ "A=100" }, results)
+			assert.are.same(Set(expect), Set(results))
 		end)
+	end
 
-		a.it("should be possible to set multiple env variables with an array", function()
-			run_with_env({ "A=100", "B=test" })
-			assert.are.same({ "A=100", "B=test" }, results)
-		end)
-
-		a.it("should be possible to set one env variable with a map", function()
-			run_with_env({ A = 100 })
-			assert.are.same(results, { "A=100" })
-		end)
-
-		a.it("should be possible to set one env variable with spaces", function()
-			run_with_env({ "A=This is a long env var" })
-			assert.are.same({ "A=This is a long env var" }, results)
-		end)
-
-		a.it("should be possible to set one env variable with spaces and a map", function()
-			run_with_env({ ["A"] = "This is a long env var" })
-			assert.are.same({ "A=This is a long env var" }, results)
-		end)
-
-		a.it("should be possible to set multiple env variables with a map", function()
-			run_with_env({ ["A"] = 100, ["B"] = "test" })
-			assert.are.same(Set({ "A=100", "B=test" }), Set(results))
-		end)
-
-		a.it("should be possible to set multiple env variables with both, array and map", function()
-			run_with_env({ ["A"] = 100, "B=test" })
-			assert.are.same(Set({ "A=100", "B=test" }), Set(results))
-		end)
-	end)
+	test_env({ "A=100" }, { "A=100" })
+	test_env({ "A=100", "B=test" }, { "A=100", "B=test" })
+	test_env({ A = 100 }, { "A=100" })
+	test_env({ "A=This is a long env var" }, { "A=This is a long env var" })
+	test_env({ ["A"] = "This is a long env var" }, { "A=This is a long env var" })
+	test_env({ ["A"] = 100, ["B"] = "test" }, { "A=100", "B=test" })
+	test_env({ ["A"] = 100, "B=test" }, { "A=100", "B=test" })
 end)
 
 a.describe("check_output", function()
