@@ -2,7 +2,7 @@ local M = require("igit.libp.datatype.Class"):EXTEND()
 local global = require("igit.libp.global")("libp")
 local functional = require("igit.libp.functional")
 local a = require("plenary.async")
-local job = require("igit.libp.job")
+local Job = require("igit.libp.job")
 local log = require("igit.libp.log")
 
 global.buffers = global.buffers or {}
@@ -316,10 +316,13 @@ function M:reload()
 
 	local count = 1
 	local beg = 0
-	job.start(self.content(), {
+	local job
+	job = Job({
+		cmds = self.content(),
 		on_stdout = function(lines)
 			if not vim.api.nvim_buf_is_valid(self.id) or self.cancel_reload then
-				return true
+				job:kill()
+				return
 			end
 
 			beg = self:append(lines, beg)
@@ -339,6 +342,8 @@ function M:reload()
 			end
 		end,
 	})
+
+	job:start()
 
 	self.is_reloading = false
 	if ori_win and vim.api.nvim_win_is_valid(ori_win) then

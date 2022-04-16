@@ -1,7 +1,7 @@
 require("igit.libp.datatype.string_extension")
 local M = {}
 local path = require("igit.libp.path")
-local job = require("igit.libp.job")
+local Job = require("igit.libp.job")
 local log = require("igit.log")
 
 local arg_strcat_factory = function(git_cmd)
@@ -50,7 +50,7 @@ end
 
 function M.status_porcelain(file)
 	local res = {}
-	for line in job.check_output(M.status("--porcelain", file), { return_list = true }):values() do
+	for line in Job({ cmds = M.status("--porcelain", file) }):check_output(true):values() do
 		local state, old_filename, _, new_filename = unpack(line:split())
 		res[old_filename] = {
 			state = state,

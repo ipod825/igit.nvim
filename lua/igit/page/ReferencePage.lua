@@ -2,7 +2,7 @@ local M = require("igit.page.Page"):EXTEND()
 local a = require("plenary.async")
 local git = require("igit.git")
 local ui = require("igit.libp.ui")
-local job = require("igit.libp.job")
+local Job = require("igit.libp.job")
 
 function M:show(reference)
 	vim.validate({ reference = { reference, "string" } })
@@ -42,8 +42,8 @@ function M:confirm_rebase(opts)
 	end
 
 	local excluded_base = opts.grafted_ancestor ~= "" and opts.grafted_ancestor
-		or job.check_output(git["merge-base"](opts.base_reference, opts.branches[1]))
-	excluded_base = job.check_output(git["name-rev"](excluded_base)):split()[2]
+		or Job({ cmds = git["merge-base"](opts.base_reference, opts.branches[1]) }):check_output()
+	excluded_base = Job({ cmds = git["name-rev"](excluded_base) }):check_output():split()[2]
 
 	return "Yes"
 		== ui.Menu({
@@ -78,19 +78,19 @@ function M:rebase_branches(opts)
 
 	for _, new_branch in ipairs(opts.branches) do
 		local next_grafted_ancestor = ("%s_original_conflicted_with_%s_created_by_igit"):format(new_branch, base_branch)
-		job.start(git.branch(next_grafted_ancestor, new_branch))
+		Job({ cmds = git.branch(next_grafted_ancestor, new_branch) }):start()
 		if grafted_ancestor ~= "" then
-			local succ = 0 == job.start(git.rebase("--onto", base_branch, grafted_ancestor, new_branch))
+			local succ = 0 == Job({ cmds = git.rebase("--onto", base_branch, grafted_ancestor, new_branch) }):start()
 			if grafted_ancestor:endswith("created_by_igit") then
-				job.start(git.branch("-D", grafted_ancestor))
+				Job({ cmds = git.branch("-D", grafted_ancestor) }):start()
 			end
 			if not succ then
 				opts.current_buf:reload()
 				return
 			end
 		else
-			if 0 ~= job.start(git.rebase(base_branch, new_branch)) then
-				job.start(git.branch("-D", next_grafted_ancestor))
+			if 0 ~= Job({ cmds = git.rebase(base_branch, new_branch) }):start() then
+				Job({ cmds = git.branch("-D", next_grafted_ancestor) }):start()
 				opts.current_buf:reload()
 				return
 			end
@@ -98,8 +98,8 @@ function M:rebase_branches(opts)
 		grafted_ancestor = next_grafted_ancestor
 		base_branch = new_branch
 	end
-	job.start(git.branch("-D", grafted_ancestor))
-	job.start(git.checkout(opts.ori_reference))
+	Job({ cmds = git.branch("-D", grafted_ancestor) }):start()
+	Job({ cmds = git.checkout(opts.ori_reference) }):start()
 	opts.current_buf:reload()
 end
 

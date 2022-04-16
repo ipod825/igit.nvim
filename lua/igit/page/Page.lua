@@ -1,7 +1,7 @@
 local M = require("igit.libp.datatype.Class"):EXTEND()
 local path = require("igit.libp.path")
 local Set = require("igit.libp.datatype.Set")
-local job = require("igit.libp.job")
+local Job = require("igit.libp.job")
 local log = require("igit.log")
 local ui = require("igit.libp.ui")
 
@@ -55,13 +55,13 @@ end
 
 function M:runasync_and_reload(cmd)
 	local current_buf = self:current_buf()
-	job.start(cmd)
+	Job({ cmds = cmd }):start()
 	current_buf:reload()
 end
 
 function M:runasync_all_and_reload(cmds)
 	local current_buf = self:current_buf()
-	job.start_all(cmds)
+	Job.start_all(cmds)
 	current_buf:reload()
 end
 

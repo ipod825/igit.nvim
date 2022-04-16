@@ -2,7 +2,7 @@ local M = require("igit.page.ReferencePage"):EXTEND()
 local git = require("igit.git")
 local vimfn = require("igit.libp.vimfn")
 local term_utils = require("igit.libp.term_utils")
-local job = require("igit.libp.job")
+local Job = require("igit.libp.job")
 local Iterator = require("igit.libp.datatype.Iterator")
 local Set = require("igit.libp.datatype.Set")
 local log = require("igit.log")
@@ -46,11 +46,11 @@ function M:rename()
 			end
 			for i = 1, #ori_items do
 				local intermediate = ("%s-igitrename"):format(ori_items[i])
-				job.start(git.branch("-m", ori_items[i], intermediate))
+				Job({ cmds = git.branch("-m", ori_items[i], intermediate) }):start()
 			end
 			for i = 1, #ori_items do
 				local intermediate = ("%s-igitrename"):format(ori_items[i])
-				job.start(git.branch("-m", intermediate, new_items[i]))
+				Job({ cmds = git.branch("-m", intermediate, new_items[i]) }):start()
 			end
 		end,
 	})
@@ -67,7 +67,7 @@ end
 function M:rebase_chain()
 	self:rebase_branches({
 		current_buf = self:current_buf(),
-		ori_reference = job.check_output(git.branch("--show-current")),
+		ori_reference = Job({ cmds = git.branch("--show-current") }):check_output(),
 		branches = self:get_branches_in_rows(vimfn.visual_rows()),
 		base_reference = self:get_primary_mark_or_current_branch(),
 		grafted_ancestor = self:get_secondary_mark_branch() or "",
@@ -88,12 +88,12 @@ function M:switch()
 end
 
 function M:reset()
-	self:SUPER():reset(job.check_output(git.branch("--show-current")), self:parse_line().branch)
+	self:SUPER():reset(Job({ cmds = git.branch("--show-current") }):check_output(), self:parse_line().branch)
 end
 
 function M:get_primary_mark_or_current_branch()
 	local mark = self:current_buf().ctx.mark
-	local res = mark and mark[1].branch or job.check_output(git.branch("--show-current"))
+	local res = mark and mark[1].branch or Job({ cmds = git.branch("--show-current") }):check_output()
 	res = #res > 0 and res or "HEAD"
 	return res
 end
@@ -106,7 +106,7 @@ end
 function M:get_anchor()
 	local mark = self:current_buf().ctx.mark
 	return {
-		base = mark and mark[1].branch or job.check_output(git.branch("--show-current")),
+		base = mark and mark[1].branch or Job({ cmds = git.branch("--show-current") }):check_output(),
 		grafted_ancestor = mark and mark[2] and mark[2].branch,
 	}
 end
@@ -133,7 +133,7 @@ function M:new_branch()
 		end,
 		update = function(ori_branches, new_branches)
 			for new_branch in (new_branches - ori_branches):values() do
-				job.start(git.branch(new_branch, base_branch))
+				Job({ cmds = git.branch(new_branch, base_branch) }):start()
 			end
 		end,
 	})

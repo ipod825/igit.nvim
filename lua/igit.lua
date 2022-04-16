@@ -1,7 +1,7 @@
 local M = {}
 local a = require("plenary.async")
 local git = require("igit.git")
-local job = require("igit.libp.job")
+local Job = require("igit.libp.job")
 local default_config = require("igit.default_config")
 local log = require("igit.log")
 
@@ -55,11 +55,12 @@ function M.define_command(command)
 				M[module]:open(module_args, open_cmd)
 			else
 				local gita = git.with_default_args({ no_color = true })
-				job.start(gita[module](module_args), {
+				Job({
+					cmds = gita[module](module_args),
 					on_stdout = function(lines)
 						vim.notify(table.concat(lines, "\n"))
 					end,
-				})
+				}):start()
 			end
 		end)()
 	end

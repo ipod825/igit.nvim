@@ -1,7 +1,7 @@
 require("igit.libp.datatype.string_extension")
 local M = require("igit.page.ReferencePage"):EXTEND()
 local git = require("igit.git")
-local job = require("igit.libp.job")
+local Job = require("igit.libp.job")
 local Iterator = require("igit.libp.datatype.Iterator")
 local term_utils = require("igit.libp.term_utils")
 local ui = require("igit.libp.ui")
@@ -46,16 +46,16 @@ end
 function M:get_anchor_branch()
 	local mark = self:current_buf().ctx.mark
 	return {
-		base = mark and mark[1].branch or job.check_output(git.branch("--show-current")),
+		base = mark and mark[1].branch or Job({ cmds = git.branch("--show-current") }):check_output(),
 	}
 end
 
 function M:get_current_branch_or_sha()
-	local branch = job.check_output(git.branch("--show-current"))
+	local branch = Job({ cmds = git.branch("--show-current") }):check_output()
 	if branch ~= "" then
 		return branch
 	end
-	return job.check_output(git["rev-parse"]("HEAD"))
+	return Job({ cmds = git["rev-parse"]("HEAD") }):check_output()
 end
 
 function M:get_primary_mark_or_current_reference()
@@ -84,7 +84,7 @@ end
 function M:rebase_interactive()
 	local delay_reload = self.buf_enter_reload and nil or self:current_buf():delay_reload()
 
-	job.start(git.rebase("-i", self:parse_line(row_beg).sha))
+	Job({ cmds = git.rebase("-i", self:parse_line(row_beg).sha) }):start()
 
 	if delay_reload then
 		delay_reload()
@@ -112,10 +112,10 @@ function M:rebase_chain()
 
 	self:rebase_branches({
 		current_buf = self:current_buf(),
-		ori_reference = job.check_output(git.branch("--show-current")),
+		ori_reference = Job({ cmds = git.branch("--show-current") }):check_output(),
 		branches = branches,
 		base_reference = self:get_primary_mark_or_current_reference(),
-		grafted_ancestor = job.check_output(git["rev-parse"](("%s^1"):format(self:parse_line(row_end).sha))),
+		grafted_ancestor = Job({ cmds = git["rev-parse"](("%s^1"):format(self:parse_line(row_end).sha)) }):check_output(),
 	})
 end
 

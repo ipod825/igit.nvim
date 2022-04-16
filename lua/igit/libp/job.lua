@@ -1,16 +1,10 @@
 require("igit.libp.datatype.string_extension")
-local M = {}
+local M = require("igit.libp.datatype.Class"):EXTEND()
 local a = require("plenary.async")
 local List = require("igit.libp.datatype.List")
 local log = require("igit.libp.log")
 
-M.start = a.wrap(function(cmds, opts, callback)
-	vim.validate(
-		{ cmds = { cmds, { "table" } }, opts = { opts, "table", true } },
-		{ callback = { callback, "function", true } }
-	)
-	opts = opts or {}
-
+function M:init(opts)
 	vim.validate({
 		on_stdout = { opts.on_stdout, "function", true },
 		stdout_buffer_size = { opts.stdout_buffer_size, "number", true },
@@ -21,19 +15,20 @@ M.start = a.wrap(function(cmds, opts, callback)
 	})
 
 	opts.stdout_buffer_size = opts.stdout_buffer_size or 5000
+	self.opts = opts
+end
 
+M.start = a.wrap(function(self, callback)
+	local opts = self.opts
 	local stdout_lines = { "" }
 	local stderr_lines = ""
-	local terminated_by_client = false
-	local process
-	local pid
 
 	local stdout = vim.loop.new_pipe(false)
 	local stderr = vim.loop.new_pipe(false)
 
 	local eof_has_new_line = false
 	local on_stdout = function(_, data)
-		if opts.on_stdout then
+		if self.opts.on_stdout then
 			if data == nil then
 				return
 			end
@@ -50,13 +45,8 @@ M.start = a.wrap(function(cmds, opts, callback)
 
 			if #stdout_lines > opts.stdout_buffer_size then
 				local partial_line = table.remove(stdout_lines)
-				local should_terminate = opts.on_stdout(stdout_lines)
+				opts.on_stdout(stdout_lines)
 				stdout_lines = { partial_line }
-
-				if should_terminate then
-					terminated_by_client = true
-					process:kill(15)
-				end
 			end
 		end
 	end
@@ -79,8 +69,8 @@ M.start = a.wrap(function(cmds, opts, callback)
 		end
 
 		if exit_code ~= 0 then
-			if not opts.silent and not terminated_by_client then
-				vim.notify(("Error message from\n%s\n\n%s"):format(table.concat(cmds, " "), stderr_lines))
+			if not opts.silent and not self.terminated_by_client then
+				vim.notify(("Error message from\n%s\n\n%s"):format(table.concat(opts.cmds, " "), stderr_lines))
 			end
 		elseif opts.on_stdout then
 			if eof_has_new_line then
@@ -99,19 +89,19 @@ M.start = a.wrap(function(cmds, opts, callback)
 		end
 	end
 
-	local cmd, args = cmds[1], vim.list_slice(cmds, 2, #cmds)
+	local cmd, args = opts.cmds[1], vim.list_slice(opts.cmds, 2, #opts.cmds)
 	-- Remove quotes as spawn will quote each args.
 	for i, arg in ipairs(args) do
 		args[i] = arg:gsub('([^\\])"', "%1"):gsub("([^\\])'", "%1"):gsub('\\"', '"'):gsub("\\'", "'")
 	end
 
-	process, pid = vim.loop.spawn(
+	self.process, self.pid = vim.loop.spawn(
 		cmd,
 		{ stdio = { nil, stdout, stderr }, args = args, cwd = opts.cwd, detached = opts.detached, env = opts.env },
 		vim.schedule_wrap(on_exit)
 	)
 
-	if type(pid) == "string" then
+	if type(self.pid) == "string" then
 		stderr_lines = stderr_lines .. ("Command not found: %s"):format(cmd)
 		vim.notify(stderr_lines)
 		return -1
@@ -119,37 +109,28 @@ M.start = a.wrap(function(cmds, opts, callback)
 		stdout:read_start(vim.schedule_wrap(on_stdout))
 		stderr:read_start(vim.schedule_wrap(on_stderr))
 	end
+end, 2)
 
-	return pid
-end, 3)
+function M:kill(signal)
+	signal = signal or 15
+	self.process:kill(signal)
+	self.terminated_by_client = true
+end
 
-M.start_all = a.wrap(function(cmds, opts, callback)
-	a.util.run_all(
-		List(cmds)
-			:map(function(cmd)
-				return a.wrap(function(cb)
-					M.start(cmd, opts, cb)
-				end, 1)
-			end)
-			:collect(),
-		callback
-	)
-end, 3)
-
-M.check_output = function(cmd, opts)
-	vim.validate({ cmd = { cmd, { "string", "table" } }, opts = { opts, "table", true } })
-	opts = opts or {}
+function M:check_output(return_list)
+	vim.validate({ return_list = { return_list, "boolean", true } })
 	local stdout_lines = {}
-	opts.on_stdout = function(lines)
+
+	self.opts.on_stdout = function(lines)
 		vim.list_extend(stdout_lines, lines)
 	end
 
-	local exit_code = M.start(cmd, opts)
+	local exit_code = self:start()
 	if exit_code ~= 0 then
 		stdout_lines = nil
 	end
 
-	if opts.return_list then
+	if return_list then
 		return List(stdout_lines)
 	end
 	return table.concat(stdout_lines, "\n")
@@ -158,9 +139,9 @@ end
 M.start_all = a.wrap(function(cmds, opts, callback)
 	a.util.run_all(
 		List(cmds)
-			:map(function(cmd)
+			:map(function(e)
 				return a.wrap(function(cb)
-					M.start(cmd, opts, cb)
+					M(vim.tbl_extend("keep", { cmds = e }, opts or {})):start(cb)
 				end, 1)
 			end)
 			:collect(),

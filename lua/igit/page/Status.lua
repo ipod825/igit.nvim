@@ -1,6 +1,6 @@
 local M = require("igit.page.Page"):EXTEND()
 local git = require("igit.git")
-local job = require("igit.libp.job")
+local Job = require("igit.libp.job")
 local global = require("igit.global")
 local vimfn = require("igit.libp.vimfn")
 local ui = require("igit.libp.ui")
@@ -58,18 +58,18 @@ function M:commit_submit(git_dir, opts)
 	end, vim.fn.readfile(git.commit_message_file_path(git_dir)))
 	local gita = git.with_default_args({ git_dir = git_dir })
 	if opts.backup_branch then
-		local base_branch = job.check_output(gita.branch("--show-current"))
+		local base_branch = Job({ cmds = gita.branch("--show-current") }):check_output()
 		local backup_branch = ("%s_original_created_by_igit"):format(base_branch)
-		job.start(gita.branch(backup_branch, base_branch))
+		Job({ cmds = gita.branch(backup_branch, base_branch) }):start()
 	end
-	job.start(gita.commit({ opts.amend and "--amend", "-m", table.concat(lines, "\n") }))
+	Job({ cmds = gita.commit({ opts.amend and "--amend", "-m", table.concat(lines, "\n") }) }):start()
 end
 
 function M:commit(opts)
 	opts = opts or {}
 	local git_dir = git.find_root()
 	local amend = opts.amend and "--amend"
-	job.start(git.commit(amend), { silent = true, env = { GIT_EDITOR = "false" } })
+	Job({ cmds = git.commit(amend), silent = true, env = { GIT_EDITOR = "false" } }):start()
 	local commit_message_file_path = git.commit_message_file_path(git_dir)
 	vim.cmd("edit " .. commit_message_file_path)
 	vim.bo.bufhidden = "wipe"
@@ -113,7 +113,7 @@ function M:change_action(action)
 	-- Note that using start_all here might lead to git index lock issue. Hence
 	-- we run the commands sequentially here.
 	for _, files in pairs(filepaths) do
-		job.start(action(files))
+		Job({ cmds = action(files) }):start()
 	end
 	current_buf:reload()
 	return file_count == 1
@@ -159,7 +159,7 @@ function M:diff_cached()
 			a.uv.fs_write(fd, table.concat(staged_lines, "\n") .. "\n")
 			a.uv.fs_close(fd)
 
-			job.start(git.add(cline_info.filepath))
+			Job({ cmds = git.add(cline_info.filepath) }):start()
 
 			_, fd = a.uv.fs_open(cline_info.abs_path, "w", 448)
 			a.uv.fs_write(fd, ori_content)
