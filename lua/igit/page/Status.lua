@@ -58,7 +58,7 @@ function M:commit_submit(git_dir, opts)
 	end, vim.fn.readfile(git.commit_message_file_path(git_dir)))
 	local gita = git.with_default_args({ git_dir = git_dir })
 	if opts.backup_branch then
-		local base_branch = Job({ cmds = gita.branch("--show-current") }):check_output()
+		local base_branch = Job({ cmds = gita.branch("--show-current") }):stdoutputstr()
 		local backup_branch = ("%s_original_created_by_igit"):format(base_branch)
 		Job({ cmds = gita.branch(backup_branch, base_branch) }):start()
 	end

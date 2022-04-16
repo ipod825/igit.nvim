@@ -50,7 +50,7 @@ end
 
 function M.status_porcelain(file)
 	local res = {}
-	for line in Job({ cmds = M.status("--porcelain", file) }):check_output(true):values() do
+	for _, line in ipairs(Job({ cmds = M.status("--porcelain", file) }):stdoutput()) do
 		local state, old_filename, _, new_filename = unpack(line:split())
 		res[old_filename] = {
 			state = state,

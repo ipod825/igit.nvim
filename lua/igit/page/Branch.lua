@@ -67,7 +67,7 @@ end
 function M:rebase_chain()
 	self:rebase_branches({
 		current_buf = self:current_buf(),
-		ori_reference = Job({ cmds = git.branch("--show-current") }):check_output(),
+		ori_reference = Job({ cmds = git.branch("--show-current") }):stdoutputstr(),
 		branches = self:get_branches_in_rows(vimfn.visual_rows()),
 		base_reference = self:get_primary_mark_or_current_branch(),
 		grafted_ancestor = self:get_secondary_mark_branch() or "",
@@ -88,12 +88,12 @@ function M:switch()
 end
 
 function M:reset()
-	self:SUPER():reset(Job({ cmds = git.branch("--show-current") }):check_output(), self:parse_line().branch)
+	self:SUPER():reset(Job({ cmds = git.branch("--show-current") }):stdoutputstr(), self:parse_line().branch)
 end
 
 function M:get_primary_mark_or_current_branch()
 	local mark = self:current_buf().ctx.mark
-	local res = mark and mark[1].branch or Job({ cmds = git.branch("--show-current") }):check_output()
+	local res = mark and mark[1].branch or Job({ cmds = git.branch("--show-current") }):stdoutputstr()
 	res = #res > 0 and res or "HEAD"
 	return res
 end
@@ -106,7 +106,7 @@ end
 function M:get_anchor()
 	local mark = self:current_buf().ctx.mark
 	return {
-		base = mark and mark[1].branch or Job({ cmds = git.branch("--show-current") }):check_output(),
+		base = mark and mark[1].branch or Job({ cmds = git.branch("--show-current") }):stdoutputstr(),
 		grafted_ancestor = mark and mark[2] and mark[2].branch,
 	}
 end

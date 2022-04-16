@@ -42,8 +42,8 @@ function M:confirm_rebase(opts)
 	end
 
 	local excluded_base = opts.grafted_ancestor ~= "" and opts.grafted_ancestor
-		or Job({ cmds = git["merge-base"](opts.base_reference, opts.branches[1]) }):check_output()
-	excluded_base = Job({ cmds = git["name-rev"](excluded_base) }):check_output():split()[2]
+		or Job({ cmds = git["merge-base"](opts.base_reference, opts.branches[1]) }):stdoutputstr()
+	excluded_base = Job({ cmds = git["name-rev"](excluded_base) }):stdoutputstr():split()[2]
 
 	return "Yes"
 		== ui.Menu({
