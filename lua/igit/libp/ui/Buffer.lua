@@ -254,19 +254,6 @@ function M:append(lines, beg)
 	return beg + #lines
 end
 
-function M:save_view()
-	if self.id == vim.api.nvim_get_current_buf() then
-		self.saved_view = vim.fn.winsaveview()
-	end
-end
-
-function M:restore_view()
-	if self.saved_view and self.id == vim.api.nvim_get_current_buf() then
-		vim.fn.winrestview(self.saved_view)
-		self.saved_view = nil
-	end
-end
-
 function M:delay_reload()
 	local job_done = a.control.Condvar.new()
 	a.void(function()
@@ -316,12 +303,18 @@ function M:reload()
 	-- Clear the marks so that we don't hit into invisible marks.
 	self.ctx.mark = nil
 	self.cancel_reload = false
-	self:save_view()
+
+	local ori_win, ori_cursor
+	local ori_st = vim.o.statusline
+	if self.id == vim.api.nvim_get_current_buf() then
+		ori_win = vim.api.nvim_get_current_win()
+		ori_cursor = vim.api.nvim_win_get_cursor(ori_win)
+		ori_st = vim.o.statusline
+	end
+
 	self:clear()
 
 	local count = 1
-	local w = vim.api.nvim_get_current_win()
-	local ori_st = vim.o.statusline
 	local beg = 0
 	job.start(self.content(), {
 		on_stdout = function(lines)
@@ -330,16 +323,17 @@ function M:reload()
 			end
 
 			beg = self:append(lines, beg)
-			-- We only restore view once (note that restore_view destroys
-			-- the saved view). This is because that for content that can be
-			-- drawn in one shot, reload should finish before any new user
-			-- interaction. Restoring the view thus compensate the cursor
-			-- move (due to clear). But for content that needs to be drawn
-			-- in multiple run, restoring the cursor after every append
-			-- just makes user can't do anything.
-			self:restore_view()
+			-- We only restore cursor once. For content that can be drawn in one
+			-- shot, reload should finish before any new user interaction.
+			-- Restoring the view thus compensate the cursor move due to clear.
+			-- For content that needs to be drawn in multiple run, restoring the
+			-- cursor after every append just makes user can't do anything.
+			if ori_cursor and vim.api.nvim_win_is_valid(ori_win) then
+				vim.api.nvim_win_set_cursor(ori_win, ori_cursor)
+				ori_cursor = nil
+			end
 
-			if w == vim.api.nvim_get_current_win() then
+			if ori_win == vim.api.nvim_get_current_win() then
 				vim.wo.statusline = " Loading " .. ("."):rep(count)
 				count = count % 6 + 1
 			end
@@ -347,11 +341,11 @@ function M:reload()
 	})
 
 	self.is_reloading = false
-	if vim.api.nvim_win_is_valid(w) then
-		vim.api.nvim_win_set_option(w, "statusline", ori_st)
+	if ori_win and vim.api.nvim_win_is_valid(ori_win) then
+		vim.api.nvim_win_set_option(ori_win, "statusline", ori_st)
 	end
 
-	if self.reload_done then
+	if self.reload_done ~= nil then
 		self.reload_done:notify_one()
 	end
 end
