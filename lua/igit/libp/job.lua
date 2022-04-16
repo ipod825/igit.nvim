@@ -2,7 +2,6 @@ require("igit.libp.datatype.string_extension")
 local M = {}
 local a = require("plenary.async")
 local List = require("igit.libp.datatype.List")
-local term_util = require("igit.libp.terminal_utils")
 local log = require("igit.libp.log")
 
 M.start = a.wrap(function(cmds, opts, callback)

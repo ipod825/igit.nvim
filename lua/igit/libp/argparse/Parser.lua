@@ -4,7 +4,7 @@ require("igit.libp.datatype.string_extension")
 local List = require("igit.libp.datatype.List")
 local Dict = require("igit.libp.datatype.Dict")
 local functional = require("igit.libp.functional")
-local term_util = require("igit.libp.terminal_utils")
+local term_utils = require("igit.libp.term_utils")
 local log = require("igit.libp.log")
 
 local ArgType = { POSITION = 1, FLAG = 2, LONG_FLAG = 3 }
@@ -95,7 +95,7 @@ end
 
 function M:parse(str, return_hierarchical_result)
 	vim.validate({ str = { str, "string" } })
-	local tokens = term_util.tokenize_command(str)
+	local tokens = term_utils.tokenize_command(str)
 	if not tokens then
 		return nil
 	end
