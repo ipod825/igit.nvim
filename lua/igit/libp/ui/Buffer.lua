@@ -243,17 +243,15 @@ function M:clear()
 	vim.api.nvim_buf_set_option(self.id, "undolevels", self.bo.undolevels)
 end
 
-function M:append(lines)
+function M:append(lines, beg)
 	vim.api.nvim_buf_set_option(self.id, "undolevels", -1)
 	vim.api.nvim_buf_set_option(self.id, "modifiable", true)
-	-- Note that we assume the last element in lines is always '' which will be
-	-- overwriten by the next append call as the start index is -2. The reason
-	-- start index is not -1 is for consistency between calls of append. On
-	-- empty buffer, the first line is always non-empty, insertion starting from
-	-- -1 will insert from the second line.
-	vim.api.nvim_buf_set_lines(self.id, -2, -1, false, lines)
+
+	vim.api.nvim_buf_set_lines(self.id, beg, -1, false, lines)
+
 	vim.api.nvim_buf_set_option(self.id, "modifiable", self.bo.modifiable)
 	vim.api.nvim_buf_set_option(self.id, "undolevels", self.bo.undolevels)
+	return beg + #lines
 end
 
 function M:save_view()
@@ -324,13 +322,14 @@ function M:reload()
 	local count = 1
 	local w = vim.api.nvim_get_current_win()
 	local ori_st = vim.o.statusline
+	local beg = 0
 	job.start(self.content(), {
 		on_stdout = function(lines)
 			if not vim.api.nvim_buf_is_valid(self.id) or self.cancel_reload then
 				return true
 			end
 
-			self:append(lines)
+			beg = self:append(lines, beg)
 			-- We only restore view once (note that restore_view destroys
 			-- the saved view). This is because that for content that can be
 			-- drawn in one shot, reload should finish before any new user

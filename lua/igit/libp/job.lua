@@ -50,11 +50,7 @@ M.start = a.wrap(function(cmds, opts, callback)
 			vim.list_extend(stdout_lines, lines, 2)
 
 			if #stdout_lines > opts.stdout_buffer_size then
-				-- We send out to client only complete lines with an appended
-				-- empty string at the end, which was added to be consistent
-				-- with Buffer's append function.
 				local partial_line = table.remove(stdout_lines)
-				table.insert(stdout_lines, "")
 				local should_terminate = opts.on_stdout(stdout_lines)
 				stdout_lines = { partial_line }
 
