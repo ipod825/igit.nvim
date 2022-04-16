@@ -2,7 +2,7 @@ require("igit.libp.datatype.string_extension")
 local M = require("igit.page.ReferencePage"):EXTEND()
 local git = require("igit.git")
 local Job = require("igit.libp.job")
-local Iterator = require("igit.libp.datatype.Iterator")
+local IterList = require("igit.libp.datatype.IterList")
 local term_utils = require("igit.libp.term_utils")
 local ui = require("igit.libp.ui")
 local vimfn = require("igit.libp.vimfn")
@@ -64,7 +64,7 @@ function M:get_primary_mark_or_current_reference()
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
-	return Iterator.range(row_beg, row_end)
+	return IterList.from_range(row_beg, row_end)
 		:map(function(e)
 			return self:parse_line(e).branches
 		end)

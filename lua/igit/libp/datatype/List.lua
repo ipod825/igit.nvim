@@ -31,15 +31,7 @@ function M:values()
 end
 
 function M:to_iter()
-	return require("igit.libp.datatype.Iterator")({ next_fn = next, invariant = self })
-end
-
-function M:map(...)
-	return require("igit.libp.datatype.Iterator")({ next_fn = next, invariant = self }):map(...)
-end
-
-function M:filter(...)
-	return require("igit.libp.datatype.Iterator")({ next_fn = next, invariant = self }):filter(...)
+	return require("igit.libp.datatype.IterList")({ next_fn = next, invariant = self })
 end
 
 function M:unbox_if_one()

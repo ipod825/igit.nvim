@@ -42,4 +42,12 @@ describe("find_directory", function()
 		vim.cmd("edit test_file")
 		assert.are.same(wdir .. "/a/b/c", path.find_directory("b"))
 	end)
+
+	it("Finds from cwd by default", function()
+		local wdir = path.dirname(vim.fn.tempname())
+		local dir = wdir .. "/a/b/c/b/c"
+		vim.fn.mkdir(dir, "p")
+		vim.cmd("cd " .. dir)
+		assert.are.same(wdir .. "/a/b/c", path.find_directory("b"))
+	end)
 end)

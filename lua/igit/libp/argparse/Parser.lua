@@ -2,7 +2,6 @@ require("igit.libp.datatype.string_extension")
 local M = require("igit.libp.datatype.Class"):EXTEND()
 require("igit.libp.datatype.string_extension")
 local List = require("igit.libp.datatype.List")
-local Dict = require("igit.libp.datatype.Dict")
 local functional = require("igit.libp.functional")
 local term_utils = require("igit.libp.term_utils")
 local log = require("igit.libp.log")
@@ -123,7 +122,7 @@ function M:get_completion_list_internal(args, hint)
 		parser = parser.sub_parsers[sub_command]
 	end
 
-	local res = List(Dict.keys(parser.sub_parsers))
+	local res = List(vim.tbl_keys(parser.sub_parsers))
 	local flag_arg_props = vim.tbl_extend("error", parser.arg_props[ArgType.FLAG], parser.arg_props[ArgType.LONG_FLAG])
 	for k, arg_prop in pairs(flag_arg_props) do
 		if parsed_res[k] == nil then
@@ -189,6 +188,7 @@ function M:parse_internal(args, return_hierarchical_result)
 
 		if #values >= current_arg_prop.nargs then
 			res[current_arg_prop.name] = values
+				:to_iter()
 				:map(function(e)
 					return self:_convert_type(e, current_arg_prop.type)
 				end)

@@ -205,6 +205,7 @@ end
 M.start_all = a.wrap(function(cmds, opts, callback)
 	a.util.run_all(
 		List(cmds)
+			:to_iter()
 			:map(function(e)
 				return a.wrap(function(cb)
 					M(vim.tbl_extend("keep", { cmds = e }, opts or {})):start(cb)

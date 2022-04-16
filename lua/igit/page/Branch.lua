@@ -3,7 +3,7 @@ local git = require("igit.git")
 local vimfn = require("igit.libp.vimfn")
 local term_utils = require("igit.libp.term_utils")
 local Job = require("igit.libp.job")
-local Iterator = require("igit.libp.datatype.Iterator")
+local IterList = require("igit.libp.datatype.IterList")
 local Set = require("igit.libp.datatype.Set")
 local log = require("igit.log")
 
@@ -112,7 +112,7 @@ function M:get_anchor()
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
-	return Iterator.range(row_beg, row_end)
+	return IterList.from_range(row_beg, row_end)
 		:map(function(e)
 			return self:parse_line(e).branch
 		end)
@@ -144,6 +144,7 @@ end
 function M:force_delete_branch()
 	local cmds = self
 		:get_branches_in_rows(vimfn.visual_rows())
+		:to_iter()
 		:map(function(b)
 			return git.branch("-D", b)
 		end)

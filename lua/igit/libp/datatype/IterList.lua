@@ -71,7 +71,7 @@ function M:filter(filter_fn)
 	})
 end
 
-function M.range(beg, ends, step)
+function M.from_range(beg, ends, step)
 	if not ends then
 		ends = beg
 		beg = 1
