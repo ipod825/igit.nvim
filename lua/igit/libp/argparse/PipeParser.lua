@@ -1,16 +1,13 @@
 require("igit.libp.utils.string_extension")
 local M = require("igit.libp.argparse.Parser"):EXTEND()
 
-function M:parse(str, return_hierarchical_result)
+function M:parse(str)
 	vim.validate({ str = { str, "string" } })
-	return self:parse_internal(str:split(), return_hierarchical_result)
+	return self:parse_internal(str:split())
 end
 
-function M:parse_internal(args, return_hierarchical_result)
-	if return_hierarchical_result then
-		return { { self.prog, args } }
-	end
-	return args
+function M:parse_internal(args)
+	return { { self.prog, args } }
 end
 
 return M

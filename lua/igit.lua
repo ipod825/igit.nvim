@@ -21,6 +21,7 @@ end
 function M.define_command(command)
 	local PipeParser = require("igit.libp.argparse.PipeParser")
 	local parser = require("igit.libp.argparse.Parser")(command)
+	parser:add_argument("--open_cmd")
 	parser:add_subparser(PipeParser("branch"))
 	parser:add_subparser(PipeParser("log"))
 	parser:add_subparser(PipeParser("status"))
@@ -30,7 +31,8 @@ function M.define_command(command)
 	end
 
 	local complete = function(arg_lead, cmd_line, cursor_pos)
-		return parser:get_completion_list(cmd_line, arg_lead)
+		local beg = cmd_line:find(" ")
+		return parser:get_completion_list(cmd_line:sub(beg, #cmd_line), arg_lead)
 	end
 
 	local execute = function(opts)

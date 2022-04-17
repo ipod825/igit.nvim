@@ -122,7 +122,6 @@ M.start = a.wrap(function(self, callback)
 		elseif opts.on_stdout then
 			stdout_lines = eof_has_new_line and vim.list_slice(stdout_lines, 1, #stdout_lines - 1) or stdout_lines
 			if #stdout_lines > 0 then
-				log.warn(stdout_lines, exit_code, eof_has_new_line)
 				opts.on_stdout(stdout_lines)
 			end
 
