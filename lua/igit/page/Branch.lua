@@ -132,7 +132,7 @@ function M:new_branch()
 			vim.cmd("substitute/\\e\\[[0-9;]*m//g")
 		end,
 		update = function(ori_branches, new_branches)
-			for new_branch in (new_branches - ori_branches):values() do
+			for new_branch in Set.values(new_branches - ori_branches) do
 				Job({ cmds = git.branch(new_branch, base_branch) }):start()
 			end
 		end,
