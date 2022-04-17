@@ -46,7 +46,7 @@ function String:unquote()
 	return res
 end
 
-function String:find_str(pattern)
+function String:find_pattern(pattern)
 	return select(3, self:find(pattern))
 end
 

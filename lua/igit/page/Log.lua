@@ -133,8 +133,8 @@ function M:parse_line(linenr)
 	linenr = linenr or "."
 	local line = term_utils.remove_ansi_escape(vim.fn.getline(linenr))
 	local res = {}
-	res.sha = line:find_str("([a-f0-9]+)%s")
-	local branch_candidates = line:find_str("%((.-)%)")
+	res.sha = line:find_pattern("([a-f0-9]+)%s")
+	local branch_candidates = line:find_pattern("%((.-)%)")
 	res.branches = branch_candidates
 			and vim.tbl_filter(function(e)
 				return #e > 0 and e ~= "->" and e ~= "HEAD"
@@ -142,7 +142,7 @@ function M:parse_line(linenr)
 		or {}
 	res.references = vim.deepcopy(res.branches)
 	table.insert(res.references, res.sha)
-	res.author = line:find_str("%s(<.->)%s")
+	res.author = line:find_pattern("%s(<.->)%s")
 	return res
 end
 
