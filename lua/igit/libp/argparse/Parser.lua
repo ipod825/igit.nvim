@@ -12,11 +12,11 @@ function M:init(prog)
 	self.prog = prog or ""
 	self.sub_parsers = {}
 	self.arg_props = {
-		[ArgType._POSITION_DICT] = {},
 		[ArgType.POSITION] = {},
 		[ArgType.FLAG] = {},
 		[ArgType.LONG_FLAG] = {},
 	}
+	self.position_arg_keys = {}
 end
 
 function M:add_subparser(prog)
@@ -66,22 +66,23 @@ function M:add_argument(provided_name, opts)
 		type = "string",
 		required = (arg_type == ArgType.POSITION),
 	})
+	self.arg_props[arg_type][arg] = arg_prop
 	if arg_type == ArgType.POSITION then
-		assert(arg_prop.required, "position arguments must can't be optional")
-		table.insert(self.arg_props[arg_type], arg_prop)
-		self.arg_props[ArgType._POSITION_DICT][arg] = arg_prop
-	else
-		self.arg_props[arg_type][arg] = arg_prop
+		table.insert(self.position_arg_keys, arg)
 	end
 end
 
-function M:is_parsed_args_invalid(parsed_res)
-	local arg_props = vim.tbl_extend(
-		"error",
-		self.arg_props[ArgType._POSITION_DICT],
-		self.arg_props[ArgType.FLAG],
-		self.arg_props[ArgType.LONG_FLAG]
-	)
+function M:is_parsed_args_invalid(parsed_res, check_positional)
+	vim.validate({ parsed_res = { parsed_res, "table" }, check_positional = { check_positional, "boolean", true } })
+	local arg_props = check_positional
+			and vim.tbl_extend(
+				"error",
+				self.arg_props[ArgType.POSITION],
+				self.arg_props[ArgType.FLAG],
+				self.arg_props[ArgType.LONG_FLAG]
+			)
+		or vim.tbl_extend("error", self.arg_props[ArgType.FLAG], self.arg_props[ArgType.LONG_FLAG])
+
 	for arg, arg_prop in pairs(arg_props) do
 		if parsed_res[arg] == nil then
 			if arg_prop.required then
@@ -109,7 +110,7 @@ function M:parse(str)
 	local parser
 	for i = 1, #res do
 		parser = parser and parser.sub_parsers[res[i][1]] or self
-		err_msg = err_msg or parser:is_parsed_args_invalid(res[i][2])
+		err_msg = err_msg or parser:is_parsed_args_invalid(res[i][2], true)
 	end
 
 	if err_msg then
@@ -163,7 +164,7 @@ end
 
 function M:parse_internal(args)
 	args = args or {}
-	local position_args = List(self.arg_props[ArgType.POSITION]):to_iter()
+	local position_arg_keys = List(self.position_arg_keys):to_iter()
 
 	local current_arg_prop = nil
 	local values = List()
@@ -180,7 +181,7 @@ function M:parse_internal(args)
 		if current_arg_prop == nil then
 			if arg_type == ArgType.POSITION then
 				values:append(arg)
-				current_arg_prop = position_args:next()
+				current_arg_prop = self.arg_props[arg_type][position_arg_keys:next()]
 			else
 				local _, value = functional.head_tail(token:split_trim("="))
 				if value then
