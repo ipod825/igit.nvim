@@ -1,9 +1,8 @@
-require("igit.libp.datatype.string_extension")
+require("igit.libp.utils.string_extension")
 local M = require("igit.libp.datatype.Class"):EXTEND()
-require("igit.libp.datatype.string_extension")
 local List = require("igit.libp.datatype.List")
 local functional = require("igit.libp.functional")
-local term_utils = require("igit.libp.term_utils")
+local term_utils = require("igit.libp.utils.term")
 local log = require("igit.libp.log")
 
 local ArgType = { POSITION = 1, FLAG = 2, LONG_FLAG = 3 }

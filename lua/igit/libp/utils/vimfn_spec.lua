@@ -1,4 +1,4 @@
-local vimfn = require("igit.libp.vimfn")
+local vimfn = require("igit.libp.utils.vimfn")
 
 describe("visual_rows", function()
 	it("Returns seleted row beg and end", function()

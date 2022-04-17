@@ -1,4 +1,4 @@
-require("igit.libp.datatype.string_extension")
+require("igit.libp.utils.string_extension")
 local M = require("igit.libp.argparse.Parser"):EXTEND()
 
 function M:parse(str, return_hierarchical_result)

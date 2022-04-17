@@ -1,4 +1,4 @@
-require("igit.libp.datatype.string_extension")
+require("igit.libp.utils.string_extension")
 local M = require("igit.libp.datatype.Class"):EXTEND()
 local a = require("plenary.async")
 local List = require("igit.libp.datatype.List")

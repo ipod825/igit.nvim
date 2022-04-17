@@ -1,4 +1,4 @@
-require("igit.libp.datatype.string_extension")
+require("igit.libp.utils.string_extension")
 local M = {}
 local path = require("igit.libp.path")
 local Job = require("igit.libp.job")

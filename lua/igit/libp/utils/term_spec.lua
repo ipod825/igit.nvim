@@ -1,4 +1,4 @@
-local term_utils = require("igit.libp.term_utils")
+local term_utils = require("igit.libp.utils.term")
 
 describe("remove_ansi_escape", function()
 	it("Removes ansi escape", function()

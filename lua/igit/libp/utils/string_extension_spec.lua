@@ -1,4 +1,4 @@
-require("igit.libp.datatype.string_extension")
+require("igit.libp.utils.string_extension")
 
 describe("find_pattern", function()
 	it("Returns nil if no match", function()
