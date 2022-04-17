@@ -1,5 +1,5 @@
 require("igit.libp.datatype.string_extension")
-local M = require("igit.libp.argparse.Parser")()
+local M = require("igit.libp.argparse.Parser"):EXTEND()
 
 function M:parse(str, return_hierarchical_result)
 	vim.validate({ str = { str, "string" } })
