@@ -19,15 +19,15 @@ function M.setup(opts)
 end
 
 function M.define_command(command)
-	local PipeParser = require("igit.libp.argparse.PipeParser")
+	local EchoParser = require("igit.libp.argparse.EchoParser")
 	local parser = require("igit.libp.argparse.Parser")(command)
 	parser:add_argument("--open_cmd")
-	parser:add_subparser(PipeParser("branch"))
-	parser:add_subparser(PipeParser("log"))
-	parser:add_subparser(PipeParser("status"))
+	parser:add_subparser(EchoParser("branch"))
+	parser:add_subparser(EchoParser("log"))
+	parser:add_subparser(EchoParser("status"))
 	local sub_commands = { "stash", "push", "pull", "rebase" }
 	for _, cmd in ipairs(sub_commands) do
-		parser:add_subparser(PipeParser(cmd))
+		parser:add_subparser(EchoParser(cmd))
 	end
 
 	local complete = function(arg_lead, cmd_line, cursor_pos)
