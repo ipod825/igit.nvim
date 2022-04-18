@@ -1,7 +1,7 @@
 local M = {}
 local a = require("plenary.async")
 local git = require("igit.git")
-local Job = require("libp.job")
+local Job = require("libp.Job")
 local default_config = require("igit.default_config")
 local log = require("igit.log")
 

@@ -1,7 +1,7 @@
 local M = require("libp.datatype.Class"):EXTEND()
 local path = require("libp.path")
 local Set = require("libp.datatype.Set")
-local Job = require("libp.job")
+local Job = require("libp.Job")
 local log = require("igit.log")
 local ui = require("libp.ui")
 

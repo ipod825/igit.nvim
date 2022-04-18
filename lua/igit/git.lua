@@ -1,7 +1,7 @@
 require("libp.utils.string_extension")
 local M = {}
 local path = require("libp.path")
-local Job = require("libp.job")
+local Job = require("libp.Job")
 local log = require("igit.log")
 
 local arg_strcat_factory = function(git_cmd)

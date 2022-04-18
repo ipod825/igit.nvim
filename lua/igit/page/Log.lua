@@ -1,7 +1,7 @@
 require("libp.utils.string_extension")
 local M = require("igit.page.ReferencePage"):EXTEND()
 local git = require("igit.git")
-local Job = require("libp.job")
+local Job = require("libp.Job")
 local IterList = require("libp.datatype.IterList")
 local term_utils = require("libp.utils.term")
 local ui = require("libp.ui")

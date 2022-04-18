@@ -2,7 +2,7 @@ local M = require("igit.page.Page"):EXTEND()
 local a = require("plenary.async")
 local git = require("igit.git")
 local ui = require("libp.ui")
-local Job = require("libp.job")
+local Job = require("libp.Job")
 
 function M:show(reference)
 	vim.validate({ reference = { reference, "string" } })

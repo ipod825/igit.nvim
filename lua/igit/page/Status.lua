@@ -1,6 +1,6 @@
 local M = require("igit.page.Page"):EXTEND()
 local git = require("igit.git")
-local Job = require("libp.job")
+local Job = require("libp.Job")
 local global = require("igit.global")
 local vimfn = require("libp.utils.vimfn")
 local ui = require("libp.ui")
