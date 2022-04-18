@@ -1,22 +1,22 @@
 require("igit.libp.utils.string_extension")
 local M = require("igit.libp.datatype.Class"):EXTEND()
 local List = require("igit.libp.datatype.List")
+local OrderedDict = require("igit.libp.datatype.OrderedDict")
 local functional = require("igit.libp.functional")
 local term_utils = require("igit.libp.utils.term")
 local log = require("igit.libp.log")
 
-local ArgType = { _POSITION_DICT = 1, POSITION = 2, FLAG = 3, LONG_FLAG = 4 }
+local ArgType = { POSITION = 1, FLAG = 2, LONG_FLAG = 3 }
 
 function M:init(prog)
 	vim.validate({ prog = { prog, "string", true } })
 	self.prog = prog or ""
 	self.sub_parsers = {}
 	self.arg_props = {
-		[ArgType.POSITION] = {},
+		[ArgType.POSITION] = OrderedDict(),
 		[ArgType.FLAG] = {},
 		[ArgType.LONG_FLAG] = {},
 	}
-	self.position_arg_keys = {}
 end
 
 function M:add_subparser(prog)
@@ -67,9 +67,6 @@ function M:add_argument(provided_name, opts)
 		required = (arg_type == ArgType.POSITION),
 	})
 	self.arg_props[arg_type][arg] = arg_prop
-	if arg_type == ArgType.POSITION then
-		table.insert(self.position_arg_keys, arg)
-	end
 end
 
 function M:is_parsed_args_invalid(parsed_res, check_positional)
@@ -77,7 +74,7 @@ function M:is_parsed_args_invalid(parsed_res, check_positional)
 	local arg_props = check_positional
 			and vim.tbl_extend(
 				"error",
-				self.arg_props[ArgType.POSITION],
+				OrderedDict.data(self.arg_props[ArgType.POSITION]),
 				self.arg_props[ArgType.FLAG],
 				self.arg_props[ArgType.LONG_FLAG]
 			)
@@ -164,7 +161,7 @@ end
 
 function M:parse_internal(args)
 	args = args or {}
-	local position_arg_keys = List(self.position_arg_keys):to_iter()
+	local next_position_args = OrderedDict.values(self.arg_props[ArgType.POSITION])
 
 	local current_arg_prop = nil
 	local values = List()
@@ -181,7 +178,7 @@ function M:parse_internal(args)
 		if current_arg_prop == nil then
 			if arg_type == ArgType.POSITION then
 				values:append(arg)
-				current_arg_prop = self.arg_props[arg_type][position_arg_keys:next()]
+				current_arg_prop = next_position_args()
 			else
 				local _, value = functional.head_tail(token:split_trim("="))
 				if value then
