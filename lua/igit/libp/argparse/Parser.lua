@@ -56,20 +56,22 @@ function M:add_subparser(prog)
 end
 
 function M:add_argument(provided_name, opts)
-	vim.validate({ provided_name = { provided_name, "string" } })
+	vim.validate({ provided_name = { provided_name, "string" }, opts = { opts, "table", true } })
+	opts = opts or {}
 
 	local arg, arg_type = arg_and_type(provided_name)
-	local arg_prop = vim.tbl_extend("keep", opts or {}, {
+
+	if arg_type == ArgType.POSITION and opts.required == nil and opts.nargs ~= "*" then
+		opts.required = true
+	end
+
+	local arg_prop = vim.tbl_extend("keep", opts, {
 		name = arg,
 		repr = provided_name,
 		nargs = 1,
 		type = "string",
-		required = (arg_type == ArgType.POSITION),
 	})
 	self.arg_props[arg_type][arg] = arg_prop
-	if arg_type == ArgType.POSITION then
-		assert(arg_prop.nargs ~= "*", "Position args only takes one or more arguments.")
-	end
 end
 
 function M:is_parsed_args_invalid(parsed_res, check_positional)

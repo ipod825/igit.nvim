@@ -21,7 +21,7 @@ end
 function M.define_command(command)
 	local EchoParser = require("igit.libp.argparse.EchoParser")
 	local parser = require("igit.libp.argparse.Parser")(command)
-	parser:add_argument("--open_cmd")
+	parser:add_argument("git_cmds", { nargs = "*" })
 	parser:add_subparser(EchoParser("branch"))
 	parser:add_subparser(EchoParser("log"))
 	parser:add_subparser(EchoParser("status"))
@@ -42,16 +42,24 @@ function M.define_command(command)
 				return
 			end
 
-			if #args <= 1 then
-				vim.notify("Not enough arguments!")
+			if #args == 0 then
+				table.insert(args.git_cmds, 1, "git")
+				Job({
+					cmds = args.git_cmds,
+					on_stdout = function(lines)
+						vim.notify(table.concat(lines, "\n"))
+					end,
+				}):start()
 				return
 			end
+
 			assert(#args == 2)
 			local module, module_args = unpack(args[2])
 
 			if #module_args == 0 then
 				module_args = nil
 			end
+
 			if M[module] and not opts.bang then
 				local open_cmd = #opts.mods > 0 and opts.mods .. " split" or nil
 				M[module]:open(module_args, open_cmd)

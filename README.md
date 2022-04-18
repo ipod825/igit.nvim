@@ -20,7 +20,7 @@ use {'ipod825/igit.nvim'}
 ```
 or
 
-```
+```lua
 use {'ipod825/igit.nvim', requires={'nvim-lua/plenary.nvim', 'ipod825/libp.nvim'}}
 ```
 
