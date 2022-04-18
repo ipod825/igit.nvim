@@ -45,6 +45,7 @@ end
 function M:commit_submit(git_dir, opts)
 	opts = opts or {}
 	vim.validate({
+
 		amend = { opts.amend, "boolean", true },
 		backup_branch = { opts.backup_branch, "boolean", true },
 	})

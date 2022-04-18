@@ -67,6 +67,7 @@ end
 function M:rebase_chain()
 	self:rebase_branches({
 		current_buf = self:current_buf(),
+
 		ori_reference = Job({ cmds = git.branch("--show-current") }):stdoutputstr(),
 		branches = self:get_branches_in_rows(vimfn.visual_rows()),
 		base_reference = self:get_primary_mark_or_current_branch(),

@@ -24,8 +24,6 @@ or
 use {'ipod825/igit.nvim', requires={'nvim-lua/plenary.nvim', 'ipod825/libp.nvim'}}
 ```
 
-## Screen Shot
-
 ## Usage
 ```vim
 :IGit status            " Opens the status page (defaults with -s argument.)
@@ -55,3 +53,9 @@ Highlights:
 - Default command name `IGit` is customizable.
 - Pages open command is customizable.
 - Mappings handlers takes lua functions.
+
+
+## Screen Shot
+![branch](https://raw.githubusercontent.com/ipod825/igit.nvim/main/screenshots/branch.gif)
+![log](https://raw.githubusercontent.com/ipod825/igit.nvim/main/screenshots/log.gif)
+![status](https://raw.githubusercontent.com/ipod825/igit.nvim/main/screenshots/status.gif)
