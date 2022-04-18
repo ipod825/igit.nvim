@@ -1,6 +1,6 @@
 local M = {}
 
-local size_indxe_name = "_@#$size$#@_"
+local size_key = {}
 
 local SetMt = {}
 
@@ -29,7 +29,7 @@ end
 setmetatable(M, {
 	__call = function(_, table)
 		table = table or {}
-		local obj = setmetatable({ [size_indxe_name] = 0 }, SetMt)
+		local obj = setmetatable({ [size_key] = 0 }, SetMt)
 		for _, v in ipairs(table) do
 			M.add(obj, v)
 		end
@@ -38,21 +38,21 @@ setmetatable(M, {
 })
 
 function M.size(set)
-	return set[size_indxe_name]
+	return set[size_key]
 end
 
 function M._inc(set, s)
-	set[size_indxe_name] = set[size_indxe_name] + s
+	set[size_key] = set[size_key] + s
 end
 
 function M._dec(set, s)
-	set[size_indxe_name] = set[size_indxe_name] - s
+	set[size_key] = set[size_key] - s
 end
 
 function M.values(set)
 	return coroutine.wrap(function()
 		for k, _ in pairs(set) do
-			if k ~= size_indxe_name then
+			if k ~= size_key then
 				coroutine.yield(k)
 			end
 		end
