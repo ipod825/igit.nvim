@@ -1,7 +1,7 @@
-require("igit.libp.utils.string_extension")
+require("libp.utils.string_extension")
 local M = {}
-local Class = require("igit.libp.datatype.Class")
-local ui = require("igit.libp.ui")
+local Class = require("libp.datatype.Class")
+local ui = require("libp.ui")
 local a = require("plenary.async")
 local log = require("igit.log")
 
@@ -38,13 +38,13 @@ end
 M.VisualRowStub = function(...)
 	-- todo: Seems like neovim has a bug: After setting the buffer content,
 	-- vim.fn.getpos("'>") would return {0,0,0,0}.
-	local stub = visual_rows_stub or require("luassert.stub")(require("igit.libp.utils.vimfn"), "visual_rows")
+	local stub = visual_rows_stub or require("luassert.stub")(require("libp.utils.vimfn"), "visual_rows")
 	stub.by_default.returns(...)
 	return stub
 end
 
 function M.stub_visual_rows(...)
-	M.visual_rows_stub = M.visual_rows_stub or require("luassert.stub")(require("igit.libp.utils.vimfn"), "visual_rows")
+	M.visual_rows_stub = M.visual_rows_stub or require("luassert.stub")(require("libp.utils.vimfn"), "visual_rows")
 	M.visual_rows_stub.by_default.returns(...)
 	return M.visual_rows_stub
 end

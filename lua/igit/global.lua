@@ -1,1 +1,1 @@
-return require("igit.libp.global")("igit")
+return require("libp.global")("igit")

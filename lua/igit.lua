@@ -1,7 +1,7 @@
 local M = {}
 local a = require("plenary.async")
 local git = require("igit.git")
-local Job = require("igit.libp.job")
+local Job = require("libp.job")
 local default_config = require("igit.default_config")
 local log = require("igit.log")
 
@@ -19,8 +19,8 @@ function M.setup(opts)
 end
 
 function M.define_command(command)
-	local EchoParser = require("igit.libp.argparse.EchoParser")
-	local parser = require("igit.libp.argparse.Parser")(command)
+	local EchoParser = require("libp.argparse.EchoParser")
+	local parser = require("libp.argparse.Parser")(command)
 	parser:add_argument("git_cmds", { nargs = "*" })
 	parser:add_subparser(EchoParser("branch"))
 	parser:add_subparser(EchoParser("log"))

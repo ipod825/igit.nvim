@@ -6,8 +6,8 @@ local igit = require("igit")
 local util = require("igit.test_util")
 local git = util.git
 local test_dir = require("igit.test_util.TestDir")()
-local ui = require("igit.libp.ui")
-local Set = require("igit.libp.datatype.Set")
+local ui = require("libp.ui")
+local Set = require("libp.datatype.Set")
 local log = require("igit.log")
 
 describe("Status", function()

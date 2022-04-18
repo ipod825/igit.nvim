@@ -5,9 +5,9 @@ local before_each = a.tests.before_each
 local igit = require("igit")
 local util = require("igit.test_util")
 local test_dir = require("igit.test_util.TestDir")()
-local ui = require("igit.libp.ui")
-local Set = require("igit.libp.datatype.Set")
-local Menu = require("igit.libp.ui.Menu")
+local ui = require("libp.ui")
+local Set = require("libp.datatype.Set")
+local Menu = require("libp.ui.Menu")
 local log = require("igit.log")
 
 describe("Log", function()
