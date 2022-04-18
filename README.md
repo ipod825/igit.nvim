@@ -16,12 +16,23 @@ Use you preferred package manager. Below we use [packer.nvim](https://github.com
 ```lua
 use {'nvim-lua/plenary.nvim'}
 use {'ipod825/libp.nvim'}
-use {'ipod825/igit.nvim'}
+use {
+	"ipod825/igit.nvim",
+	config = function()
+		require("igit").setup()
+	end,
+}
 ```
 or
 
 ```lua
-use {'ipod825/igit.nvim', requires={'nvim-lua/plenary.nvim', 'ipod825/libp.nvim'}}
+use({
+	"ipod825/igit.nvim",
+	requires = { "nvim-lua/plenary.nvim", "ipod825/libp.nvim" },
+	config = function()
+		require("igit").setup()
+	end,
+})
 ```
 
 ## Usage
