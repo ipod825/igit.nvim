@@ -13,4 +13,9 @@ describe("igit", function()
 			end
 		end
 	end)
+
+	it("Adds customized command", function()
+		igit.setup({ command = "IGitNew" })
+		assert.is_truthy(vim.api.nvim_get_commands({}).IGitNew)
+	end)
 end)
