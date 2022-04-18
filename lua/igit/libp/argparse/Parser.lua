@@ -3,10 +3,33 @@ local M = require("igit.libp.datatype.Class"):EXTEND()
 local List = require("igit.libp.datatype.List")
 local OrderedDict = require("igit.libp.datatype.OrderedDict")
 local functional = require("igit.libp.functional")
-local term_utils = require("igit.libp.utils.term")
+local tokenize = require("igit.libp.argparse.tokenizer").tokenize
 local log = require("igit.libp.log")
 
 local ArgType = { POSITION = 1, FLAG = 2, LONG_FLAG = 3 }
+
+local function arg_and_type(str)
+	local name, pos = str:gsub("(-[^=]+)=.*$", "%1")
+
+	name, pos = name:gsub("^-", "")
+	if pos == 0 then
+		return name, ArgType.POSITION
+	end
+	name, pos = name:gsub("^-", "")
+	if pos == 0 then
+		return name, ArgType.FLAG
+	else
+		return name, ArgType.LONG_FLAG
+	end
+end
+
+local function convert_type(value, type)
+	if type == "string" then
+		return tostring(value)
+	elseif type == "number" then
+		return tonumber(value)
+	end
+end
 
 function M:init(prog)
 	vim.validate({ prog = { prog, "string", true } })
@@ -32,33 +55,10 @@ function M:add_subparser(prog)
 	return sub_parser
 end
 
-function M:_arg_and_type(str)
-	local name, pos = str:gsub("=.*$", "")
-
-	name, pos = str:gsub("^-", "")
-	if pos == 0 then
-		return name, ArgType.POSITION
-	end
-	name, pos = name:gsub("^-", "")
-	if pos == 0 then
-		return name, ArgType.FLAG
-	else
-		return name, ArgType.LONG_FLAG
-	end
-end
-
-function M:_convert_type(value, type)
-	if type == "string" then
-		return tostring(value)
-	elseif type == "number" then
-		return tonumber(value)
-	end
-end
-
 function M:add_argument(provided_name, opts)
 	vim.validate({ provided_name = { provided_name, "string" } })
 
-	local arg, arg_type = self:_arg_and_type(provided_name)
+	local arg, arg_type = arg_and_type(provided_name)
 	local arg_prop = vim.tbl_extend("keep", opts or {}, {
 		name = arg,
 		repr = provided_name,
@@ -67,6 +67,9 @@ function M:add_argument(provided_name, opts)
 		required = (arg_type == ArgType.POSITION),
 	})
 	self.arg_props[arg_type][arg] = arg_prop
+	if arg_type == ArgType.POSITION then
+		assert(arg_prop.nargs ~= "*", "Position args only takes one or more arguments.")
+	end
 end
 
 function M:is_parsed_args_invalid(parsed_res, check_positional)
@@ -84,11 +87,15 @@ function M:is_parsed_args_invalid(parsed_res, check_positional)
 		if parsed_res[arg] == nil then
 			if arg_prop.required then
 				return ("%s is required"):format(arg_prop.repr)
+			elseif arg_prop.nargs == "+" then
+				return ("%s requires at least one argument"):format(arg_prop.repr)
 			end
 		else
 			local num_parsed = type(parsed_res[arg]) == "table" and #parsed_res[arg] or 1
-			if num_parsed < arg_prop.nargs then
+			if type(arg_prop.nargs) == "number" and num_parsed < arg_prop.nargs then
 				return ("%s requires %d argument"):format(arg_prop.repr, arg_prop.nargs)
+			elseif arg_prop.nargs == "+" and num_parsed < 1 then
+				return ("%s requires at least one argument"):format(arg_prop.repr)
 			end
 		end
 	end
@@ -98,7 +105,7 @@ end
 
 function M:parse(str)
 	vim.validate({ str = { str, "string" } })
-	local tokens = term_utils.tokenize_command(str)
+	local tokens = tokenize(str)
 	if not tokens then
 		return nil
 	end
@@ -122,7 +129,7 @@ function M:parse(str)
 end
 
 function M:get_completion_list(str, hint)
-	local tokens = term_utils.tokenize_command(str)
+	local tokens = tokenize(str)
 	return self:get_completion_list_internal(tokens, hint)
 end
 
@@ -166,6 +173,19 @@ function M:parse_internal(args)
 	local current_arg_prop = nil
 	local values = List()
 	local res = {}
+
+	local function fill_current_arg_prop_with_values()
+		res[current_arg_prop.name] = values
+			:to_iter()
+			:map(function(e)
+				return convert_type(e, current_arg_prop.type)
+			end)
+			:collect()
+			:unbox_if_one()
+		current_arg_prop = nil
+		values = List()
+	end
+
 	for i, token in ipairs(args) do
 		if self.sub_parsers[token] then
 			local sub_res = self.sub_parsers[token]:parse_internal(vim.list_slice(args, i + 1))
@@ -173,48 +193,40 @@ function M:parse_internal(args)
 			vim.list_extend(res, sub_res)
 			return res
 		end
-		local arg, arg_type = self:_arg_and_type(token)
+		local arg, arg_type = arg_and_type(token)
 
 		if current_arg_prop == nil then
 			if arg_type == ArgType.POSITION then
 				values:append(arg)
 				current_arg_prop = next_position_args()
 			else
-				local _, value = functional.head_tail(token:split_trim("="))
+				local value = token:find_pattern(arg .. "=(.*)")
 				if value then
-					values:append(table.concat(value, ""))
+					values:append(value)
 				end
 				current_arg_prop = self.arg_props[arg_type][arg]
 			end
-
-			if not current_arg_prop then
-				return res, ("unrecognized arguments: %s"):format(arg)
+		elseif arg_type ~= ArgType.POSITION then
+			fill_current_arg_prop_with_values()
+			local value = token:find_pattern(arg .. "=(.*)")
+			if value then
+				values:append(value)
 			end
+			current_arg_prop = self.arg_props[arg_type][arg]
 		else
 			values:append(arg)
 		end
 
-		if #values >= current_arg_prop.nargs then
-			res[current_arg_prop.name] = values
-				:to_iter()
-				:map(function(e)
-					return self:_convert_type(e, current_arg_prop.type)
-				end)
-				:collect()
-				:unbox_if_one()
-			current_arg_prop = nil
-			values = List()
+		if not current_arg_prop then
+			return res, ("unrecognized arguments: %s"):format(arg)
+		elseif type(current_arg_prop.nargs) == "number" and #values >= current_arg_prop.nargs then
+			fill_current_arg_prop_with_values()
 		end
 	end
 
+	-- Fill partial result, which can be used by get_completion_list.
 	if current_arg_prop and not res[current_arg_prop.name] then
-		res[current_arg_prop.name] = values
-			:to_iter()
-			:map(function(e)
-				return self:_convert_type(e, current_arg_prop.type)
-			end)
-			:collect()
-			:unbox_if_one()
+		fill_current_arg_prop_with_values()
 	end
 
 	return { { self.prog, res } }
