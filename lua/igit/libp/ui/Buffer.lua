@@ -165,6 +165,20 @@ function M:add_key_map(mode, key, fn)
 		),
 		{}
 	)
+
+	-- todo: this does not work for visual mode for getting visual selected rows for now.
+	-- vim.keymap.set(
+	-- 	mode,
+	-- 	key,
+	-- 	a.void(function()
+	-- 		if self.is_reloading and modify_buffer then
+	-- 			-- Cancel reload since we will reload after calling fn.
+	-- 			self.cancel_reload = true
+	-- 		end
+	-- 		fn()
+	-- 	end),
+	-- 	{ buffer = self.id }
+	-- )
 end
 
 function M.execut_mapping(mode, key)
@@ -230,7 +244,7 @@ function M:unmapfn(mappings)
 			mode_mappings = { mode_mappings, "table" },
 		})
 		for key, _ in pairs(mode_mappings) do
-			vim.api.nvim_buf_del_keymap(self.id, mode, key)
+			vim.keymap.del(mode, key, { buffer = self.id })
 		end
 	end
 end
@@ -332,7 +346,10 @@ function M:reload()
 			-- For content that needs to be drawn in multiple run, restoring the
 			-- cursor after every append just makes user can't do anything.
 			if ori_cursor and vim.api.nvim_win_is_valid(ori_win) then
-				vim.api.nvim_win_set_cursor(ori_win, ori_cursor)
+				vim.api.nvim_win_set_cursor(
+					ori_win,
+					{ math.min(vim.api.nvim_buf_line_count(self.id), ori_cursor[1]), ori_cursor[2] }
+				)
 				ori_cursor = nil
 			end
 
