@@ -67,6 +67,7 @@ function M.define_command(command)
 				local gita = git.with_default_args({ no_color = true })
 				Job({
 					cmds = gita[module](module_args),
+					stderr_dump_level = Job.StderrDumpLevel.ALWAYS,
 					on_stdout = function(lines)
 						vim.notify(table.concat(lines, "\n"))
 					end,
