@@ -15,13 +15,15 @@ function M.setup(opts)
 	M.log = require("igit.page.Log")():setup(opts.log)
 	M.branch = require("igit.page.Branch")():setup(opts.branch)
 	M.status = require("igit.page.Status")():setup(opts.status)
-	M.define_command(opts.command)
+	M.define_command(opts)
 end
 
-function M.define_command(command)
+function M.define_command(opts)
+	vim.validate({ command = { opts.command, "string" }, git_sub_commands = { opts.git_sub_commands, "table" } })
+
 	local EchoParser = require("libp.argparse.EchoParser")
-	local parser = require("libp.argparse.Parser")(command)
-	parser:add_argument("git_cmds", { nargs = "*" })
+	local parser = require("libp.argparse.Parser")(opts.command)
+
 	parser:add_subparser(EchoParser("branch"))
 	parser:add_subparser(EchoParser("log"))
 	parser:add_subparser(EchoParser("status"))
@@ -42,6 +44,7 @@ function M.define_command(command)
 		"stash",
 		"tag",
 	}
+	vim.list_extend(sub_commands, opts.git_sub_commands)
 	for _, cmd in ipairs(sub_commands) do
 		parser:add_subparser(EchoParser(cmd))
 	end
@@ -92,7 +95,7 @@ function M.define_command(command)
 		end)()
 	end
 
-	vim.api.nvim_create_user_command(command, execute, {
+	vim.api.nvim_create_user_command(opts.command, execute, {
 		nargs = "+",
 		bang = true,
 		complete = complete,

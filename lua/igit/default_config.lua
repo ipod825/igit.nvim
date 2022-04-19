@@ -1,6 +1,11 @@
 return {
 	-- The command name igit defined.
 	command = "IGit",
+	-- A list of git subcommands to be recognized by IGit such that `IGit cmd`
+	-- does not error with `unrecognized arguments: cmd`. Note that most default
+	-- subcommands such as `commit` or `push` are already recognized. Only
+	-- non-built-in subcommands need to be added.
+	git_sub_commands = {},
 	branch = {
 		mappings = {
 			n = {},
