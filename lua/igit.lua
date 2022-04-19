@@ -35,7 +35,6 @@ function M.define_command(command)
 		"grep",
 		"init",
 		"pull",
-		"pull",
 		"push",
 		"rebase",
 		"remote",
