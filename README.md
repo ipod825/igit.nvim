@@ -58,7 +58,7 @@ Highlights:
 - Add/Remove/Rename branches in branch pages just like editing files.
 
 ## Customization
-See `igit-customization`.
+See `:help igit-customization`.
 
 Highlights:
 - Default command name `IGit` is customizable.
