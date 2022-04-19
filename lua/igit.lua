@@ -25,7 +25,24 @@ function M.define_command(command)
 	parser:add_subparser(EchoParser("branch"))
 	parser:add_subparser(EchoParser("log"))
 	parser:add_subparser(EchoParser("status"))
-	local sub_commands = { "stash", "push", "pull", "rebase" }
+	local sub_commands = {
+		"add",
+		"checkout",
+		"clone",
+		"commit",
+		"diff",
+		"fetch",
+		"grep",
+		"init",
+		"pull",
+		"pull",
+		"push",
+		"rebase",
+		"remote",
+		"reset",
+		"stash",
+		"tag",
+	}
 	for _, cmd in ipairs(sub_commands) do
 		parser:add_subparser(EchoParser(cmd))
 	end
