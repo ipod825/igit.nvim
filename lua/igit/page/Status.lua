@@ -70,7 +70,7 @@ function M:commit(opts)
 	opts = opts or {}
 	local git_dir = git.find_root()
 	local amend = opts.amend and "--amend"
-	Job({ cmds = git.commit(amend), silent = true, env = { GIT_EDITOR = "false" } }):start()
+	Job({ cmds = git.commit(amend), stderr_dump_level = Job.StderrDumpLevel.SILENT, env = { GIT_EDITOR = "false" } }):start()
 	local commit_message_file_path = git.commit_message_file_path(git_dir)
 	vim.cmd("edit " .. commit_message_file_path)
 	vim.bo.bufhidden = "wipe"
