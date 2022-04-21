@@ -98,6 +98,7 @@ function M.define_command(opts)
 	vim.api.nvim_create_user_command(opts.command, execute, {
 		nargs = "+",
 		bang = true,
+		bar = true,
 		complete = complete,
 	})
 end

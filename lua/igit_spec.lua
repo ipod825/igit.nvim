@@ -57,4 +57,12 @@ describe("IGit command", function()
 	test_mod("topleft")
 	test_mod("aboveleft")
 	test_mod("vertical")
+
+	it("Works with bar", function()
+		local s = spy.on(igit.log, "open")
+		vim.cmd(" IGit log | split")
+		local _ = match._
+		assert.spy(s).called()
+		s:revert()
+	end)
 end)

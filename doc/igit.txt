@@ -50,6 +50,12 @@ botright IGit log
 ```
 opens the log page with `botright split`.
 
+IGit command can be followed by |:command-bar|, for example:
+```
+IGit log | tabmove -1
+```
+moves the opened log page to the left tabpage after openning it.
+
 -------------------------------------------------------------------------------
 PAGE                                    *igit-page*
 

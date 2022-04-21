@@ -44,7 +44,8 @@ use({
 :IGit branch            " Opens the branch page (defaults with -v argument.)
 :IGit branch --abrev    " Opens customized branch page.
 
-:belowright IGit status " Opens pages with modifier
+:belowright IGit status " Opens pages with modifier.
+:IGit log | tabmove -1  " Execut commands after opening the page.
 
 :IGit push              " Execute arbitrary git command
 ```
