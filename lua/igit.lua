@@ -1,6 +1,7 @@
 local M = {}
 local a = require("plenary.async")
 local git = require("igit.git")
+local ui = require("libp.ui")
 local Job = require("libp.Job")
 local default_config = require("igit.default_config")
 local log = require("igit.log")
@@ -84,6 +85,7 @@ function M.define_command(opts)
 				M[module]:open(module_args, open_cmd)
 			else
 				local gita = git.with_default_args({ no_color = true })
+				local current_buf = ui.Buffer.get_current_buffer()
 				Job({
 					cmds = gita[module](module_args),
 					stderr_dump_level = Job.StderrDumpLevel.ALWAYS,
@@ -91,6 +93,10 @@ function M.define_command(opts)
 						vim.notify(table.concat(lines, "\n"))
 					end,
 				}):start()
+
+				if current_buf and vim.api.nvim_buf_get_var(current_buf.id, "git_root") then
+					current_buf:reload()
+				end
 			end
 		end)()
 	end
