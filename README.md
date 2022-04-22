@@ -47,7 +47,7 @@ use({
 :belowright IGit status " Opens pages with modifier.
 :IGit log | tabmove -1  " Execut commands after opening the page.
 
-:IGit push              " Execute arbitrary git command
+:IGit push              " Execute common git commands (missing commands can be added. See :help igit-customization)
 ```
 
 ## Page Mappings

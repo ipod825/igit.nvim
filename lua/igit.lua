@@ -42,6 +42,7 @@ function M.define_command(opts)
 		"rebase",
 		"remote",
 		"reset",
+		"revert",
 		"rev-parse",
 		"stash",
 		"tag",
