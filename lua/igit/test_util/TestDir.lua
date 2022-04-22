@@ -95,15 +95,14 @@ function M:create_dir()
 	end
 	run(("git init --initial-branch %s ."):format(self.path1[1]))
 	run(('echo "path 1 file 1 line 1" > %s'):format(self.files[1]))
-	run(git.checkout("-b " .. self.path1[1]))
 	run(('echo "path 1 file 2 line 1" >> %s'):format(self.files[2]))
 	run(git.add("."))
 	run(git.commit('-m "path 1 first"'))
 
-	run(git.checkout("-b " .. self.path1[2]))
-	run(('echo "line 2" >> %s'):format(self.files[1]))
-	run(git.add("."))
-	run(git.commit('-m "path 2 second"'))
+	-- run(git.checkout("-b " .. self.path1[2]))
+	-- run(('echo "line 2" >> %s'):format(self.files[1]))
+	-- run(git.add("."))
+	-- run(git.commit('-m "path 2 second"'))
 
 	run(git.checkout(self.path1[1]))
 

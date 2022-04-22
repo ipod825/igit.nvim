@@ -4,7 +4,7 @@ local it = a.tests.it
 local before_each = a.tests.before_each
 local igit = require("igit")
 local util = require("igit.test_util")
-local test_dir = require("igit.test_util.TestDir")()
+local test_dir = require("igit.test_util.TestDir")(true)
 local ui = require("libp.ui")
 local Set = require("libp.datatype.Set")
 local log = require("igit.log")
@@ -42,22 +42,40 @@ describe("Branch", function()
 			util.setrow(1)
 		end)
 
-		describe("switch", function()
-			it("Switches the branch", function()
-				util.setrow(2)
-				igit.branch:switch()
-				assert.are.same(test_dir.path1[2], test_dir.current.branch())
-				util.setrow(1)
-				igit.branch:switch()
-				assert.are.same(test_dir.path1[1], test_dir.current.branch())
+		describe("parse_line", function()
+			it("Parses the information of the lines", function()
+				util.set_current_line("* branch-name Commit message (with paranthesis)")
+				log.warn(vim.fn.getline("."))
+				assert.are.same({ branch = "branch-name", is_current = true }, igit.branch:parse_line())
+				util.set_current_line(" branch-name Commit message (with paranthesis)")
+				assert.are.same({ branch = "branch-name", is_current = false }, igit.branch:parse_line())
+				util.set_current_line("* (HEAD detached at a27b03661) a27b03661 Commit message (with paranthesis)")
+				assert.are.same({ branch = "HEAD", is_current = true }, igit.branch:parse_line())
 			end)
 		end)
 
-		describe("parse_line", function()
-			it("Parses the information of the lines", function()
-				assert.are.same(igit.branch.parse_line(1), igit.branch:parse_line())
-				assert.are.same({ branch = test_dir.path1[1], is_current = true }, igit.branch:parse_line())
-				assert.are.same({ branch = test_dir.path1[2], is_current = false }, igit.branch:parse_line(2))
+		describe("switch", function()
+			it("Switches the branch", function()
+				local function set_line_with_different_branch()
+					local ori_branch = test_dir.current.branch()
+					for i = 1, vim.fn.line("$") do
+						local branch = igit.branch:parse_line(i).branch
+						if branch and branch ~= ori_branch then
+							util.setrow(i)
+							return branch
+						end
+					end
+				end
+
+				local branch = set_line_with_different_branch()
+				assert.are_not.same(branch, test_dir.current.branch())
+				igit.branch:switch()
+				assert.are.same(branch, test_dir.current.branch())
+
+				branch = set_line_with_different_branch()
+				assert.are_not.same(branch, test_dir.current.branch())
+				igit.branch:switch()
+				assert.are.same(branch, test_dir.current.branch())
 			end)
 		end)
 
