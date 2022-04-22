@@ -129,6 +129,8 @@ m       n       Mark the current commit under cursor that could be reference in
 
 s       n       Show (`git show`) the commit under cursor.
 
+ys      n       Yank the sha of the current commit to the unnamed register.
+
 R       n       Reset to the commit under cursor. A menu will show up for
                 following instruction.
 

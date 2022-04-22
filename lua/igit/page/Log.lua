@@ -19,6 +19,7 @@ function M:setup(options)
 				["r"] = self:BIND(self.rebase_interactive),
 				["s"] = self:BIND(self.show),
 				["R"] = self:BIND(self.reset),
+				["ys"] = self:BIND(self.yank_sha),
 			},
 			v = { ["r"] = self:BIND(self.rebase_chain) },
 		},
@@ -35,6 +36,10 @@ function M:reset()
 	self
 		:SUPER()
 		:reset(self:get_current_branch_or_sha(), self:select_reference(self:parse_line().references, "Checkout"))
+end
+
+function M:yank_sha()
+	vim.fn.setreg('"', self:parse_line().sha)
 end
 
 function M:mark()
