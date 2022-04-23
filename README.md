@@ -68,6 +68,6 @@ Highlights:
 
 
 ## Screen Shot
-![branch](https://raw.githubusercontent.com/ipod825/igit.nvim/main/screenshots/branch.png)
-![log](https://raw.githubusercontent.com/ipod825/igit.nvim/main/screenshots/log.png)
-![status](https://raw.githubusercontent.com/ipod825/igit.nvim/main/screenshots/status.png)
+![branch](https://user-images.githubusercontent.com/1246394/164836705-b78a09b4-0707-4009-80ab-67a3f15626ed.png)
+![log](https://user-images.githubusercontent.com/1246394/164836708-4f0fe4c5-846b-437b-8427-ec2d0462a5f2.png)
+![status](https://user-images.githubusercontent.com/1246394/164836709-5782ea27-36b7-44d6-bb32-30ff9c720e56.png)
