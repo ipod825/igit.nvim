@@ -3,26 +3,25 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-20.04
+  test-nightly:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
       - run: date +%F > todays-date
       - name: Restore cache for today's nightly.
-        uses: actions/cache@v2
-        with:
-          path: |
-            _neovim
+        uses: actions/cache@v3
+        with: 
+          path: _neovim
           key: ${{ runner.os }}-x64-${{ hashFiles('todays-date') }}
 
-      - name: Prepare
+      - name: Install nvim plugins
         run: |
-          sudo apt install fd-find
-          mkdir -p ~/.local/share/nvim/site/pack/vendor/start
-          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
-          git clone --depth 1 https://github.com/ipod825/libp.nvim ~/.local/share/nvim/site/pack/vendor/start/libp.nvim
-          ln -s $(pwd) ~/.local/share/nvim/site/pack/vendor/start
+          export NVIM_PACKAGE_DIR=$HOME/.local/share/nvim/site/pack/vendor/start
+          mkdir -p $NVIM_PACKAGE_DIR
+          git clone --depth 1 https://github.com/nvim-lua/plenary.nvim $NVIM_PACKAGE_DIR/plenary.nvim
+          git clone --depth 1 https://github.com/ipod825/libp.nvim $NVIM_PACKAGE_DIR/libp.nvim
+          ln -s $(pwd) $NVIM_PACKAGE_DIR
 
       - name: Run tests
         run: |
@@ -33,10 +32,9 @@ jobs:
           make test
 
   lint:
-    name: Lint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: JohnnyMorganz/stylua-action@1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
