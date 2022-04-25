@@ -20,6 +20,7 @@ Usage                                   |igit-usage|
     Command                                 |igit-command|
     Page                                    |igit-page|
     Mapping                                 |igit-mappings|
+        Blame                                   |igit-blame|
         Branch                                  |igit-branch|
         Log                                     |igit-log|
         Status                                  |igit-status|
@@ -77,6 +78,12 @@ MAPPING                                 *igit-mappings*
 Each page comes with some built-in functionality that can be invoked by key
 mapping that are described in the following sections. It's easy to add new key
 mapping with lua callbacks (see |igit-customization|).
+
+-------------------------------------------------------------------------------
+BLAME                                  *igit-blame*
+
+Key     Mode    Function
+s       n       Show (`git show`) the commit under cursor.
 
 -------------------------------------------------------------------------------
 BRANCH                                 *igit-branch*
@@ -197,6 +204,10 @@ require("igit").setup{
 	-- subcommands such as `commit` or `push` are already recognized. Only
 	-- non-built-in subcommands need to be added.
 	git_sub_commands = {},
+	blame = {
+		-- Default height of the blame window.
+		height = 5,
+	},
 	branch = {
 		mappings = {
 			n = {},

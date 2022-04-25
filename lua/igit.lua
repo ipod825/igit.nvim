@@ -16,6 +16,7 @@ function M.setup(opts)
 	M.log = require("igit.page.Log")():setup(opts.log)
 	M.branch = require("igit.page.Branch")():setup(opts.branch)
 	M.status = require("igit.page.Status")():setup(opts.status)
+	M.blame = require("igit.page.Blame")():setup(opts.blame)
 	M.define_command(opts)
 end
 
@@ -28,6 +29,7 @@ function M.define_command(opts)
 	parser:add_subparser(EchoParser("branch"))
 	parser:add_subparser(EchoParser("log"))
 	parser:add_subparser(EchoParser("status"))
+	parser:add_subparser(EchoParser("blame"))
 	local sub_commands = {
 		"add",
 		"checkout",

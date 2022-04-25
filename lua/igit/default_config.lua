@@ -6,6 +6,10 @@ return {
 	-- subcommands such as `commit` or `push` are already recognized. Only
 	-- non-built-in subcommands need to be added.
 	git_sub_commands = {},
+	blame = {
+		-- Default height of the blame window.
+		height = 5,
+	},
 	branch = {
 		mappings = {
 			n = {},
