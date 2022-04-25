@@ -1,5 +1,4 @@
 local M = require("igit.page.Page"):EXTEND()
-local a = require("plenary.async")
 local git = require("igit.git")
 local ui = require("libp.ui")
 local Job = require("libp.Job")
@@ -81,7 +80,7 @@ function M:rebase_branches(opts)
 		Job({ cmds = git.branch(next_grafted_ancestor, new_branch) }):start()
 		if grafted_ancestor ~= "" then
 			local succ = 0 == Job({ cmds = git.rebase("--onto", base_branch, grafted_ancestor, new_branch) }):start()
-			if grafted_ancestor:endswith("created_by_igit") then
+			if vim.endswith(grafted_ancestor, "created_by_igit") then
 				Job({ cmds = git.branch("-D", grafted_ancestor) }):start()
 			end
 			if not succ then
