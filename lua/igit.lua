@@ -10,7 +10,7 @@ function M.setup(opts)
 	opts = vim.tbl_deep_extend("force", default_config, opts or {})
 
 	vim.validate({
-		command = { opts.command, "string", true },
+		command = { opts.command, "s", true },
 	})
 
 	M.log = require("igit.page.Log")():setup(opts.log)
@@ -21,7 +21,7 @@ function M.setup(opts)
 end
 
 function M.define_command(opts)
-	vim.validate({ command = { opts.command, "string" }, git_sub_commands = { opts.git_sub_commands, "table" } })
+	vim.validate({ command = { opts.command, "s" }, git_sub_commands = { opts.git_sub_commands, "t" } })
 
 	local EchoParser = require("libp.argparse.EchoParser")
 	local parser = require("libp.argparse.Parser")(opts.command)

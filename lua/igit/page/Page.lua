@@ -16,9 +16,9 @@ function M:open_or_new_buffer(key, opts, buf_opts)
 	end
 
 	vim.validate({
-		key = { key, "string" },
-		git_root = { opts.git_root, "string" },
-		type = { opts.type, "string" },
+		key = { key, "s" },
+		git_root = { opts.git_root, "s" },
+		type = { opts.type, "s" },
 	})
 
 	self.buffer_index = self.buffer_index or Set()

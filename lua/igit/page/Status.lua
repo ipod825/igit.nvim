@@ -9,7 +9,7 @@ local a = require("plenary.async")
 local log = require("igit.log")
 
 function M:setup(options)
-	vim.validate({ options = { options, "table" } })
+	vim.validate({ options = { options, "t" } })
 
 	self.options = vim.tbl_deep_extend("force", {
 		mappings = {
@@ -46,8 +46,8 @@ function M:commit_submit(git_dir, opts)
 	opts = opts or {}
 	vim.validate({
 
-		amend = { opts.amend, "boolean", true },
-		backup_branch = { opts.backup_branch, "boolean", true },
+		amend = { opts.amend, "b", true },
+		backup_branch = { opts.backup_branch, "b", true },
 	})
 	if global.pending_commit[git_dir] == nil then
 		return

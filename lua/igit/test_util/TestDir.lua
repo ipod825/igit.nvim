@@ -7,7 +7,7 @@ local a = require("plenary.async")
 local log = require("igit.log")
 
 function M:init(persist_dir)
-	vim.validate({ persist_dir = { persist_dir, "boolean", true } })
+	vim.validate({ persist_dir = { persist_dir, "b", true } })
 	self.persist_dir = persist_dir
 	self.files = { "f1", "f2" }
 	self.untracked_files = { "nf1", "nf2" }

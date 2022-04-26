@@ -8,7 +8,7 @@ local Set = require("libp.datatype.Set")
 local log = require("igit.log")
 
 function M:setup(options)
-	vim.validate({ options = { options, "table" } })
+	vim.validate({ options = { options, "t" } })
 
 	self.options = vim.tbl_deep_extend("force", {
 		mappings = {

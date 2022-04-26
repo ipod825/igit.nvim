@@ -28,8 +28,8 @@ end
 local cmd_with_default_args = function(cmd, opts)
 	opts = opts or {}
 	vim.validate({
-		git_dir = { opts.git_dir, "string", true },
-		no_color = { opts.no_color, "boolean", true },
+		git_dir = { opts.git_dir, "s", true },
+		no_color = { opts.no_color, "b", true },
 	})
 	local git_dir = opts.git_dir or vim.b.git_root or M.find_root()
 	if opts.no_color then

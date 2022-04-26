@@ -4,7 +4,7 @@ local ui = require("libp.ui")
 local Job = require("libp.Job")
 
 function M:show(reference)
-	vim.validate({ reference = { reference, "string" } })
+	vim.validate({ reference = { reference, "s" } })
 	local grid = ui.Grid()
 	grid:add_row({ height = 1 }):fill_window(ui.Window(ui.Buffer({ content = { reference } })))
 	grid:add_row({ focusable = true }):fill_window(ui.Window(
@@ -61,10 +61,10 @@ end
 
 function M:rebase_branches(opts)
 	vim.validate({
-		branches = { opts.branches, "table" },
-		current_buf = { opts.current_buf, "table" },
-		grafted_ancestor = { opts.grafted_ancestor, "string" },
-		base_reference = { opts.base_reference, "string" },
+		branches = { opts.branches, "t" },
+		current_buf = { opts.current_buf, "t" },
+		grafted_ancestor = { opts.grafted_ancestor, "s" },
+		base_reference = { opts.base_reference, "s" },
 		ori_reference = { opts.ori_reference, "string" },
 	})
 

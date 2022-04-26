@@ -7,7 +7,7 @@ local Job = require("libp.Job")
 local log = require("igit.log")
 
 function M:setup(options)
-	vim.validate({ options = { options, "table", true } })
+	vim.validate({ options = { options, "t", true } })
 	options = options or {}
 
 	self.options = vim.tbl_deep_extend("force", {
