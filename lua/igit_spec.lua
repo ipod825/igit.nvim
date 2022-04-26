@@ -30,7 +30,7 @@ describe("igit setup", function()
 
 		-- Parser fails to parse the fake_command, with_default_args was never
 		-- called to form the git command to run.
-		vim.cmd("IGit " .. fake_command)
+		pcall(vim.cmd, "IGit " .. fake_command)
 		assert.spy(s).was_not_called()
 
 		-- Parser succeeds, with_default_args was called to form the git command
