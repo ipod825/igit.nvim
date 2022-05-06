@@ -127,7 +127,7 @@ function M:diff_cached()
 	local not_indexed = git.status_porcelain(cline_info.filepath)[cline_info.filepath].index == "?"
 	local stage_buf = ui.Buffer({
 		filename = ("igit://STAGE:%s"):format(cline_info.filepath),
-		bo = { modifiable = true, undolevels = vim.o.undolevels },
+		bo = { modifiable = true, undolevels = vim.go.undolevels },
 		content = not_indexed and {} or function()
 			return git.show((":%s"):format(cline_info.filepath))
 		end,
