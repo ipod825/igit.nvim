@@ -1,8 +1,5 @@
 require("libp.utils.string_extension")
 local M = {}
-local Class = require("libp.datatype.Class")
-local ui = require("libp.ui")
-local a = require("plenary.async")
 local log = require("igit.log")
 
 function M.jobrun(cmd, opts)
@@ -47,14 +44,6 @@ function M.stub_visual_rows(...)
 	M.visual_rows_stub = M.visual_rows_stub or require("luassert.stub")(require("libp.utils.vimfn"), "visual_rows")
 	M.visual_rows_stub.by_default.returns(...)
 	return M.visual_rows_stub
-end
-
-M.BufReloadWaiter = Class:EXTEND()
-function M.BufReloadWaiter:wait()
-	if self.reload_done == nil then
-		self.reload_done = ui.Buffer.get_current_buffer():register_reload_notification()
-	end
-	self.reload_done:wait()
 end
 
 function M.new_name(ori)

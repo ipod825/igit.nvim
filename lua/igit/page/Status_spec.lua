@@ -1,6 +1,7 @@
 require("plenary.async").tests.add_to_env()
 local a = require("plenary.async")
 local describe = a.tests.describe
+local Buffer = require("libp.ui.Buffer")
 local igit = require("igit")
 local util = require("igit.test_util")
 local git = util.git
@@ -32,8 +33,6 @@ describe("Status", function()
 	end)
 
 	describe("functions", function()
-		local buffer_reload_waiter = util.BufReloadWaiter()
-
 		a.before_each(function()
 			test_dir:refresh()
 			vim.cmd(("edit %s"):format(test_dir:abs_path(test_dir.files[1])))
@@ -297,7 +296,7 @@ describe("Status", function()
 				vim.cmd("1,$ diffput")
 				vim.cmd("bwipeout")
 				-- Wait on reload caused by BufEnter and Staging changes
-				buffer_reload_waiter:wait()
+				Buffer.get_current_buffer():wait_reload()
 
 				-- All diff windows should be closed together
 				assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))
@@ -319,7 +318,7 @@ describe("Status", function()
 				vim.cmd(vim.api.nvim_buf_line_count(0) .. " diffput")
 				vim.cmd("bwipeout")
 				-- Wait on reload caused by BufEnter and Staging changes
-				buffer_reload_waiter:wait()
+				Buffer.get_current_buffer():wait_reload()
 
 				-- All diff windows should be closed together
 				assert.are.same(1, #vim.api.nvim_tabpage_list_wins(0))
