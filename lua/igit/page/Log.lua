@@ -2,6 +2,7 @@ require("libp.utils.string_extension")
 local M = require("igit.page.ReferencePage"):EXTEND()
 local git = require("igit.git")
 local Job = require("libp.Job")
+local Buffer = require("libp.ui.Buffer")
 local IterList = require("libp.datatype.IterList")
 local term_utils = require("libp.utils.term")
 local ui = require("libp.ui")
@@ -11,17 +12,24 @@ local log = require("igit.log")
 function M:setup(options)
 	vim.validate({ options = { options, "t" } })
 
+	local IGNORE = Buffer.MultiReloadStrategy.IGNORE
+	local CANCEL = Buffer.MultiReloadStrategy.CANCEL
 	self.options = vim.tbl_deep_extend("force", {
 		mappings = {
+			-- Log pages can contain many lines. We make all mappings
+			-- non-blocking by setting multi_reload_strategy.
 			n = {
-				["<cr>"] = self:BIND(self.switch),
-				["m"] = { callback = self:BIND(self.mark), modify_buffer = false },
-				["r"] = self:BIND(self.rebase_interactive),
-				["s"] = self:BIND(self.show),
-				["R"] = self:BIND(self.reset),
-				["ys"] = self:BIND(self.yank_sha),
+				["<cr>"] = {
+					callback = self:BIND(self.switch),
+					multi_reload_strategy = CANCEL,
+				},
+				["m"] = { callback = self:BIND(self.mark), multi_reload_strategy = IGNORE },
+				["r"] = { callback = self:BIND(self.rebase_interactive), multi_reload_strategy = CANCEL },
+				["s"] = { callback = self:BIND(self.show), multi_reload_strategy = IGNORE },
+				["R"] = { callback = self:BIND(self.reset), multi_reload_strategy = CANCEL },
+				["ys"] = { callback = self:BIND(self.yank_sha), multi_reload_strategy = IGNORE },
 			},
-			v = { ["r"] = self:BIND(self.rebase_chain) },
+			v = { ["r"] = { callback = self:BIND(self.rebase_chain), multi_reload_strategy = CANCEL } },
 		},
 	}, options)
 	return self
