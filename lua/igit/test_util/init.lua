@@ -32,20 +32,6 @@ function M.assert_diff_window_compaitability()
 	assert.are.same("diff", vim.wo.foldmethod)
 end
 
-M.VisualRowStub = function(...)
-	-- todo: Seems like neovim has a bug: After setting the buffer content,
-	-- vim.fn.getpos("'>") would return {0,0,0,0}.
-	local stub = visual_rows_stub or require("luassert.stub")(require("libp.utils.vimfn"), "visual_rows")
-	stub.by_default.returns(...)
-	return stub
-end
-
-function M.stub_visual_rows(...)
-	M.visual_rows_stub = M.visual_rows_stub or require("luassert.stub")(require("libp.utils.vimfn"), "visual_rows")
-	M.visual_rows_stub.by_default.returns(...)
-	return M.visual_rows_stub
-end
-
 function M.new_name(ori)
 	return ori .. "new"
 end

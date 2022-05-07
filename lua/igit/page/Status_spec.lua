@@ -2,6 +2,7 @@ require("plenary.async").tests.add_to_env()
 local a = require("plenary.async")
 local describe = a.tests.describe
 local Buffer = require("libp.ui.Buffer")
+local vimfn = require("libp.utils.vimfn")
 local igit = require("igit")
 local util = require("igit.test_util")
 local git = util.git
@@ -56,12 +57,10 @@ describe("Status", function()
 				local fname2 = test_dir:touch_untracked_file(2)
 				igit.status.current_buf():reload()
 
-				local stub = util.VisualRowStub(1, 2)
-
+				vimfn.visual_select_rows(1, 2)
 				igit.status:stage_change()
-				assert.are.same({ fname1, fname2 }, test_dir.current.staged_files())
 
-				stub:revert()
+				assert.are.same({ fname1, fname2 }, test_dir.current.staged_files())
 			end)
 		end)
 
@@ -81,15 +80,13 @@ describe("Status", function()
 				local fname2 = test_dir:touch_untracked_file(2)
 				igit.status.current_buf():reload()
 
-				local stub = util.VisualRowStub(1, 2)
-
+				vimfn.visual_select_rows(1, 2)
 				igit.status:stage_change()
+
 				assert.are.same({ fname1, fname2 }, test_dir.current.staged_files())
 
 				igit.status:unstage_change()
 				assert.are.same(0, #test_dir.current.staged_files())
-
-				stub:revert()
 			end)
 		end)
 
@@ -111,12 +108,10 @@ describe("Status", function()
 				igit.status.current_buf():reload()
 				assert.are.same(2, #test_dir.current.worktree_dirty_files())
 
-				local stub = util.VisualRowStub(1, 2)
-
+				vimfn.visual_select_rows(1, 2)
 				igit.status:discard_change()
-				assert.are.same(0, #test_dir.current.worktree_dirty_files())
 
-				stub:revert()
+				assert.are.same(0, #test_dir.current.worktree_dirty_files())
 			end)
 		end)
 
@@ -138,12 +133,10 @@ describe("Status", function()
 				util.setrow(1)
 				assert.are.same(2, #test_dir.current.worktree_untracked_files())
 
-				local stub = util.VisualRowStub(1, 2)
-
+				vimfn.visual_select_rows(1, 2)
 				igit.status:clean_files()
-				assert.are.same(0, #test_dir.current.worktree_untracked_files())
 
-				stub:revert()
+				assert.are.same(0, #test_dir.current.worktree_untracked_files())
 			end)
 		end)
 
