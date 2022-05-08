@@ -121,6 +121,7 @@ function M:change_action(action)
 end
 
 function M:diff_cached()
+	local ori_status_buf = self:current_buf()
 	local cline_info = self:parse_line()
 
 	local grid = ui.Grid()
@@ -133,7 +134,6 @@ function M:diff_cached()
 		end,
 	})
 
-	local delay_reload = self:current_buf():delay_reload()
 	local staged_lines = nil
 	vim.api.nvim_buf_attach(stage_buf.id, false, {
 		on_lines = function()
@@ -166,7 +166,8 @@ function M:diff_cached()
 			a.uv.fs_write(fd, ori_content)
 			a.uv.fs_close(fd)
 
-			delay_reload()
+			a.util.scheduler()
+			ori_status_buf:reload()
 		end),
 	})
 
