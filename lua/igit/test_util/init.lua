@@ -10,10 +10,6 @@ function M.check_output(cmd)
 	return vim.fn.trim(vim.fn.system(cmd)):split_trim("\n")
 end
 
-function M.setrow(nr)
-	vim.api.nvim_win_set_cursor(0, { nr, 0 })
-end
-
 function M.set_current_line(str)
 	local ori_line = vim.api.nvim_get_current_line()
 	local linenr = vim.fn.line(".") - 1

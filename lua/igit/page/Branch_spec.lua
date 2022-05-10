@@ -6,6 +6,7 @@ local igit = require("igit")
 local util = require("igit.test_util")
 local test_dir = require("igit.test_util.TestDir")(true)
 local ui = require("libp.ui")
+local vimfn = require'libp.utils.vimfn'
 local Set = require("libp.datatype.Set")
 local log = require("igit.log")
 
@@ -37,7 +38,7 @@ describe("Branch", function()
 			vim.cmd(("edit %s"):format(test_dir:abs_path(test_dir.files[1])))
 			igit.branch:open()
 			ui.Buffer.get_current_buffer():reload()
-			util.setrow(1)
+			vimfn.setrow(1)
 		end)
 
 		describe("parse_line", function()
@@ -58,7 +59,7 @@ describe("Branch", function()
 					for i = 1, vim.fn.line("$") do
 						local branch = igit.branch:parse_line(i).branch
 						if branch and branch ~= ori_branch then
-							util.setrow(i)
+							vimfn.setrow(i)
 							return branch
 						end
 					end
@@ -134,7 +135,7 @@ describe("Branch", function()
 				local ori_branches = Set(test_dir.current.branches())
 				igit.branch:force_delete_branch()
 				assert.are.same(ori_branches, Set(test_dir.current.branches()))
-				util.setrow(2)
+				vimfn.setrow(2)
 				igit.branch:force_delete_branch()
 				local new_branches = Set(test_dir.current.branches())
 				assert.are.same(Set.size(ori_branches) - 1, Set.size(new_branches))
