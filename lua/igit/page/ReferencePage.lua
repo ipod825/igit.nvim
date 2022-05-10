@@ -46,12 +46,10 @@ function M:confirm_rebase(opts)
 
 	return "Yes"
 		== ui.Menu({
-			title = {
-				("Rebasing onto %s"):format(opts.base_reference),
+			title = ("Rebasing onto %s"):format(opts.base_reference),
+			content = {
 				("(%s)->%s"):format(excluded_base, table.concat(opts.branches, "->")),
 				"Tip: Check help page for skipping this confirmation.",
-			},
-			content = {
 				"Yes",
 				"No",
 			},
