@@ -8,7 +8,6 @@ local ui = require("libp.ui")
 local Set = require("libp.datatype.Set")
 local Menu = require("libp.ui.Menu")
 local vimfn = require("libp.utils.vimfn")
-local log = require("igit.log")
 
 describe("Log", function()
 	igit.setup({ log = { buf_enter_reload = false } })

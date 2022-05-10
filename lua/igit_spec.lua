@@ -2,7 +2,6 @@ local igit = require("igit")
 local default_config = require("igit.default_config")
 local spy = require("luassert.spy")
 local match = require("luassert.match")
-local log = require("igit.log")
 
 describe("igit setup", function()
 	it("Defaults submodule options to default_config", function()

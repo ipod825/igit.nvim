@@ -10,7 +10,6 @@ local test_dir = require("igit.test_util.TestDir")()
 local ui = require("libp.ui")
 local vimfn = require("libp.utils.vimfn")
 local Set = require("libp.datatype.Set")
-local log = require("igit.log")
 
 describe("Status", function()
 	igit.setup({ status = { buf_enter_reload = false } })

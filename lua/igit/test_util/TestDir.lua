@@ -4,7 +4,6 @@ local git = util.git
 local path = require("libp.path")
 local uv = vim.loop
 local a = require("plenary.async")
-local log = require("igit.log")
 
 function M:init(persist_dir)
 	vim.validate({ persist_dir = { persist_dir, "b", true } })

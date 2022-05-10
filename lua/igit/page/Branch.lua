@@ -5,7 +5,6 @@ local term_utils = require("libp.utils.term")
 local Job = require("libp.Job")
 local IterList = require("libp.datatype.IterList")
 local Set = require("libp.datatype.Set")
-local log = require("igit.log")
 
 function M:setup(options)
 	vim.validate({ options = { options, "t" } })

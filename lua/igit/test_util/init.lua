@@ -1,6 +1,5 @@
 require("libp.utils.string_extension")
 local M = {}
-local log = require("igit.log")
 
 function M.jobrun(cmd, opts)
 	vim.fn.jobwait({ vim.fn.jobstart(cmd, opts or { cwd = "." }) })

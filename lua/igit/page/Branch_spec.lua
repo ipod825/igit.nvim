@@ -8,7 +8,6 @@ local test_dir = require("igit.test_util.TestDir")(true)
 local ui = require("libp.ui")
 local vimfn = require("libp.utils.vimfn")
 local Set = require("libp.datatype.Set")
-local log = require("igit.log")
 
 describe("Branch", function()
 	igit.setup({ branch = { buf_enter_reload = false } })

@@ -6,7 +6,6 @@ local vimfn = require("libp.utils.vimfn")
 local ui = require("libp.ui")
 local path = require("libp.path")
 local a = require("plenary.async")
-local log = require("igit.log")
 
 function M:setup(options)
 	vim.validate({ options = { options, "t" } })

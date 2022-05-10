@@ -7,7 +7,6 @@ local IterList = require("libp.datatype.IterList")
 local term_utils = require("libp.utils.term")
 local ui = require("libp.ui")
 local vimfn = require("libp.utils.vimfn")
-local log = require("igit.log")
 
 function M:setup(options)
 	vim.validate({ options = { options, "t" } })
