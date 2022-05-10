@@ -6,7 +6,7 @@ local igit = require("igit")
 local util = require("igit.test_util")
 local test_dir = require("igit.test_util.TestDir")(true)
 local ui = require("libp.ui")
-local vimfn = require'libp.utils.vimfn'
+local vimfn = require("libp.utils.vimfn")
 local Set = require("libp.datatype.Set")
 local log = require("igit.log")
 
