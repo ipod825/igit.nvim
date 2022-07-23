@@ -171,8 +171,14 @@ function M:diff_cached()
 	})
 
 	local worktree_buf = ui.FileBuffer(cline_info.abs_path)
-	local ft = vim.filetype.match({ filename = cline_info.abs_path }) or ""
-	vim.api.nvim_buf_set_option(stage_buf.id, "filetype", ft)
+	-- TODO(remove version check when nvim version stable)
+	if vim.version().minor <= 7 then
+		vim.filetype.match(cline_info.abs_path, stage_buf.id)
+		vim.filetype.match(cline_info.abs_path, worktree_buf.id)
+	else
+		local ft = vim.filetype.match({ filename = cline_info.abs_path }) or ""
+		vim.api.nvim_buf_set_option(stage_buf.id, "filetype", ft)
+	end
 
 	grid:add_row({ height = 1 }):fill_window(ui.TitleWindow(ui.Buffer({
 		content = { "Stage", cline_info.filepath, "Worktree" },
@@ -196,8 +202,14 @@ function M:diff_index()
 		end,
 	})
 	local worktree_buf = ui.FileBuffer(cline_info.abs_path)
-	local ft = vim.filetype.match({ filename = cline_info.abs_path }) or ""
-	vim.api.nvim_buf_set_option(index_buf.id, "filetype", ft)
+	-- TODO(remove version check when nvim version stable)
+	if vim.version().minor <= 7 then
+		vim.filetype.match(cline_info.abs_path, index_buf.id)
+		vim.filetype.match(cline_info.abs_path, worktree_buf.id)
+	else
+		local ft = vim.filetype.match({ filename = cline_info.abs_path }) or ""
+		vim.api.nvim_buf_set_option(index_buf.id, "filetype", ft)
+	end
 
 	grid:add_row({ height = 1 }):fill_window(ui.TitleWindow(ui.Buffer({
 		content = { "HEAD", cline_info.filepath, "Worktree" },
