@@ -142,13 +142,9 @@ function M:new_branch()
 end
 
 function M:force_delete_branch()
-	local cmds = self
-		:get_branches_in_rows(vimfn.visual_rows())
-		:to_iter()
-		:map(function(b)
-			return git.branch("-D", b)
-		end)
-		:collect()
+	local cmds = self:get_branches_in_rows(vimfn.visual_rows()):map(function(b)
+		return git.branch("-D", b)
+	end)
 	self:runasync_all_and_reload(cmds)
 end
 
