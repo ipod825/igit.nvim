@@ -2,12 +2,13 @@ local M = require("libp.datatype.Class"):EXTEND()
 local path = require("libp.path")
 local Set = require("libp.datatype.Set")
 local Job = require("libp.Job")
+local vimfn = require("libp.utils.vimfn")
 
 local ui = require("libp.ui")
 
 function M:open_or_new_buffer(key, opts, buf_opts)
 	if opts.git_root == nil or opts.git_root == "" then
-		vim.notify("No git project found!")
+		vimfn.warn("No git project found!")
 		return
 	end
 

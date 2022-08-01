@@ -3,6 +3,7 @@ local a = require("plenary.async")
 local git = require("igit.git")
 local ui = require("libp.ui")
 local Job = require("libp.Job")
+local vimfn = require("libp.utils.vimfn")
 local default_config = require("igit.default_config")
 
 function M.setup(opts)
@@ -70,7 +71,7 @@ function M.define_command(opts)
 				Job({
 					cmds = args.git_cmds,
 					on_stdout = function(lines)
-						vim.notify(table.concat(lines, "\n"))
+						vimfn.info(table.concat(lines, "\n"))
 					end,
 				}):start()
 				return
@@ -93,7 +94,7 @@ function M.define_command(opts)
 					cmds = gita[module](module_args),
 					stderr_dump_level = Job.StderrDumpLevel.ALWAYS,
 					on_stdout = function(lines)
-						vim.notify(table.concat(lines, "\n"))
+						vimfn.info(table.concat(lines, "\n"))
 					end,
 				}):start()
 

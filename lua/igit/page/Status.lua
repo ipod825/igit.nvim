@@ -148,7 +148,7 @@ function M:diff_cached()
 			local err, stat = a.uv.fs_fstat(fd)
 			if err then
 				log.want(err)
-				vim.notify(err)
+				vimfn.warn(err)
 				return
 			end
 			local _, ori_content = a.uv.fs_read(fd, stat.size)

@@ -40,7 +40,7 @@ function M:rename()
 		end,
 		update = function(ori_items, new_items)
 			if #ori_items ~= #new_items then
-				vim.notify("Can't remove or add items!")
+				vimfn.warn("Can't remove or add items!")
 				return
 			end
 			for i = 1, #ori_items do

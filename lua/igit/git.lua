@@ -2,6 +2,7 @@ require("libp.utils.string_extension")
 local M = {}
 local path = require("libp.path")
 local Job = require("libp.Job")
+local vimfn = require("libp.utils.vimfn")
 
 local arg_strcat_factory = function(git_cmd)
 	if git_cmd then
@@ -19,7 +20,7 @@ local arg_strcat_factory = function(git_cmd)
 	end
 
 	return function()
-		vim.notify("Not a git directory")
+		vimfn.warn("Not a git directory")
 		return ""
 	end
 end
