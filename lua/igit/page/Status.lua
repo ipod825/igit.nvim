@@ -178,6 +178,7 @@ function M:diff_cached()
 	else
 		local ft = vim.filetype.match({ filename = cline_info.abs_path }) or ""
 		vim.api.nvim_buf_set_option(stage_buf.id, "filetype", ft)
+		vim.api.nvim_buf_set_option(worktree_buf.id, "filetype", ft)
 	end
 
 	grid:add_row({ height = 1 }):fill_window(ui.TitleWindow(ui.Buffer({
@@ -209,6 +210,7 @@ function M:diff_index()
 	else
 		local ft = vim.filetype.match({ filename = cline_info.abs_path }) or ""
 		vim.api.nvim_buf_set_option(index_buf.id, "filetype", ft)
+		vim.api.nvim_buf_set_option(worktree_buf.id, "filetype", ft)
 	end
 
 	grid:add_row({ height = 1 }):fill_window(ui.TitleWindow(ui.Buffer({
