@@ -6,6 +6,7 @@ local vimfn = require("libp.utils.vimfn")
 local ui = require("libp.ui")
 local path = require("libp.path")
 local a = require("plenary.async")
+local uv = require("libp.fs.uv")
 
 function M:setup(options)
 	vim.validate({ options = { options, "t" } })
@@ -144,26 +145,25 @@ function M:diff_cached()
 			if staged_lines == nil then
 				return
 			end
-			local _, fd = a.uv.fs_open(cline_info.abs_path, "r", 448)
-			local err, stat = a.uv.fs_fstat(fd)
-			if err then
-				log.want(err)
-				vimfn.warn(err)
-				return
-			end
-			local _, ori_content = a.uv.fs_read(fd, stat.size)
-			a.uv.fs_close(fd)
+			local fd, _ = uv.fs_open(cline_info.abs_path, "r", 448)
+			assert(not _, _)
+			local stat, _ = uv.fs_fstat(fd)
+			assert(not _, _)
+			local ori_content, _ = uv.fs_read(fd, stat.size)
+			assert(not _, _)
+			uv.fs_close(fd)
 
-			_, fd = a.uv.fs_open(cline_info.abs_path, "w", 448)
+			fd, _ = uv.fs_open(cline_info.abs_path, "w", 448)
 			-- File needs to be ended with a new line.
-			a.uv.fs_write(fd, table.concat(staged_lines, "\n") .. "\n")
-			a.uv.fs_close(fd)
+			uv.fs_write(fd, table.concat(staged_lines, "\n") .. "\n")
+			uv.fs_close(fd)
 
 			Job({ cmds = git.add(cline_info.filepath) }):start()
 
-			_, fd = a.uv.fs_open(cline_info.abs_path, "w", 448)
-			a.uv.fs_write(fd, ori_content)
-			a.uv.fs_close(fd)
+			fd, _ = uv.fs_open(cline_info.abs_path, "w", 448)
+			assert(not _, _)
+			uv.fs_write(fd, ori_content)
+			uv.fs_close(fd)
 
 			a.util.scheduler()
 			ori_status_buf:reload()
