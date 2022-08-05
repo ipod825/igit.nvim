@@ -60,6 +60,7 @@ function M.define_command(opts)
 	end
 
 	local execute = function(opts)
+		require("libp.log").warn(opts)
 		a.void(function()
 			local args = parser:parse(opts.args, true)
 			if not args then
@@ -108,7 +109,6 @@ function M.define_command(opts)
 	vim.api.nvim_create_user_command(opts.command, execute, {
 		nargs = "+",
 		bang = true,
-		bar = true,
 		complete = complete,
 	})
 end

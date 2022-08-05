@@ -1,15 +1,15 @@
 *igit.txt* A git plugin for neovim.
 
-          _          _               _        _       
-         /\ \       /\ \            /\ \     /\ \     
-         \ \ \     /  \ \           \ \ \    \_\ \    
-         /\ \_\   / /\ \_\          /\ \_\   /\__ \   
-        / /\/_/  / / /\/_/         / /\/_/  / /_ \ \  
-       / / /    / / / ______      / / /    / / /\ \ \ 
-      / / /    / / / /\_____\    / / /    / / /  \/_/ 
-     / / /    / / /  \/____ /   / / /    / / /        
- ___/ / /__  / / /_____/ / /___/ / /__  / / /         
-/\__\/_/___\/ / /______\/ //\__\/_/___\/_/ /          
+          _          _               _        _
+         /\ \       /\ \            /\ \     /\ \
+         \ \ \     /  \ \           \ \ \    \_\ \
+         /\ \_\   / /\ \_\          /\ \_\   /\__ \
+        / /\/_/  / / /\/_/         / /\/_/  / /_ \ \
+       / / /    / / / ______      / / /    / / /\ \ \
+      / / /    / / / /\_____\    / / /    / / /  \/_/
+     / / /    / / /  \/____ /   / / /    / / /
+ ___/ / /__  / / /_____/ / /___/ / /__  / / /
+/\__\/_/___\/ / /______\/ //\__\/_/___\/_/ /
 \/_________/\/___________/ \/_________/\_\/
 
 CONTENTS                                *igit-help-contents*
@@ -50,12 +50,6 @@ to be open. For example:
 botright IGit log
 ```
 opens the log page with `botright split`.
-
-IGit command can be followed by |:command-bar|, for example:
-```
-IGit log | tabmove -1
-```
-moves the opened log page to the left tabpage after openning it.
 
 -------------------------------------------------------------------------------
 PAGE                                    *igit-page*
@@ -150,7 +144,7 @@ r       n, v    Rebase the current (or visually selected) commit(s) onto the
                 under cursor to the target commit.
 
 -------------------------------------------------------------------------------
-STATUS                                 *igit-status*  
+STATUS                                 *igit-status*
 
 <cr>    n       :edit| the current file.
 
@@ -177,14 +171,14 @@ ca      n       Like `cc`, except that the commit is amended (`git commit --amen
 
 cA      n       Like `ca`, except that a temporary branch is created pointing to
                 the commit before amend. Useful if you want to rebase the
-                descendent commits onto the amended commit. 
+                descendent commits onto the amended commit.
 
 dh      n       Opening |diff| floating windows to show the diff between
                 worktree and the index for the current file. Note that the
                 worktree buffer is modifiable and savable.
 
 dd      n       Opening |diff| floating windows to show the diff between
-                worktree and the stage for the current file. Note that 
+                worktree and the stage for the current file. Note that
                 worktree buffer is modifiable and savable. The stage buffer is
                 modifiable. Any change made to the stage buffer will reflect to
                 the stage area, thus achieving partial stage (`git add -i`).
