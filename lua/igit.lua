@@ -60,7 +60,6 @@ function M.define_command(opts)
 	end
 
 	local execute = function(opts)
-		require("libp.log").warn(opts)
 		a.void(function()
 			local args = parser:parse(opts.args, true)
 			if not args then
@@ -70,7 +69,7 @@ function M.define_command(opts)
 			if #args == 0 then
 				table.insert(args.git_cmds, 1, "git")
 				Job({
-					cmds = args.git_cmds,
+					cmd = args.git_cmds,
 					on_stdout = function(lines)
 						vimfn.info(table.concat(lines, "\n"))
 					end,
@@ -92,7 +91,7 @@ function M.define_command(opts)
 				local gita = git.with_default_args({ no_color = true })
 				local current_buf = ui.Buffer.get_current_buffer()
 				Job({
-					cmds = gita[module](module_args),
+					cmd = gita[module](module_args),
 					stderr_dump_level = Job.StderrDumpLevel.ALWAYS,
 					on_stdout = function(lines)
 						vimfn.info(table.concat(lines, "\n"))

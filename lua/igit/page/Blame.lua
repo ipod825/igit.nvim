@@ -34,13 +34,13 @@ end
 
 function M:get_blame_lines(fname)
 	local abbrev =
-		Job({ cmds = git.config("core.abbrev"), stderr_dump_level = Job.StderrDumpLevel.SILENT }):stdoutputstr()
+		Job({ cmd = git.config("core.abbrev"), stderr_dump_level = Job.StderrDumpLevel.SILENT }):stdoutputstr()
 	abbrev = #abbrev > 0 and tonumber(abbrev) or 10
 
 	local res = {}
 	local current = {}
 	Job({
-		cmds = git.blame("--line-porcelain", fname),
+		cmd = git.blame("--line-porcelain", fname),
 		on_stdout = function(lines)
 			for _, line in ipairs(lines) do
 				if line:match("^\t") then

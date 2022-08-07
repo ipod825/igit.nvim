@@ -58,16 +58,16 @@ end
 function M:get_anchor_branch()
 	local mark = self:current_buf().ctx.mark
 	return {
-		base = mark and mark[1].branch or Job({ cmds = git.branch("--show-current") }):stdoutputstr(),
+		base = mark and mark[1].branch or Job({ cmd = git.branch("--show-current") }):stdoutputstr(),
 	}
 end
 
 function M:get_current_branch_or_sha()
-	local branch = Job({ cmds = git.branch("--show-current") }):stdoutputstr()
+	local branch = Job({ cmd = git.branch("--show-current") }):stdoutputstr()
 	if branch ~= "" then
 		return branch
 	end
-	return Job({ cmds = git["rev-parse"]("HEAD") }):stdoutputstr()
+	return Job({ cmd = git["rev-parse"]("HEAD") }):stdoutputstr()
 end
 
 function M:get_primary_mark_or_current_reference()
@@ -96,7 +96,7 @@ end
 function M:rebase_interactive()
 	local delay_reload = self.buf_enter_reload and nil or self:current_buf():delay_reload()
 
-	Job({ cmds = git.rebase("-i", self:parse_line(row_beg).sha) }):start()
+	Job({ cmd = git.rebase("-i", self:parse_line(row_beg).sha) }):start()
 
 	if delay_reload then
 		delay_reload()
@@ -124,10 +124,10 @@ function M:rebase_chain()
 
 	self:rebase_branches({
 		current_buf = self:current_buf(),
-		ori_reference = Job({ cmds = git.branch("--show-current") }):stdoutputstr(),
+		ori_reference = Job({ cmd = git.branch("--show-current") }):stdoutputstr(),
 		branches = branches,
 		base_reference = self:get_primary_mark_or_current_reference(),
-		grafted_ancestor = Job({ cmds = git["rev-parse"](("%s^1"):format(self:parse_line(row_end).sha)) }):stdoutputstr(),
+		grafted_ancestor = Job({ cmd = git["rev-parse"](("%s^1"):format(self:parse_line(row_end).sha)) }):stdoutputstr(),
 	})
 end
 

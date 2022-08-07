@@ -56,7 +56,7 @@ end
 
 function M:runasync_and_reload(cmd)
 	local current_buf = self:current_buf()
-	Job({ cmds = cmd }):start()
+	Job({ cmd = cmd }):start()
 	current_buf:reload()
 end
 

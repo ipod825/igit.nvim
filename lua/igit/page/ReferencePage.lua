@@ -41,8 +41,8 @@ function M:confirm_rebase(opts)
 	end
 
 	local excluded_base = opts.grafted_ancestor ~= "" and opts.grafted_ancestor
-		or Job({ cmds = git["merge-base"](opts.base_reference, opts.branches[1]) }):stdoutputstr()
-	excluded_base = Job({ cmds = git["name-rev"](excluded_base) }):stdoutputstr():split()[2]
+		or Job({ cmd = git["merge-base"](opts.base_reference, opts.branches[1]) }):stdoutputstr()
+	excluded_base = Job({ cmd = git["name-rev"](excluded_base) }):stdoutputstr():split()[2]
 
 	return "Yes"
 		== ui.Menu({
@@ -75,19 +75,19 @@ function M:rebase_branches(opts)
 
 	for _, new_branch in ipairs(opts.branches) do
 		local next_grafted_ancestor = ("%s_original_conflicted_with_%s_created_by_igit"):format(new_branch, base_branch)
-		Job({ cmds = git.branch(next_grafted_ancestor, new_branch) }):start()
+		Job({ cmd = git.branch(next_grafted_ancestor, new_branch) }):start()
 		if grafted_ancestor ~= "" then
-			local succ = 0 == Job({ cmds = git.rebase("--onto", base_branch, grafted_ancestor, new_branch) }):start()
+			local succ = 0 == Job({ cmd = git.rebase("--onto", base_branch, grafted_ancestor, new_branch) }):start()
 			if vim.endswith(grafted_ancestor, "created_by_igit") then
-				Job({ cmds = git.branch("-D", grafted_ancestor) }):start()
+				Job({ cmd = git.branch("-D", grafted_ancestor) }):start()
 			end
 			if not succ then
 				opts.current_buf:reload()
 				return
 			end
 		else
-			if 0 ~= Job({ cmds = git.rebase(base_branch, new_branch) }):start() then
-				Job({ cmds = git.branch("-D", next_grafted_ancestor) }):start()
+			if 0 ~= Job({ cmd = git.rebase(base_branch, new_branch) }):start() then
+				Job({ cmd = git.branch("-D", next_grafted_ancestor) }):start()
 				opts.current_buf:reload()
 				return
 			end
@@ -95,8 +95,8 @@ function M:rebase_branches(opts)
 		grafted_ancestor = next_grafted_ancestor
 		base_branch = new_branch
 	end
-	Job({ cmds = git.branch("-D", grafted_ancestor) }):start()
-	Job({ cmds = git.checkout(opts.ori_reference) }):start()
+	Job({ cmd = git.branch("-D", grafted_ancestor) }):start()
+	Job({ cmd = git.checkout(opts.ori_reference) }):start()
 	opts.current_buf:reload()
 end
 
