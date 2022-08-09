@@ -5,6 +5,7 @@ local ui = require("libp.ui")
 local Job = require("libp.Job")
 local vimfn = require("libp.utils.vimfn")
 local default_config = require("igit.default_config")
+local values = require("libp.datatype.itertools").values
 
 function M.setup(opts)
 	opts = vim.tbl_deep_extend("force", default_config, opts or {})
@@ -50,7 +51,7 @@ function M.define_command(opts)
 		"tag",
 	}
 	vim.list_extend(sub_commands, opts.git_sub_commands)
-	for _, cmd in ipairs(sub_commands) do
+	for cmd in values(sub_commands) do
 		parser:add_subparser(EchoParser(cmd))
 	end
 
