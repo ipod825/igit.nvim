@@ -114,10 +114,10 @@ end
 function M:get_branches_in_rows(row_beg, row_end)
 	return itertools
 		.range(row_beg, row_end)
-		:mapv(function(e)
+		:map(function(e)
 			return self:parse_line(e).branch
 		end)
-		:filterv(function(e)
+		:filter(function(e)
 			return e ~= "HEAD"
 		end)
 		:collect()

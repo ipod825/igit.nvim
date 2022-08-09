@@ -78,13 +78,13 @@ end
 function M:get_branches_in_rows(row_beg, row_end)
 	return itertools
 		.range(row_beg, row_end)
-		:mapv(function(e)
+		:map(function(e)
 			return self:parse_line(e).branches
 		end)
-		:filterv(function(e)
+		:filter(function(e)
 			return #e == 2
 		end)
-		:mapv(function(e)
+		:map(function(e)
 			return e[0]
 		end)
 		:collect()
