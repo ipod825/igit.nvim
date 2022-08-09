@@ -7,7 +7,7 @@ local ui = require("libp.ui")
 local path = require("libp.path")
 local a = require("plenary.async")
 local uv = require("libp.fs.uv")
-local values = require("libp.datatype.itertools").values
+local itt = require("libp.datatype.itertools")
 
 function M:setup(options)
 	vim.validate({ options = { options, "t" } })
@@ -114,7 +114,7 @@ function M:change_action(action)
 
 	-- Note that using start_all here might lead to git index lock issue. Hence
 	-- we run the commands sequentially here.
-	for files in values(filepaths) do
+	for files in itt.values(filepaths) do
 		Job({ cmd = action(files) }):start()
 	end
 	current_buf:reload()

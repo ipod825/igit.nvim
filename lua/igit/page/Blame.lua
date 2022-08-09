@@ -4,7 +4,7 @@ local term_utils = require("libp.utils.term")
 local ui = require("libp.ui")
 local vimfn = require("libp.utils.vimfn")
 local Job = require("libp.Job")
-local values = require("libp.datatype.itertools").values
+local itt = require("libp.datatype.itertools")
 
 function M:setup(options)
 	vim.validate({ options = { options, "t", true } })
@@ -43,7 +43,7 @@ function M:get_blame_lines(fname)
 	Job({
 		cmd = git.blame("--line-porcelain", fname),
 		on_stdout = function(lines)
-			for line in values(lines) do
+			for line in itt.values(lines) do
 				if line:match("^\t") then
 					table.insert(
 						res,

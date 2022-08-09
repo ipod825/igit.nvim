@@ -8,7 +8,6 @@ local util = require("igit.test_util")
 local git = util.git
 local test_dir = require("igit.test_util.TestDir")()
 local ui = require("libp.ui")
-local vimfn = require("libp.utils.vimfn")
 local Set = require("libp.datatype.Set")
 
 describe("Status", function()

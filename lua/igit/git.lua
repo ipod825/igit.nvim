@@ -3,13 +3,13 @@ local M = {}
 local path = require("libp.path")
 local Job = require("libp.Job")
 local vimfn = require("libp.utils.vimfn")
-local values = require("libp.datatype.itertools").values
+local itt = require("libp.datatype.itertools")
 
 local arg_strcat_factory = function(git_cmd)
 	if git_cmd then
 		return function(...)
 			local args = git_cmd
-			for e in values({ ... }) do
+			for e in itt.values({ ... }) do
 				if vim.tbl_islist(e) then
 					vim.list_extend(args, e)
 				else
@@ -51,7 +51,7 @@ end
 
 function M.status_porcelain(file)
 	local res = {}
-	for line in values(Job({ cmd = M.status("--porcelain", file) }):stdoutput()) do
+	for line in itt.values(Job({ cmd = M.status("--porcelain", file) }):stdoutput()) do
 		local state, old_filename, _, new_filename = unpack(line:split())
 		res[old_filename] = {
 			state = state,

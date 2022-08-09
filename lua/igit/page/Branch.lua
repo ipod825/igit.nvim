@@ -3,7 +3,7 @@ local git = require("igit.git")
 local vimfn = require("libp.utils.vimfn")
 local term_utils = require("libp.utils.term")
 local Job = require("libp.Job")
-local itertools = require("libp.datatype.itertools")
+local itt = require("libp.datatype.itertools")
 local Set = require("libp.datatype.Set")
 
 function M:setup(options)
@@ -112,7 +112,7 @@ function M:get_anchor()
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
-	return itertools
+	return itt
 		.range(row_beg, row_end)
 		:map(function(e)
 			return self:parse_line(e).branch
