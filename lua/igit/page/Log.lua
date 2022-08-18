@@ -97,7 +97,7 @@ end
 function M:rebase_interactive()
     local delay_reload = self.buf_enter_reload and nil or self:current_buf():delay_reload()
 
-    Job({ cmd = git.rebase("-i", self:parse_line(vimfn.current_row()).sha) }):start()
+    Job({ cmd = git.rebase("-i", self:parse_line(vimfn.getrow()).sha) }):start()
 
     if delay_reload then
         delay_reload()
