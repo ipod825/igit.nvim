@@ -7,7 +7,7 @@ local ui = require("libp.ui")
 local path = require("libp.path")
 local a = require("plenary.async")
 local uv = require("libp.fs.uv")
-local itt = require("libp.datatype.itertools")
+local itt = require("libp.itertools")
 
 function M:setup(options)
     vim.validate({ options = { options, "t" } })

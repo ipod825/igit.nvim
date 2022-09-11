@@ -3,7 +3,7 @@ local git = require("igit.git")
 local vimfn = require("libp.utils.vimfn")
 local term_utils = require("libp.utils.term")
 local Job = require("libp.Job")
-local itt = require("libp.datatype.itertools")
+local itt = require("libp.itertools")
 local Set = require("libp.datatype.Set")
 
 function M:setup(options)

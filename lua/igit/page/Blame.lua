@@ -4,7 +4,7 @@ local term_utils = require("libp.utils.term")
 local ui = require("libp.ui")
 local vimfn = require("libp.utils.vimfn")
 local Job = require("libp.Job")
-local itt = require("libp.datatype.itertools")
+local itt = require("libp.itertools")
 
 function M:setup(options)
     vim.validate({ options = { options, "t", true } })

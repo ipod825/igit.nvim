@@ -3,7 +3,7 @@ local M = {}
 local path = require("libp.path")
 local Job = require("libp.Job")
 local vimfn = require("libp.utils.vimfn")
-local itt = require("libp.datatype.itertools")
+local itt = require("libp.itertools")
 
 local arg_strcat_factory = function(git_cmd)
     if git_cmd then

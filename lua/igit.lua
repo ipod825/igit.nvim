@@ -5,7 +5,7 @@ local ui = require("libp.ui")
 local Job = require("libp.Job")
 local vimfn = require("libp.utils.vimfn")
 local default_config = require("igit.default_config")
-local itt = require("libp.datatype.itertools")
+local itt = require("libp.itertools")
 
 function M.setup(opts)
     opts = vim.tbl_deep_extend("force", default_config, opts or {})

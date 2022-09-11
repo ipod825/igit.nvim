@@ -2,7 +2,7 @@ local M = require("igit.page.Page"):EXTEND()
 local git = require("igit.git")
 local ui = require("libp.ui")
 local Job = require("libp.Job")
-local itt = require("libp.datatype.itertools")
+local itt = require("libp.itertools")
 
 function M:show(reference)
     vim.validate({ reference = { reference, "s" } })
