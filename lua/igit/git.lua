@@ -1,6 +1,6 @@
 require("libp.utils.string_extension")
 local M = {}
-local path = require("libp.path")
+local pathfn = require("libp.utils.pathfn")
 local Job = require("libp.Job")
 local vimfn = require("libp.utils.vimfn")
 local itt = require("libp.itertools")
@@ -41,7 +41,7 @@ local cmd_with_default_args = function(cmd, opts)
 end
 
 function M.find_root()
-    local res = vim.b.git_root or path.find_directory(".git")
+    local res = vim.b.git_root or pathfn.find_directory(".git")
     return res
 end
 

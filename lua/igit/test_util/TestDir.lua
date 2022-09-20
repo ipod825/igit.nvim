@@ -1,7 +1,7 @@
 local M = require("libp.datatype.Class"):EXTEND()
 local util = require("igit.test_util")
 local git = util.git
-local path = require("libp.path")
+local pathfn = require("libp.utils.pathfn")
 local uv = vim.loop
 local a = require("plenary.async")
 
@@ -49,7 +49,7 @@ function M:commit_message_file_path()
 end
 
 function M:abs_path(fname)
-    return path.join(self.root, fname)
+    return pathfn.join(self.root, fname)
 end
 
 function M:wait_commit()

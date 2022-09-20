@@ -4,7 +4,7 @@ local Job = require("libp.Job")
 local global = require("igit.global")
 local vimfn = require("libp.utils.vimfn")
 local ui = require("libp.ui")
-local path = require("libp.path")
+local pathfn = require("libp.utils.pathfn")
 local a = require("plenary.async")
 local uv = require("libp.fs.uv")
 local itt = require("libp.itertools")
@@ -253,7 +253,7 @@ function M:parse_line(line_nr)
     local res = {}
     local line = vim.fn.getline(line_nr)
     res.filepath = line:find_pattern("[^%s]+%s+([^%s]+)$")
-    res.abs_path = path.join(git.find_root(), res.filepath)
+    res.abs_path = pathfn.join(git.find_root(), res.filepath)
     return res
 end
 

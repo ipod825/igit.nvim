@@ -1,5 +1,5 @@
 local M = require("libp.datatype.Class"):EXTEND()
-local path = require("libp.path")
+local pathfn = require("libp.utils.pathfn")
 local Set = require("libp.datatype.Set")
 local Job = require("libp.Job")
 local vimfn = require("libp.utils.vimfn")
@@ -28,7 +28,7 @@ function M:open_or_new_buffer(key, opts, buf_opts)
 
     buf_opts = vim.tbl_deep_extend("force", {
         open_cmd = "tab drop",
-        filename = ("igit://%s-%s%s"):format(path.basename(opts.git_root), opts.type, self.buffer_index[key]),
+        filename = ("igit://%s-%s%s"):format(pathfn.basename(opts.git_root), opts.type, self.buffer_index[key]),
         b = { git_root = opts.git_root },
         bo = {
             filetype = "igit",
