@@ -3,19 +3,25 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  test-nightly:
-    runs-on: ubuntu-latest
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    name: Test
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-
-      - run: date +%F > todays-date
-      - name: Restore cache for today's nightly.
-        uses: actions/cache@v3
-        with: 
-          path: _neovim
-          key: ${{ runner.os }}-x64-${{ hashFiles('todays-date') }}
-
-      - name: Install nvim plugins
+      - name: Install Neovim
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            wget -q https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.deb -O /tmp/nvim.deb
+            sudo dpkg -i /tmp/nvim.deb
+          else
+            choco install neovim --pre
+            echo "C:/tools/neovim/nvim-win64/bin" >> $GITHUB_PATH
+          fi
+      - name: Install dependencies
         run: |
           export NVIM_PACKAGE_DIR=$HOME/.local/share/nvim/site/pack/vendor/start
           mkdir -p $NVIM_PACKAGE_DIR
@@ -25,8 +31,7 @@ jobs:
 
       - name: Run tests
         run: |
-          curl -OL https://raw.githubusercontent.com/norcalli/bot-ci/master/scripts/github-actions-setup.sh
-          source github-actions-setup.sh nightly-x64
+          nvim --version
           git config --global user.name "foo"
           git config --global user.email "foo@bar.com"
           make test
@@ -35,7 +40,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: JohnnyMorganz/stylua-action@1.0.0
+      - uses: JohnnyMorganz/stylua-action@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --color always --check .
+          version: latest
+          args: --color always --check ./lua
