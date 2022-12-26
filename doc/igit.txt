@@ -101,18 +101,19 @@ o       n       Start editing mode such that the buffer becomes modifiable. On
 X       n, v    Force delete the current (or visually selected) branches.
 
 r       n, v    Rebase the current (or visually selected) branch(es) onto the
-                target commit. If there is no mark, the target commit is the
-                commit pointed by HEAD. If there's 1st mark, the target commit
-                is the branch under the 1st mark. When visually selecting
-                multiple branches, the whole chain of branch would be rebased in
-                top-down order. When rebasing the first branch, by default git
-                finds a merge base between it and the target commit. However, if
-                there's a 2nd mark, it is used as the merge base. This is useful
-                when dealing with rebase conflict. On conflict, the rebase stops
-                and a temporary branch is created pointing to the branch that
-                cause conflict. After fixing the conflict, that temporary branch
-                should be the new merge base and can be marked (2nd mark) to
-                facilitate the rest rebase work.
+                destination commit. If there is no mark, the destination commit
+                is the commit pointed by HEAD. If there's 1st mark, the
+                destination commit is the branch/sha under the 1st mark. When
+                visually selecting multiple branches, the whole chain of branch
+                would be rebased in bottom-up order. When rebasing the first
+                branch, by default git finds a merge base between it and the
+                destination commit. However, if there's a 2nd mark, it is used
+                as the merge base. This is useful when dealing with rebase
+                conflict. On conflict, the rebase stops and a temporary branch
+                is created pointing to the branch that cause conflict. After
+                fixing the conflict, that temporary branch should be the new
+                merge base and can be marked (2nd mark) to facilitate the rest
+                rebase work.
 
 s       n       Show (`git show`) the commit under cursor.
 
@@ -135,13 +136,13 @@ ys      n       Yank the sha of the current commit to the unnamed register.
 R       n       Reset to the commit under cursor. A menu will show up for
                 following instruction.
 
-r       n, v    Rebase the current (or visually selected) commit(s) onto the
-                target commit. If there is no mark, the target commit is the
-                commit pointed by HEAD. If there's 1st mark, the target commit
-                is the branch under the 1st mark. Note that the merge base is
-                always the parent commit of the last selected commit. If in
-                normal mode, this is equivalent to cherry picking the commit
-                under cursor to the target commit.
+r       v       Rebase the visually selected commit(s) onto the destination
+                commit. If there is no mark, the destination commit is the
+                commit pointed by HEAD. If there's 1st mark, the destination
+                commit is the branch under the 1st mark. Note that the merge
+                base is always the parent commit of the last selected commit. If
+                in normal mode, this is equivalent to cherry picking the commit
+                under cursor to the destination commit.
 
 -------------------------------------------------------------------------------
 STATUS                                 *igit-status*

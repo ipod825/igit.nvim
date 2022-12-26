@@ -23,7 +23,6 @@ function M:setup(options)
                     multi_reload_strategy = CANCEL,
                 },
                 ["m"] = { callback = self:BIND(self.mark), multi_reload_strategy = IGNORE },
-                ["r"] = { callback = self:BIND(self.rebase_interactive), multi_reload_strategy = CANCEL },
                 ["s"] = { callback = self:BIND(self.show), multi_reload_strategy = IGNORE },
                 ["R"] = { callback = self:BIND(self.reset), multi_reload_strategy = CANCEL },
                 ["ys"] = { callback = self:BIND(self.yank_sha), multi_reload_strategy = IGNORE },
@@ -40,8 +39,7 @@ function M:switch()
 end
 
 function M:reset()
-    self
-        :SUPER()
+    self:SUPER()
         :reset(self:get_current_branch_or_sha(), self:select_reference(self:parse_line().references, "Checkout"))
 end
 
@@ -94,27 +92,15 @@ function M:show()
     self:SUPER():show(self:parse_line().sha)
 end
 
-function M:rebase_interactive()
-    local delay_reload = self.buf_enter_reload and nil or self:current_buf():delay_reload()
-
-    Job({ cmd = git.rebase("-i", self:parse_line(vimfn.getrow()).sha) }):start()
-
-    if delay_reload then
-        delay_reload()
-    end
-end
-
 function M:rebase_chain()
     local row_beg, row_end = vimfn.visual_rows()
     local branches = {}
 
     local first_row_references = self:parse_line(row_beg).references
     if #first_row_references <= 1 then
-        ui
-            .InfoBox({
-                content = ("No branch for %s at the first selected line %d!"):format(first_row_references[1], row_beg),
-            })
-            :show()
+        ui.InfoBox({
+            content = ("No branch for %s at the first selected line %d!"):format(first_row_references[1], row_beg),
+        }):show()
         return
     end
 
