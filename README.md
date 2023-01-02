@@ -15,7 +15,12 @@ Use you preferred package manager. Below we use [packer.nvim](https://github.com
 
 ```lua
 use {'nvim-lua/plenary.nvim'}
-use {'ipod825/libp.nvim'}
+use {
+	"ipod825/libp.nvim",
+	config = function()
+		require("libp").setup()
+	end,
+}
 use {
 	"ipod825/igit.nvim",
 	config = function()
@@ -23,22 +28,11 @@ use {
 	end,
 }
 ```
-or
-
-```lua
-use({
-	"ipod825/igit.nvim",
-	requires = { "nvim-lua/plenary.nvim", "ipod825/libp.nvim" },
-	config = function()
-		require("igit").setup()
-	end,
-})
-```
 
 ## Usage
 ```vim
 :IGit status            " Opens the status page (defaults with -s argument.)
-:IGit status --long     " Opens customized status page. 
+:IGit status --long     " Opens customized status page.
 :IGit log               " Opens the log page (defaults with  "--oneline --branches --graph --decorate=short")
 :IGit log --pretty="format:%h%x09%an%x09%ad%x09%s" " Opens Customized log page
 :IGit branch            " Opens the branch page (defaults with -v argument.)
@@ -51,7 +45,7 @@ use({
 ```
 
 ## Page Mappings
-See `:help igit-mappings`. 
+See `:help igit-mappings`.
 
 Highlights:
 - Interactive staging with vim diff window.
