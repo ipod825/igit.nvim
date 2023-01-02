@@ -39,7 +39,7 @@ describe("Log", function()
             ui.Buffer.get_current_buffer():reload()
             vimfn.setrow(1)
         end)
-
+    
         describe("parse_line", function()
             a.it("Parses the information of the lines", function()
                 util.set_current_line("* fa032ae (HEAD -> b1, b2, origin/b1) Commit message (with paranthesis)")
@@ -59,29 +59,29 @@ describe("Log", function()
                 assert.are.equal(Set(expected.references), Set(parsed.references))
             end)
         end)
-
+    
         describe("switch", function()
             a.it("Switches the branch", function()
                 local parsed = igit.log:parse_line()
-
+    
                 Menu.will_select_from_menu(function()
                     assert.are.same(parsed.references, ui.Buffer.get_current_buffer():get_lines())
                     vimfn.setrow(1)
                 end)
-
+    
                 assert.are_not.same(parsed.branches[1], test_dir.current.branch())
                 igit.log:switch()
                 assert.are.same(parsed.branches[1], test_dir.current.branch())
             end)
         end)
-
+    
         describe("show", function()
             a.it("Shows a diff window", function()
                 igit.log:show()
                 assert.is_truthy(vim.api.nvim_win_get_config(0))
             end)
         end)
-
+    
         describe("yank_sha", function()
             a.it("Yanks the current sha to the anonymous register", function()
                 igit.log:yank_sha()

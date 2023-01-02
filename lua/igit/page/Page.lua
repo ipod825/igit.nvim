@@ -3,6 +3,7 @@ local pathfn = require("libp.utils.pathfn")
 local Set = require("libp.datatype.Set")
 local Job = require("libp.Job")
 local vimfn = require("libp.utils.vimfn")
+local Buffer = require("libp.ui.AnsiColorBuffer")
 
 local ui = require("libp.ui")
 
@@ -38,12 +39,12 @@ function M:open_or_new_buffer(key, opts, buf_opts)
 
     local buffer
     if #buf_opts.open_cmd == 0 then
-        buffer = ui.Buffer:get_or_new(buf_opts)
+        buffer = Buffer:get_or_new(buf_opts)
         local grid = ui.Grid()
         grid:add_row({ focusable = true }):fill_window(ui.Window(buffer, { focus_on_open = true }))
         grid:show()
     else
-        buffer = ui.Buffer:open_or_new(buf_opts)
+        buffer = Buffer:open_or_new(buf_opts)
     end
 
     vim.cmd("lcd " .. opts.git_root)
@@ -51,7 +52,7 @@ function M:open_or_new_buffer(key, opts, buf_opts)
 end
 
 function M:current_buf()
-    return ui.Buffer.get_current_buffer()
+    return Buffer.get_current_buffer()
 end
 
 function M:runasync_and_reload(cmd)
