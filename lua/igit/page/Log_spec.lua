@@ -65,7 +65,7 @@ describe("Log", function()
                 local parsed = igit.log:parse_line()
 
                 Menu.will_select_from_menu(function()
-                    assert.are.same(parsed.references, ui.Buffer.get_current_buffer():get_lines())
+                    assert.are.same(parsed.references, vimfn.buf_get_lines())
                     vimfn.setrow(1)
                 end)
 

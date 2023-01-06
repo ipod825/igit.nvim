@@ -139,7 +139,7 @@ function M:diff_cached()
     vim.api.nvim_buf_attach(stage_buf.id, false, {
         on_lines = function()
             if not stage_buf.is_reloading then
-                staged_lines = stage_buf:get_lines()
+                staged_lines = vimfn.buf_get_lines({buffer=stage_buf.id})
             end
         end,
         on_detach = a.void(function()
