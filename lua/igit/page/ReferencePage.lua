@@ -2,7 +2,7 @@ local M = require("igit.page.Page"):EXTEND()
 local git = require("igit.git")
 local ui = require("libp.ui")
 local Job = require("libp.Job")
-local itt = require("libp.itertools")
+local iter = require("libp.iter")
 
 function M:show(reference)
     vim.validate({ reference = { reference, "s" } })
@@ -74,7 +74,7 @@ function M:rebase_branches(opts)
     local grafted_ancestor = opts.grafted_ancestor
     local base_branch = opts.base_reference
 
-    for new_branch in itt.values(opts.branches) do
+    for new_branch in iter.values(opts.branches) do
         local next_grafted_ancestor = ("%s_original_conflicted_with_%s_created_by_igit"):format(new_branch, base_branch)
         Job({ cmd = git.branch(next_grafted_ancestor, new_branch) }):start()
         if grafted_ancestor ~= "" then

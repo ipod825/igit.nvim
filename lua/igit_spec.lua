@@ -2,12 +2,12 @@ local igit = require("igit")
 local default_config = require("igit.default_config")
 local spy = require("luassert.spy")
 local match = require("luassert.match")
-local itt = require("libp.itertools")
+local iter = require("libp.iter")
 
 describe("igit setup", function()
     it("Defaults submodule options to default_config", function()
         igit.setup()
-        for module in itt.values({ "log", "branch", "status" }) do
+        for module in iter.values({ "log", "branch", "status" }) do
             assert.is_truthy(igit[module])
             for k, v in pairs(default_config[module]) do
                 if k ~= "mappings" then

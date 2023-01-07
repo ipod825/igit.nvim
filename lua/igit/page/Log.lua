@@ -3,7 +3,7 @@ local M = require("igit.page.ReferencePage"):EXTEND()
 local git = require("igit.git")
 local Job = require("libp.Job")
 local Buffer = require("libp.ui.Buffer")
-local itertools = require("libp.itertools")
+local iter = require("libp.iter")
 local term_utils = require("libp.utils.term")
 local ui = require("libp.ui")
 local vimfn = require("libp.utils.vimfn")
@@ -74,8 +74,7 @@ function M:get_primary_mark_or_current_reference()
 end
 
 function M:get_branches_in_rows(row_beg, row_end)
-    return itertools
-        .range(row_beg, row_end)
+    return iter.range(row_beg, row_end)
         :map(function(e)
             return self:parse_line(e).branches
         end)
