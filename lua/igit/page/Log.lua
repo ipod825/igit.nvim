@@ -39,7 +39,8 @@ function M:switch()
 end
 
 function M:reset()
-    self:SUPER()
+    self
+        :SUPER()
         :reset(self:get_current_branch_or_sha(), self:select_reference(self:parse_line().references, "Checkout"))
 end
 
@@ -97,9 +98,11 @@ function M:rebase_chain()
 
     local first_row_references = self:parse_line(row_beg).references
     if #first_row_references <= 1 then
-        ui.InfoBox({
-            content = ("No branch for %s at the first selected line %d!"):format(first_row_references[1], row_beg),
-        }):show()
+        ui
+            .InfoBox({
+                content = ("No branch for %s at the first selected line %d!"):format(first_row_references[1], row_beg),
+            })
+            :show()
         return
     end
 
