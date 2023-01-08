@@ -177,7 +177,7 @@ function M:diff_cached()
         vim.filetype.match(cline_info.abs_path, stage_buf.id)
     else
         local ft = vim.filetype.match({ filename = cline_info.abs_path }) or ""
-        vim.api.nvim_buf_set_option(stage_buf.id, "filetype", ft)
+        vim.bo[stage_buf.id].filetype = ft
     end
 
     grid:add_row({ height = 1 }):fill_window(ui.TitleWindow(ui.Buffer({
@@ -207,7 +207,7 @@ function M:diff_index()
         vim.filetype.match(cline_info.abs_path, index_buf.id)
     else
         local ft = vim.filetype.match({ filename = cline_info.abs_path }) or ""
-        vim.api.nvim_buf_set_option(index_buf.id, "filetype", ft)
+        vim.bo[index_buf.id].filetype = ft
     end
 
     grid:add_row({ height = 1 }):fill_window(ui.TitleWindow(ui.Buffer({

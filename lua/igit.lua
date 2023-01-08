@@ -99,7 +99,7 @@ function M.define_command(opts)
                     end,
                 }):start()
 
-                if current_buf and vim.api.nvim_buf_get_var(current_buf.id, "git_root") then
+                if current_buf and vim.b[current_buf.id].git_root then
                     current_buf:reload()
                 end
             end
