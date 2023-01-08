@@ -66,7 +66,7 @@ describe("Log", function()
 
                 Menu.will_select_from_menu(function()
                     assert.are.same(parsed.references, vimfn.buf_get_lines())
-                    vimfn.setrow(1)
+                    return 1
                 end)
 
                 assert.are_not.same(parsed.branches[1], test_dir.current.branch())

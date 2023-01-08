@@ -186,7 +186,7 @@ function M:diff_cached()
     grid:add_row({ focusable = true }):vfill_windows({
         ui.DiffWindow(stage_buf),
         ui.DiffWindow(worktree_buf, { focus_on_open = true }),
-    }, true)
+    })
     grid:show()
 end
 
