@@ -147,13 +147,13 @@ r       v       Rebase the visually selected commit(s) onto the destination
 -------------------------------------------------------------------------------
 STATUS                                 *igit-status*
 
-<cr>    n       :edit| the current file.
+<cr>    n       :|edit| the current file.
 
 t       n       `:tab drop` the current file.
 
 H       n,v     Stage (`git add`) the current (or visually selected) file(s).
 
-L       n,v     Unstage (`git restore --restored`)  the current (or visually
+L       n,v     Unstage (`git restore --staged`)  the current (or visually
                 selected) file(s).
 
 X       n,v     Discard (`git restore`) the current (or visually selected)

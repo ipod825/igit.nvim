@@ -19,15 +19,28 @@ function M:setup(options)
             -- non-blocking by setting multi_reload_strategy.
             n = {
                 ["<cr>"] = {
-                    callback = self:BIND(self.switch),
+                    self:BIND(self.switch),
                     multi_reload_strategy = CANCEL,
+                    desc = "Switch to the commit under cursor",
                 },
-                ["m"] = { callback = self:BIND(self.mark), multi_reload_strategy = IGNORE },
-                ["s"] = { callback = self:BIND(self.show), multi_reload_strategy = IGNORE },
-                ["R"] = { callback = self:BIND(self.reset), multi_reload_strategy = CANCEL },
-                ["ys"] = { callback = self:BIND(self.yank_sha), multi_reload_strategy = IGNORE },
+                ["m"] = {
+                    self:BIND(self.mark),
+                    multi_reload_strategy = IGNORE,
+                    desc = "Mark the current commit for operations",
+                },
+                ["s"] = {
+                    self:BIND(self.show),
+                    multi_reload_strategy = IGNORE,
+                    desc = "Show (`git show`) the commit under cursor",
+                },
+                ["R"] = {
+                    self:BIND(self.reset),
+                    multi_reload_strategy = CANCEL,
+                    desc = "Reset to the commit under cursor with menu",
+                },
+                ["ys"] = { self:BIND(self.yank_sha), multi_reload_strategy = IGNORE, desc="Yank the sha of the current commit" },
             },
-            v = { ["r"] = { callback = self:BIND(self.rebase_chain), multi_reload_strategy = CANCEL } },
+            v = { ["r"] = { self:BIND(self.rebase_chain), multi_reload_strategy = CANCEL, desc="Rebase the visually selected commit(s) onto the destination commit" } },
         },
     }, options)
     return self
@@ -39,8 +52,7 @@ function M:switch()
 end
 
 function M:reset()
-    self
-        :SUPER()
+    self:SUPER()
         :reset(self:get_current_branch_or_sha(), self:select_reference(self:parse_line().references, "Checkout"))
 end
 
@@ -98,11 +110,9 @@ function M:rebase_chain()
 
     local first_row_references = self:parse_line(row_beg).references
     if #first_row_references <= 1 then
-        ui
-            .InfoBox({
-                content = ("No branch for %s at the first selected line %d!"):format(first_row_references[1], row_beg),
-            })
-            :show()
+        ui.InfoBox({
+            content = ("No branch for %s at the first selected line %d!"):format(first_row_references[1], row_beg),
+        }):show()
         return
     end
 

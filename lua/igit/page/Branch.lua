@@ -12,18 +12,25 @@ function M:setup(options)
     self.options = vim.tbl_deep_extend("force", {
         mappings = {
             n = {
-                ["<cr>"] = self:BIND(self.switch),
-                ["i"] = self:BIND(self.rename),
-                ["m"] = { callback = self:BIND(self.mark), modify_buffer = false },
-                ["r"] = self:BIND(self.rebase_chain),
-                ["o"] = self:BIND(self.new_branch),
-                ["X"] = self:BIND(self.force_delete_branch),
-                ["s"] = self:BIND(self.show),
-                ["R"] = self:BIND(self.reset),
+                ["<cr>"] = { self:BIND(self.switch), desc = "Switch to the branch under cursor" },
+                ["i"] = { self:BIND(self.rename), desc = "Start editing mode" },
+                ["m"] = {
+                    self:BIND(self.mark),
+                    modify_buffer = false,
+                    desc = "Mark the current branch for operations",
+                },
+                ["r"] = { self:BIND(self.rebase_chain), desc = "Rebase the current branch onto the destination commit" },
+                ["o"] = { self:BIND(self.new_branch), desc = "Start editing mode" },
+                ["X"] = { self:BIND(self.force_delete_branch), desc = "Force delete the current branches" },
+                ["s"] = { self:BIND(self.show), desc = "Show (`git show`) the commit under cursor" },
+                ["R"] = { self:BIND(self.reset), desc = "Reset to the commit under cursor" },
             },
             v = {
-                ["r"] = self:BIND(self.rebase_chain),
-                ["X"] = self:BIND(self.force_delete_branch),
+                ["r"] = {
+                    self:BIND(self.rebase_chain),
+                    desc = "Rebase the visually selected branches onto the destination commit",
+                },
+                ["X"] = { self:BIND(self.force_delete_branch), desc = "Force delete the visually selected branches" },
             },
         },
     }, options)
