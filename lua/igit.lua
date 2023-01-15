@@ -31,29 +31,25 @@ function M.define_command(opts)
     parser:add_subparser(EchoParser("log"))
     parser:add_subparser(EchoParser("status"))
     parser:add_subparser(EchoParser("blame"))
-    local sub_commands = {
-        "add",
-        "checkout",
-        "clone",
-        "commit",
-        "diff",
-        "fetch",
-        "grep",
-        "init",
-        "pull",
-        "push",
-        "rebase",
-        "remote",
-        "reset",
-        "revert",
-        "rev-parse",
-        "stash",
-        "tag",
-    }
-    vim.list_extend(sub_commands, opts.git_sub_commands)
-    for cmd in iter.values(sub_commands) do
-        parser:add_subparser(EchoParser(cmd))
-    end
+
+    parser:add_subparser(EchoParser("add"):add_argument("--all"):add_argument("-u"))
+    parser:add_subparser(EchoParser("checkout"))
+    parser:add_subparser(EchoParser("clone"))
+    parser:add_subparser(EchoParser("commit"))
+    parser:add_subparser(EchoParser("diff"))
+    parser:add_subparser(EchoParser("fetch"))
+    parser:add_subparser(EchoParser("grep"))
+    parser:add_subparser(EchoParser("init"))
+    parser:add_subparser(EchoParser("merge"))
+    parser:add_subparser(EchoParser("pull"))
+    parser:add_subparser(EchoParser("push"))
+    parser:add_subparser(EchoParser("rebase"):add_argument("--continue"):add_argument("--abort"))
+    parser:add_subparser(EchoParser("remote"))
+    parser:add_subparser(EchoParser("reset"):add_argument("--hard"):add_argument("--soft"):add_argument("--mixed"))
+    parser:add_subparser(EchoParser("revert"))
+    parser:add_subparser(EchoParser("rev-parse"))
+    parser:add_subparser(EchoParser("stash"))
+    parser:add_subparser(EchoParser("tag"))
 
     local complete = function(arg_lead, cmd_line, cursor_pos)
         local beg = cmd_line:find(" ")
