@@ -150,19 +150,11 @@ function M:force_delete_branch()
 end
 
 function M:open(args, open_cmd)
-    args = args or self.options.args
-    self:open_or_new_buffer(
-        args,
-        {
-            git_root = git.find_root(),
-            type = "branch",
-        },
-        vim.tbl_deep_extend("keep", { open_cmd = open_cmd }, self.options, {
-            content = function()
-                return git.branch(args)
-            end,
-        })
-    )
+    self:SUPER():open(vim.tbl_deep_extend("force", self.options, {
+        open_cmd = open_cmd,
+        cmd = "branch",
+        args = args or self.options.args,
+    }))
 end
 
 return M

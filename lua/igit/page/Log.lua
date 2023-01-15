@@ -38,9 +38,19 @@ function M:setup(options)
                     multi_reload_strategy = CANCEL,
                     desc = "Reset to the commit under cursor with menu",
                 },
-                ["ys"] = { self:BIND(self.yank_sha), multi_reload_strategy = IGNORE, desc="Yank the sha of the current commit" },
+                ["ys"] = {
+                    self:BIND(self.yank_sha),
+                    multi_reload_strategy = IGNORE,
+                    desc = "Yank the sha of the current commit",
+                },
             },
-            v = { ["r"] = { self:BIND(self.rebase_chain), multi_reload_strategy = CANCEL, desc="Rebase the visually selected commit(s) onto the destination commit" } },
+            v = {
+                ["r"] = {
+                    self:BIND(self.rebase_chain),
+                    multi_reload_strategy = CANCEL,
+                    desc = "Rebase the visually selected commit(s) onto the destination commit",
+                },
+            },
         },
     }, options)
     return self
@@ -160,21 +170,11 @@ function M:parse_line(linenr)
 end
 
 function M:open(args, open_cmd)
-    args = args or self.options.args
-    self:open_or_new_buffer(
-        args,
-        {
-            git_root = git.find_root(),
-            type = "log",
-        },
-        vim.tbl_deep_extend("keep", { open_cmd = open_cmd }, self.options, {
-            -- Log page can have too many lines, wiping it on hidden saves memory.
-            bo = { bufhidden = "wipe" },
-            content = function()
-                return git.log(args)
-            end,
-        })
-    )
+    self:SUPER():open(vim.tbl_deep_extend("force", self.options, {
+        open_cmd = open_cmd,
+        cmd = "log",
+        args = args or self.options.args,
+    }))
 end
 
 return M

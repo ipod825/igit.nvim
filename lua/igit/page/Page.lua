@@ -4,50 +4,58 @@ local Set = require("libp.datatype.Set")
 local Job = require("libp.Job")
 local vimfn = require("libp.utils.vimfn")
 local Buffer = require("libp.ui.AnsiColorBuffer")
+local git = require("igit.git")
 
 local ui = require("libp.ui")
 
-function M:open_or_new_buffer(key, opts, buf_opts)
-    if opts.git_root == nil or opts.git_root == "" then
+local buffer_index = vim.defaulttable(Set)
+
+function M:open(opts)
+    local git_root = git.find_root()
+    if git_root == nil or git_root == "" then
         vimfn.warn("No git project found!")
         return
     end
 
-    if type(key) == "table" then
-        key = table.concat(key, "")
-    end
-
     vim.validate({
-        key = { key, "s" },
-        git_root = { opts.git_root, "s" },
-        type = { opts.type, "s" },
+        args = { opts.args, "t" },
+        cmd = { opts.cmd, "s" },
     })
 
-    self.buffer_index = self.buffer_index or Set()
-    local index = Set.size(self.buffer_index)
-    Set.add(self.buffer_index, key, (index == 0) and "" or tostring(index))
+    local name = table.concat(opts.args, "")
+    local index
 
-    buf_opts = vim.tbl_deep_extend("force", {
+    if Set.has(buffer_index[opts.cmd], name) then
+        index = buffer_index[opts.cmd][name]
+    else
+        index = Set.size(buffer_index[opts.cmd])
+        Set.add(buffer_index[opts.cmd], name, (index == 0) and "" or tostring(index))
+    end
+
+    opts = vim.tbl_deep_extend("force", {
         open_cmd = "tab drop",
-        filename = ("igit://%s-%s%s"):format(pathfn.basename(opts.git_root), opts.type, self.buffer_index[key]),
-        b = { git_root = opts.git_root },
+        content = function()
+            return git.with_default_args({ git_dir = git_root })[opts.cmd](opts.args)
+        end,
+        filename = ("igit://%s-%s%s"):format(pathfn.basename(git_root), opts.cmd, buffer_index[opts.cmd][name]),
+        b = { git_root = git_root },
         bo = {
             filetype = "igit",
             bufhidden = "hide",
         },
-    }, buf_opts)
+    }, opts)
 
     local buffer
-    if #buf_opts.open_cmd == 0 then
-        buffer = Buffer:get_or_new(buf_opts)
+    if #opts.open_cmd == 0 then
+        buffer = Buffer:get_or_new(opts)
         local grid = ui.Grid()
         grid:add_row({ focusable = true }):fill_window(ui.Window(buffer, { focus_on_open = true }))
         grid:show()
     else
-        buffer = Buffer:open_or_new(buf_opts)
+        buffer = Buffer:open_or_new(opts)
     end
 
-    vim.cmd("lcd " .. opts.git_root)
+    vim.cmd("lcd " .. git_root)
     return buffer
 end
 
