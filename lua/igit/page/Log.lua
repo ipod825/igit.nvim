@@ -12,6 +12,8 @@ function M:open(args, open_cmd)
         open_cmd = open_cmd,
         cmd = "log",
         args = args or self.options.args,
+        -- Log page can have too many lines, wiping it on hidden saves memory.
+        bo = { bufhidden = "wipe" },
     }))
 end
 
