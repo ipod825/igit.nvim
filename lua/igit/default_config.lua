@@ -62,7 +62,7 @@ return {
         -- Command to open the page. If empty "", opens in floatwin.
         open_cmd = "tab drop",
         -- Whether to reload the bufer on BufEnter.
-        buf_enter_reload = false,
+        buf_enter_reload = true,
         -- Default args for that `git log` command.
         args = { "--oneline", "--branches", "--graph", "--decorate=short" },
         -- Whether to show up a confirmation menu for rebase.
