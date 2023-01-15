@@ -21,7 +21,10 @@ function M:setup(options)
                 ["C"] = { self:BIND(self.clean_files), desc = "Clear (`git clean -ffd`) the current untracked file" },
                 ["cc"] = { self:BIND(self.commit), desc = "Commit change" },
                 ["ca"] = { self:BIND(self.commit, { amend = true }), desc = "Amend change" },
-                ["cA"] = { self:BIND(self.commit, { amend = true, backup_branch = true }), desc = "Backup the current with a brandh and then amend change" },
+                ["cA"] = {
+                    self:BIND(self.commit, { amend = true, backup_branch = true }),
+                    desc = "Backup the current with a brandh and then amend change",
+                },
                 ["dh"] = { self:BIND(self.diff_index), desc = "Show diff files between worktree and index" },
                 ["dd"] = { self:BIND(self.diff_cached), desc = "Show diff files between worktree and stage" },
                 ["<cr>"] = { self:BIND(self.open_file), desc = "Open the current file" },
@@ -70,7 +73,13 @@ function M:commit_submit(git_dir, opts)
         local backup_branch = ("%s_original_created_by_igit"):format(base_branch)
         Job({ cmd = gita.branch(backup_branch, base_branch) }):start()
     end
-    Job({ cmd = gita.commit({ opts.amend and "--amend", "-m", table.concat(lines, "\n") }) }):start()
+    Job({
+        cmd = gita.commit({
+            opts.amend and "--amend",
+            "-m",
+            ('"%s"'):format(vim.fn.escape(table.concat(lines, "\n"), '"')),
+        }),
+    }):start()
 end
 
 function M:commit(opts)
