@@ -95,6 +95,7 @@ function M.change_action(action)
     for files in iter.values(filepaths) do
         Job({ cmd = action(files) }):start()
     end
+    vimfn.ensure_exit_visual_mode()
     current_buf:reload()
     return file_count == 1
 end
