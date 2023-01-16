@@ -86,6 +86,11 @@ return {
                     multi_reload_strategy = IGNORE,
                     desc = "Show (`git show`) the commit under cursor",
                 },
+                ["r"] = {
+                    action.log.rebase_interactive,
+                    multi_reload_strategy = CANCEL,
+                    desc = "Rebase the commit under cursor onto the destination commit",
+                },
                 ["R"] = {
                     action.log.reset,
                     multi_reload_strategy = CANCEL,

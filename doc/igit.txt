@@ -141,8 +141,12 @@ r       v       Rebase the visually selected commit(s) onto the destination
                 commit pointed by HEAD. If there's 1st mark, the destination
                 commit is the branch under the 1st mark. Note that the merge
                 base is always the parent commit of the last selected commit. If
-                in normal mode, this is equivalent to cherry picking the commit
-                under cursor to the destination commit.
+                only one commit is selected, this is equivalent to cherry
+                picking the commit under cursor to the destination commit.
+
+r       n       Rebase interactive `rebase -i` from the commit under cursor
+                (excluded). Note that this reqires setting up neovim-remote
+                (nvr) as the GIT_EDITOR.
 
 -------------------------------------------------------------------------------
 STATUS                                 *igit-status*
@@ -345,7 +349,7 @@ require("igit").setup({
 			n = {
                 -- Mapping function takes a function or a table with first
                 element being a function. The function runs in plenary async
-                context. 
+                context.
                 ["a"] = function()
 					print(vim.inspect(igit.branch.parse_line()))
 				end,

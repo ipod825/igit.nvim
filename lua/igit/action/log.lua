@@ -62,6 +62,10 @@ function M.show()
     reference_action.show(M.parse_line().sha)
 end
 
+function M.rebase_interactive()
+    common_action.runasync_and_reload(git.rebase("-i", M.parse_line(vimfn.getrow()).sha))
+end
+
 function M.rebase_chain()
     local row_beg, row_end = vimfn.visual_rows()
     local branches = {}
