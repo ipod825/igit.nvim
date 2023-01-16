@@ -40,7 +40,7 @@ function M.commit_submit(git_dir, opts)
         cmd = gita.commit({
             opts.amend and "--amend",
             "-m",
-            ('"%s"'):format(vim.fn.escape(table.concat(lines, "\n"), '"')),
+            ('"%s"'):format(vim.fn.escape(table.concat(lines, "\n"), [["`\]])),
         }),
     }):start()
 end
