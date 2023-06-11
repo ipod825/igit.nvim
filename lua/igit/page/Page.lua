@@ -8,7 +8,7 @@ local git = require("igit.git")
 
 local ui = require("libp.ui")
 
-local buffer_index = vim.defaulttable(Set)
+local buffer_index = vim.defaulttable(function() return Set() end)
 
 function M:open(opts)
     local git_root = git.find_root()
