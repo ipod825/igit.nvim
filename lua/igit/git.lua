@@ -10,7 +10,7 @@ local arg_strcat_factory = function(git_cmd)
         return function(...)
             local args = git_cmd
             for e in iter.values({ ... }) do
-                if vim.tbl_islist(e) then
+                if type(e) == "table" then
                     vim.list_extend(args, e)
                 else
                     table.insert(args, e)
