@@ -1,9 +1,9 @@
 local M = {}
 
-local health_start = vim.fn["health#report_start"]
-local health_ok = vim.fn["health#report_ok"]
-local health_error = vim.fn["health#report_error"]
-local health_warn = vim.fn["health#report_warn"]
+local health_start = vim.health.start
+local health_ok = vim.health.ok
+local health_error = vim.health.error
+local health_warn = vim.health.warn
 
 function M.check()
     health_start("Installation")
